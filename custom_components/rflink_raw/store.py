@@ -27,7 +27,6 @@ from .const import (
     KEY_UPDATE_STATUS,
 )
 
-
 DEFAULT_STATE = {
     KEY_RAW_COMMAND: "10;PING;",
     KEY_PROTOCOL_DEVICE_ID: "",

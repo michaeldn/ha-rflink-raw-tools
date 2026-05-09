@@ -4,6 +4,27 @@
 
 RFLink Raw Tools is a Home Assistant custom integration that adds a cleaner RFLink control UI, RFDEBUG/QRFDEBUG helpers, repeat controls, GitHub updating, and dashboard/sidebar setup.
 
+## Important: clean up old test entities
+
+If you installed earlier test builds, Home Assistant may keep old entity names in the entity registry. That is why you may still see duplicate controls like both `RFLink Ping` and `Debug RFLink Ping`.
+
+After installing this build, remove and re-add the integration once:
+
+```text
+Settings → Devices & services → RFLink Raw Tools → three dots → Delete
+Restart Home Assistant
+Settings → Devices & services → Add integration → RFLink Raw Tools
+```
+
+Then enable:
+
+```text
+Install dashboard: yes
+Dashboard Show In Sidebar: yes
+```
+
+The default Home Assistant device page is now treated as an admin/config page. The primary daily UI is the sidebar dashboard.
+
 ## First install
 
 Open the Home Assistant Terminal and run:
@@ -37,23 +58,9 @@ ha core restart
 
 The clean RFLink Raw Tools dashboard should then appear in the left sidebar.
 
-## Default device page cleanup
-
-The Home Assistant device page cannot be fully redesigned by a custom integration. Home Assistant controls that layout.
-
-This release reduces the mess on that page by marking most setup fields as configuration entities and most status/log/help items as diagnostic entities. The main user experience should be the sidebar dashboard, while the device page should now be treated as an admin/config page.
-
-The clean daily-use UI is the sidebar dashboard:
-
-```text
-RFLink Raw Tools
-```
-
 ## Why this exists
 
-The default Home Assistant device page lists every entity in one long view. That is why it can look like a CVS receipt.
-
-RFLink Raw Tools uses a dedicated dashboard as the primary user-facing page instead:
+The default Home Assistant device page lists enabled entities in Home Assistant's own layout. This integration keeps that page for admin/config and uses a dedicated dashboard as the main user page:
 
 ```text
 Start
@@ -63,63 +70,15 @@ Debug
 Update
 ```
 
-## Dashboard yes/no / sidebar yes/no
-
-RFLink Raw Tools can register the bundled dashboard automatically.
-
-It writes a managed Lovelace dashboard block like this:
-
-```yaml
-lovelace:
-  resource_mode: storage
-  dashboards:
-    rflink-raw-tools:
-      mode: yaml
-      filename: rflink_raw_dashboard.yaml
-      title: RFLink Raw Tools
-      icon: mdi:radio-tower
-      show_in_sidebar: true
-      require_admin: false
-```
-
-If `show_in_sidebar` is on, Home Assistant shows **RFLink Raw Tools** in the left sidebar.
-
-Home Assistant supports multiple dashboards, each dashboard can be added to the sidebar, and YAML dashboards are defined under `lovelace.dashboards` with options including `filename`, `title`, `icon`, and `show_in_sidebar`.
-
-## Prerequisite
-
-The normal Home Assistant RFLink integration must already be working before RFLink Raw Tools can send RFLink commands.
-
-Example `configuration.yaml`:
-
-```yaml
-rflink:
-  port: /dev/ttyUSB0
-  wait_for_ack: false
-  reconnect_interval: 10
-```
-
-You should see this in the Home Assistant logs:
-
-```text
-Connected to Rflink
-```
-
 ## Update from the UI
 
-After the first install, open:
-
-```text
-Settings → Devices & services → Devices → RFLink Raw Tools
-```
-
-Press:
+After the first install, open the RFLink Raw Tools device and press:
 
 ```text
 Update Download Latest From GitHub
 ```
 
-Then restart Home Assistant Core from the UI.
+Then restart Home Assistant Core.
 
 ## Important limitation
 

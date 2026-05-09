@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory, EntityDescription
+from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
     DEVICE_IDENTIFIER,
@@ -30,6 +30,8 @@ class RFLinkRawSensorDescription(EntityDescription):
     """Description for an RFLink Raw Tools sensor."""
 
     state_key: str
+    entity_category: str | None = "diagnostic"
+    enabled_default: bool = False
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
@@ -57,6 +59,8 @@ class RFLinkRawSensor(SensorEntity):
         self.entity_description = description
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
+        self._attr_entity_category = description.entity_category
+        self._attr_entity_registry_enabled_default = description.enabled_default
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
             name=DEVICE_NAME,

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory, EntityDescription
+from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
     DEVICE_IDENTIFIER,
@@ -31,6 +31,7 @@ class RFLinkRawSwitchDescription(EntityDescription):
     switch_type: str = "command"
     on_command: str | None = None
     off_command: str | None = None
+    entity_category: str | None = "config"
 
 
 SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
@@ -40,7 +41,6 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:menu-open",
         state_key=KEY_DASHBOARD_SHOW_IN_SIDEBAR,
         switch_type="state",
-        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawSwitchDescription(
         key="dashboard_require_admin",
@@ -48,7 +48,6 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:shield-account-outline",
         state_key=KEY_DASHBOARD_REQUIRE_ADMIN,
         switch_type="state",
-        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawSwitchDescription(
         key="setup_prereq_wait_for_ack",
@@ -56,7 +55,6 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:handshake-outline",
         state_key=KEY_PREREQ_WAIT_FOR_ACK,
         switch_type="state",
-        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawSwitchDescription(
         key="debug_rfdebug",
@@ -90,6 +88,7 @@ class RFLinkRawSwitch(SwitchEntity):
         self.entity_description = description
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
+        self._attr_entity_category = description.entity_category
         self._attr_is_on = False
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, DEVICE_IDENTIFIER)},

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from homeassistant.components import persistent_notification
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory, EntityDescription
+from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
     DEVICE_IDENTIFIER,
@@ -40,6 +40,8 @@ class RFLinkRawButtonDescription(EntityDescription):
 
     command: str | None = None
     action_type: str = "direct"
+    entity_category: str | None = None
+    enabled_default: bool = True
 
 
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
@@ -48,21 +50,21 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Dashboard Install / Update Sidebar Page",
         icon="mdi:view-dashboard-edit-outline",
         action_type="install_dashboard",
-        entity_category=EntityCategory.CONFIG,
+        entity_category="config",
     ),
     RFLinkRawButtonDescription(
         key="update_download_latest",
         name="Update Download Latest From GitHub",
         icon="mdi:cloud-download-outline",
         action_type="update_from_github",
-        entity_category=EntityCategory.CONFIG,
+        entity_category="config",
     ),
     RFLinkRawButtonDescription(
         key="update_show_status",
         name="Update Show Installed Location",
         icon="mdi:information-outline",
         action_type="show_update_status",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
     RFLinkRawButtonDescription(
@@ -70,14 +72,14 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Setup Load Default Prerequisite Values",
         icon="mdi:tune-variant",
         action_type="load_default_prereq",
-        entity_category=EntityCategory.CONFIG,
+        entity_category="config",
     ),
     RFLinkRawButtonDescription(
         key="setup_install_prerequisite",
         name="Setup Install RFLink Prerequisite YAML",
         icon="mdi:file-cog-outline",
         action_type="install_prerequisite",
-        entity_category=EntityCategory.CONFIG,
+        entity_category="config",
     ),
     RFLinkRawButtonDescription(
         key="control_send_raw_text",
@@ -96,7 +98,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Load Example Raw Command",
         icon="mdi:code-tags",
         action_type="load_example_raw",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
     RFLinkRawButtonDescription(
@@ -104,7 +106,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Load Example Protocol Command",
         icon="mdi:gesture-tap-button",
         action_type="load_example_protocol",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
     RFLinkRawButtonDescription(
@@ -112,7 +114,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Show Log Commands",
         icon="mdi:text-box-search-outline",
         action_type="show_logs_help",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
     RFLinkRawButtonDescription(
@@ -120,7 +122,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Show Find Device Steps",
         icon="mdi:radar",
         action_type="show_find_device_help",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
     RFLinkRawButtonDescription(
@@ -128,16 +130,16 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Show Dashboard Setup",
         icon="mdi:view-dashboard-edit-outline",
         action_type="show_dashboard_help",
-        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_category="diagnostic",
         enabled_default=False,
     ),
-    RFLinkRawButtonDescription(key="debug_ping", name="Debug RFLink Ping", icon="mdi:access-point-check", command="10;PING;"),
-    RFLinkRawButtonDescription(key="debug_version", name="Debug RFLink Version", icon="mdi:information-outline", command="10;VERSION;"),
-    RFLinkRawButtonDescription(key="debug_status", name="Debug RFLink Status", icon="mdi:list-status", command="10;STATUS;"),
-    RFLinkRawButtonDescription(key="debug_rfdebug_on", name="Debug Start RFDEBUG Capture", icon="mdi:radio-tower", command="10;RFDEBUG=ON;"),
-    RFLinkRawButtonDescription(key="debug_rfdebug_off", name="Debug Stop RFDEBUG Capture", icon="mdi:radio-tower-off", command="10;RFDEBUG=OFF;"),
-    RFLinkRawButtonDescription(key="debug_qrfdebug_on", name="Debug Start QRFDEBUG Capture", icon="mdi:signal", command="10;QRFDEBUG=ON;"),
-    RFLinkRawButtonDescription(key="debug_qrfdebug_off", name="Debug Stop QRFDEBUG Capture", icon="mdi:signal-off", command="10;QRFDEBUG=OFF;"),
+    RFLinkRawButtonDescription(key="debug_ping", name="Debug RFLink Ping", icon="mdi:access-point-check", command="10;PING;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_version", name="Debug RFLink Version", icon="mdi:information-outline", command="10;VERSION;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_status", name="Debug RFLink Status", icon="mdi:list-status", command="10;STATUS;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_rfdebug_on", name="Debug Start RFDEBUG Capture", icon="mdi:radio-tower", command="10;RFDEBUG=ON;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_rfdebug_off", name="Debug Stop RFDEBUG Capture", icon="mdi:radio-tower-off", command="10;RFDEBUG=OFF;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_qrfdebug_on", name="Debug Start QRFDEBUG Capture", icon="mdi:signal", command="10;QRFDEBUG=ON;", entity_category="config"),
+    RFLinkRawButtonDescription(key="debug_qrfdebug_off", name="Debug Stop QRFDEBUG Capture", icon="mdi:signal-off", command="10;QRFDEBUG=OFF;", entity_category="config"),
 )
 
 
@@ -156,6 +158,8 @@ class RFLinkRawButton(ButtonEntity):
         self.entity_description = description
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
+        self._attr_entity_category = description.entity_category
+        self._attr_entity_registry_enabled_default = description.enabled_default
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
             name=DEVICE_NAME,
@@ -276,75 +280,23 @@ Next steps:
             return
 
         if self.entity_description.action_type == "load_example_raw":
-            update_state(
-                self.hass,
-                **{
-                    KEY_RAW_COMMAND: "10;NewKaku;0cac142;3;ON;",
-                    KEY_REPEAT: 3,
-                    KEY_DELAY_MS: 250,
-                },
-            )
-            persistent_notification.async_create(
-                self.hass,
-                "Loaded example raw command. Edit it, then press **Control Send RFLink Raw Command**.",
-                title="RFLink Raw Tools • Example Raw Command Loaded",
-                notification_id="rflink_raw_example_raw",
-            )
+            update_state(self.hass, **{KEY_RAW_COMMAND: "10;NewKaku;0cac142;3;ON;", KEY_REPEAT: 3, KEY_DELAY_MS: 250})
             return
 
         if self.entity_description.action_type == "load_example_protocol":
-            update_state(
-                self.hass,
-                **{
-                    KEY_PROTOCOL_DEVICE_ID: "newkaku_0cac142_3",
-                    KEY_PROTOCOL_COMMAND: "on",
-                    KEY_REPEAT: 3,
-                    KEY_DELAY_MS: 250,
-                },
-            )
-            persistent_notification.async_create(
-                self.hass,
-                "Loaded example protocol command. Next press **Control Send RFLink Protocol Command**.",
-                title="RFLink Raw Tools • Example Protocol Command Loaded",
-                notification_id="rflink_raw_example_protocol",
-            )
+            update_state(self.hass, **{KEY_PROTOCOL_DEVICE_ID: "newkaku_0cac142_3", KEY_PROTOCOL_COMMAND: "on", KEY_REPEAT: 3, KEY_DELAY_MS: 250})
             return
 
         if self.entity_description.action_type == "show_logs_help":
-            persistent_notification.async_create(
-                self.hass,
-                """**Where to see logs**
-
-- UI: **Settings → System → Logs**
-- Terminal: `ha core logs | grep -i -E "rflink|rflink_raw|debug|pulses|raw"`""",
-                title="RFLink Raw Tools • Log Commands",
-                notification_id="rflink_raw_log_help",
-            )
+            persistent_notification.async_create(self.hass, "Logs: Settings → System → Logs, or `ha core logs | grep -i rflink`.", title="RFLink Raw Tools • Logs")
             return
 
         if self.entity_description.action_type == "show_find_device_help":
-            persistent_notification.async_create(
-                self.hass,
-                """**How to find a device**
-
-1. Press **Debug Start QRFDEBUG Capture**.
-2. Press the remote/device button.
-3. Check logs for decoded packets.
-4. Stop QRFDEBUG when finished.""",
-                title="RFLink Raw Tools • Find Device Steps",
-                notification_id="rflink_raw_find_device_help",
-            )
+            persistent_notification.async_create(self.hass, "Start QRFDEBUG, press the RF remote/device button, then check logs.", title="RFLink Raw Tools • Find Device")
             return
 
         if self.entity_description.action_type == "show_dashboard_help":
-            persistent_notification.async_create(
-                self.hass,
-                """The clean dashboard is registered through **Dashboard Install / Update Sidebar Page**.
-
-If **Dashboard Show In Sidebar** is on, it appears in the left menu after restart.""",
-                title="RFLink Raw Tools • Dashboard Setup",
-                notification_id="rflink_raw_dashboard_help",
-            )
+            persistent_notification.async_create(self.hass, "Install the sidebar dashboard using Dashboard Install / Update Sidebar Page.", title="RFLink Raw Tools • Dashboard")
             return
 
         await async_send_direct_command(self.hass, self.entity_description.command, 1, 250)
