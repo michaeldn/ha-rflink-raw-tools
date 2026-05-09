@@ -1,6 +1,6 @@
 # RFLink Raw Tools
 
-![RFLink Raw Tools Logo](assets/logo.png)
+<p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="220"></p>
 
 RFLink Raw Tools is a Home Assistant custom integration that adds a **Devices & services UI** for RFLink gateway commands.
 
