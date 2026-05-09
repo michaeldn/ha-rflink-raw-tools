@@ -1,74 +1,360 @@
 title: RFLink Raw Tools
 views:
-  - title: RFLink Raw Tools
-    path: rflink-raw-tools
-    icon: mdi:radio-tower
-    sections:
-      - type: grid
-        cards:
-          - type: picture
-            image: /local/rflink_raw/logo.png
-            tap_action:
-              action: none
-            hold_action:
-              action: none
-          - type: markdown
-            content: |
-              ## RFLink Raw Tools
-              A cleaner second page for daily use.
+  - title: Start
+    path: rflink-start
+    icon: mdi:home-automation
+    cards:
+      - type: picture
+        image: /local/rflink_raw/logo.png
+        tap_action:
+          action: none
+        hold_action:
+          action: none
 
-              **Recommended flow:**
-              1. Use **Setup** first.
-              2. Use **Control** to send commands.
-              3. Use **Debug** to capture packets.
-              4. Use **Help** if you need logs or device-finding steps.\n                  5. Use **Update** to download the latest version without command line.
+      - type: markdown
+        content: |
+          # RFLink Raw Tools
+
+          Use this page in order:
+
+          **1. Setup** — install or confirm the normal RFLink prerequisite.  
+          **2. Control** — send RFLink commands.  
+          **3. Debug** — capture RF packets and check logs.  
+          **4. Update** — download the latest GitHub version from the UI.
+
       - type: grid
+        columns: 2
+        square: false
         cards:
-          - type: entities
-            title: Setup
-            show_header_toggle: false
-            entities:
-              - text.setup_rflink_prerequisite_port
-              - switch.setup_rflink_prerequisite_wait_for_ack
-              - number.setup_rflink_prerequisite_reconnect_interval
-              - button.setup_load_default_prerequisite_values
-              - button.setup_install_rflink_prerequisite_yaml
-              - sensor.status_rflink_prerequisite_status
-          - type: entities
-            title: Control
-            show_header_toggle: false
-            entities:
-              - text.control_rflink_raw_command
-              - text.control_rflink_protocol_device_id
-              - text.control_rflink_protocol_command
-              - number.control_rflink_repeat_count
-              - number.control_rflink_repeat_delay
-              - button.control_send_rflink_raw_command
-              - button.control_send_rflink_protocol_command
+          - type: button
+            name: Open setup help
+            icon: mdi:file-cog-outline
+            entity: button.help_show_dashboard_setup
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_show_dashboard_setup
+          - type: button
+            name: Show log commands
+            icon: mdi:text-box-search-outline
+            entity: button.help_show_log_commands
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_show_log_commands
+
+      - type: entities
+        title: Status
+        show_header_toggle: false
+        entities:
+          - entity: sensor.status_rflink_prerequisite_status
+            name: Prerequisite
+          - entity: sensor.status_rflink_update_status
+            name: Update
+          - entity: sensor.status_rflink_last_command
+            name: Last command
+          - entity: sensor.status_rflink_last_error
+            name: Last error
+
+  - title: Setup
+    path: rflink-setup
+    icon: mdi:cog-outline
+    cards:
+      - type: markdown
+        content: |
+          ## Setup RFLink
+
+          This writes the normal Home Assistant RFLink prerequisite into `configuration.yaml`.
+
+          Typical HAOS USB/IP value: `/dev/ttyUSB0`
+
+      - type: entities
+        title: Prerequisite settings
+        show_header_toggle: false
+        entities:
+          - entity: text.setup_rflink_prerequisite_port
+            name: USB port
+          - entity: switch.setup_rflink_prerequisite_wait_for_ack
+            name: Wait for ACK
+          - entity: number.setup_rflink_prerequisite_reconnect_interval
+            name: Reconnect interval
+
       - type: grid
+        columns: 2
+        square: false
         cards:
-          - type: entities
-            title: Debug
-            show_header_toggle: false
-            entities:
-              - switch.debug_rflink_rfdebug
-              - switch.debug_rflink_qrfdebug
-              - button.debug_start_rfdebug_capture
-              - button.debug_stop_rfdebug_capture
-              - button.debug_start_qrfdebug_capture
-              - button.debug_stop_qrfdebug_capture
-              - button.debug_rflink_ping
-              - button.debug_rflink_version
-              - button.debug_rflink_status
-          - type: entities
-            title: Help & Status
-            show_header_toggle: false
-            entities:
-              - button.help_show_log_commands
-              - button.help_show_find_device_steps
-              - button.help_show_dashboard_setup
-              - button.help_load_example_raw_command
-              - button.help_load_example_protocol_command
-              - sensor.status_rflink_last_command
-              - sensor.status_rflink_last_response
-              - sensor.status_rflink_last_error
+          - type: button
+            name: Load defaults
+            icon: mdi:tune-variant
+            entity: button.setup_load_default_prerequisite_values
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.setup_load_default_prerequisite_values
+          - type: button
+            name: Install YAML
+            icon: mdi:file-cog-outline
+            entity: button.setup_install_rflink_prerequisite_yaml
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.setup_install_rflink_prerequisite_yaml
+
+      - type: entities
+        title: Setup result
+        show_header_toggle: false
+        entities:
+          - entity: sensor.status_rflink_prerequisite_status
+            name: Last prerequisite status
+
+  - title: Control
+    path: rflink-control
+    icon: mdi:remote
+    cards:
+      - type: markdown
+        content: |
+          ## Send commands
+
+          Use **Raw command** for complete RFLink `10;...;` command lines.
+
+          Use **Protocol command** when Home Assistant already knows the RFLink device ID.
+
+      - type: entities
+        title: Raw command
+        show_header_toggle: false
+        entities:
+          - entity: text.control_rflink_raw_command
+            name: Command
+          - entity: number.control_rflink_repeat_count
+            name: Repeat
+          - entity: number.control_rflink_repeat_delay
+            name: Delay
+          - type: button
+            name: Send raw command
+            icon: mdi:send
+            action_name: Send
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.control_send_rflink_raw_command
+
+      - type: entities
+        title: Protocol command
+        show_header_toggle: false
+        entities:
+          - entity: text.control_rflink_protocol_device_id
+            name: Device ID
+          - entity: text.control_rflink_protocol_command
+            name: Command
+          - entity: number.control_rflink_repeat_count
+            name: Repeat
+          - entity: number.control_rflink_repeat_delay
+            name: Delay
+          - type: button
+            name: Send protocol command
+            icon: mdi:remote
+            action_name: Send
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.control_send_rflink_protocol_command
+
+      - type: grid
+        title: Examples
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Load raw example
+            icon: mdi:code-tags
+            entity: button.help_load_example_raw_command
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_load_example_raw_command
+          - type: button
+            name: Load protocol example
+            icon: mdi:gesture-tap-button
+            entity: button.help_load_example_protocol_command
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_load_example_protocol_command
+
+      - type: entities
+        title: Result
+        show_header_toggle: false
+        entities:
+          - entity: sensor.status_rflink_last_command
+            name: Last command
+          - entity: sensor.status_rflink_last_response
+            name: Last response
+          - entity: sensor.status_rflink_last_error
+            name: Last error
+
+  - title: Debug
+    path: rflink-debug
+    icon: mdi:radio-tower
+    cards:
+      - type: markdown
+        content: |
+          ## Debug and find devices
+
+          Start capture, press the physical remote/device button once, then check logs.
+
+          Use **QRFDEBUG** for cleaner/faster raw captures.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Start QRFDEBUG
+            icon: mdi:signal
+            entity: button.debug_start_qrfdebug_capture
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_start_qrfdebug_capture
+          - type: button
+            name: Stop QRFDEBUG
+            icon: mdi:signal-off
+            entity: button.debug_stop_qrfdebug_capture
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_stop_qrfdebug_capture
+          - type: button
+            name: Start RFDEBUG
+            icon: mdi:radio-tower
+            entity: button.debug_start_rfdebug_capture
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_start_rfdebug_capture
+          - type: button
+            name: Stop RFDEBUG
+            icon: mdi:radio-tower-off
+            entity: button.debug_stop_rfdebug_capture
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_stop_rfdebug_capture
+
+      - type: grid
+        title: RFLink tests
+        columns: 3
+        square: false
+        cards:
+          - type: button
+            name: Ping
+            icon: mdi:access-point-check
+            entity: button.debug_rflink_ping
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_rflink_ping
+          - type: button
+            name: Version
+            icon: mdi:information-outline
+            entity: button.debug_rflink_version
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_rflink_version
+          - type: button
+            name: Status
+            icon: mdi:list-status
+            entity: button.debug_rflink_status
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.debug_rflink_status
+
+      - type: entities
+        title: Debug switches
+        show_header_toggle: false
+        entities:
+          - entity: switch.debug_rflink_qrfdebug
+            name: QRFDEBUG
+          - entity: switch.debug_rflink_rfdebug
+            name: RFDEBUG
+
+      - type: grid
+        title: Help
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Find device steps
+            icon: mdi:radar
+            entity: button.help_show_find_device_steps
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_show_find_device_steps
+          - type: button
+            name: Log commands
+            icon: mdi:text-box-search-outline
+            entity: button.help_show_log_commands
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.help_show_log_commands
+
+  - title: Update
+    path: rflink-update
+    icon: mdi:update
+    cards:
+      - type: markdown
+        content: |
+          ## Update without command line
+
+          Press **Download latest**, wait for the notification, then restart Home Assistant Core from the UI.
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Download latest
+            icon: mdi:cloud-download-outline
+            entity: button.update_download_latest_from_github
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.update_download_latest_from_github
+          - type: button
+            name: Show update help
+            icon: mdi:information-outline
+            entity: button.update_show_installed_location
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.update_show_installed_location
+
+      - type: entities
+        title: Update status
+        show_header_toggle: false
+        entities:
+          - entity: sensor.status_rflink_update_status
+            name: Status

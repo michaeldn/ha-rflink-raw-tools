@@ -68,22 +68,37 @@ The Help buttons open persistent notifications inside Home Assistant with the ne
 
 ## Cleaner second page dashboard
 
-This package installs:
+The default Home Assistant device page is functional, but it can look crowded because Home Assistant lists every entity in one long device view.
 
-- `/config/www/rflink_raw/logo.png`
-- `/config/rflink_raw_dashboard.yaml`
+RFLink Raw Tools includes a cleaner dedicated dashboard file:
 
-Use that YAML file to create a dedicated RFLink Raw Tools dashboard page in Home Assistant.
+```text
+/config/rflink_raw_dashboard.yaml
+```
 
-Go to:
+It is organized into separate pages:
+
+```text
+Start
+Setup
+Control
+Debug
+Update
+```
+
+This avoids the long “CVS receipt” control section and gives non-technical users a clearer flow.
+
+To use it, go to:
 
 ```text
 Settings → Dashboards
 ```
 
-and create/import a dashboard using `/config/rflink_raw_dashboard.yaml`.
+Create a new dashboard and import/use the YAML from:
 
-That second page is cleaner than the default device page and uses the bundled logo.
+```text
+/config/rflink_raw_dashboard.yaml
+```
 
 ## Update from the UI
 
