@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.2-undo-safe-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.2-undo-safe-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.3-admin-controls-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.3-admin-controls-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
@@ -28,7 +28,7 @@ cp -R "$EXTRACT"/* .
 chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh
 
 git add .
-git commit -m "Add safe undo controls for RFLink Raw Tools" || true
+git commit -m "Fix admin controls and prevent duplicate config entries" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"

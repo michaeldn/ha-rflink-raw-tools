@@ -4,9 +4,28 @@
 
 RFLink Raw Tools is a Home Assistant custom integration for RFLink command sending, RFDEBUG/QRFDEBUG, dashboard/sidebar setup, and UI-based updates.
 
-## v0.1.2 Safe Undo Build
+## v0.1.3 Admin Controls + Safe Undo Build
 
 This build is designed so every managed change has a matching undo path.
+
+
+## v0.1.3 admin page behavior
+
+The Home Assistant device page cannot run a true navigation/open action from an integration-created button. Home Assistant renders integration button entities with a **Press** action.
+
+So this build removes the fake visible Open button from the main admin page. The main RFLink Raw Tools device page should now show only the actual reversible controls:
+
+```text
+Install RFLink Prerequisite
+Add Dashboard
+Add To Sidebar
+```
+
+The optional dashboard-path helper is disabled by default and can be enabled from entity settings if needed.
+
+The dashboard itself is opened from the left sidebar after **Add To Sidebar** is on and Home Assistant is restarted.
+
+This build also prevents future duplicate RFLink Raw Tools config entries. Existing duplicate entries from previous test builds still need to be removed/disabled once from the Home Assistant UI or with the included undo script.
 
 ### UI undo switches
 

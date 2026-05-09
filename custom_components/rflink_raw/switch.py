@@ -52,7 +52,7 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:file-cog-outline",
         state_key=KEY_PREREQ_INSTALLED,
         switch_type="install_prereq",
-        entity_category="config",
+        entity_category=None,
     ),
     RFLinkRawSwitchDescription(
         key="dashboard_enabled",
@@ -60,7 +60,7 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:view-dashboard-plus-outline",
         state_key=KEY_DASHBOARD_ENABLED,
         switch_type="dashboard_enabled",
-        entity_category="config",
+        entity_category=None,
     ),
     RFLinkRawSwitchDescription(
         key="dashboard_show_in_sidebar",
@@ -68,7 +68,7 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         icon="mdi:menu-open",
         state_key=KEY_DASHBOARD_SHOW_IN_SIDEBAR,
         switch_type="dashboard_sidebar",
-        entity_category="config",
+        entity_category=None,
     ),
     RFLinkRawSwitchDescription(
         key="dashboard_require_admin",

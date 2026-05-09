@@ -44,9 +44,11 @@ class RFLinkRawButtonDescription(EntityDescription):
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
     RFLinkRawButtonDescription(
         key="open_dashboard",
-        name="Open RFLink Tools Dashboard",
-        icon="mdi:open-in-new",
+        name="Show Dashboard Path",
+        icon="mdi:information-outline",
         action_type="open_dashboard",
+        entity_category="diagnostic",
+        enabled_default=False,
         device_area="admin",
     ),
     RFLinkRawButtonDescription(
