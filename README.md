@@ -41,3 +41,17 @@ custom_components/rflink_raw/number.py
 ```
 
 Those files are required because `PLATFORMS = ["button", "switch", "text", "number"]`.
+
+
+## Approved logo fix
+
+This package restores the approved RFLink Raw Tools logo and includes the Home Assistant brand assets:
+
+```text
+custom_components/rflink_raw/brand/icon.png
+custom_components/rflink_raw/brand/logo.png
+custom_components/rflink_raw/brand/dark_icon.png
+custom_components/rflink_raw/brand/dark_logo.png
+```
+
+The version remains `0.0.1`.

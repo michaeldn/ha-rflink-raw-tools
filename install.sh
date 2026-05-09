@@ -17,6 +17,12 @@ fi
 if [ -f "$DASHBOARD_FILE" ]; then
   cp "$DASHBOARD_FILE" "$BACKUP_DIR/rflink_raw_dashboard.yaml"
 fi
+if [ -f /config/repair-stale-rflink-raw-entities.sh ]; then
+  cp /config/repair-stale-rflink-raw-entities.sh "$BACKUP_DIR/repair-stale-rflink-raw-entities.sh"
+fi
+if [ -f /config/undo-rflink-raw-tools.sh ]; then
+  cp /config/undo-rflink-raw-tools.sh "$BACKUP_DIR/undo-rflink-raw-tools.sh"
+fi
 
 rm -f "$TMP_ZIP"
 rm -rf "$TMP_DIR" "$TARGET_DIR"
@@ -31,6 +37,14 @@ if [ -f "$TMP_DIR/assets/logo.png" ]; then
 fi
 if [ -f "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" ]; then
   cp "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" "$DASHBOARD_FILE"
+fi
+if [ -f "$TMP_DIR/repair-stale-rflink-raw-entities.sh" ]; then
+  cp "$TMP_DIR/repair-stale-rflink-raw-entities.sh" /config/repair-stale-rflink-raw-entities.sh
+  chmod +x /config/repair-stale-rflink-raw-entities.sh
+fi
+if [ -f "$TMP_DIR/undo-rflink-raw-tools.sh" ]; then
+  cp "$TMP_DIR/undo-rflink-raw-tools.sh" /config/undo-rflink-raw-tools.sh
+  chmod +x /config/undo-rflink-raw-tools.sh
 fi
 
 echo "Installed RFLink Raw Tools."
