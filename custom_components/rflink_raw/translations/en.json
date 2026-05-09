@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Set up RFLink Raw Tools",
-        "description": "This adds the RFLink Raw Tools UI. It can also install the normal RFLink prerequisite YAML block into configuration.yaml for you."
+        "description": "This adds the RFLink Raw Tools UI, clearer action labels, help buttons, and an optional dashboard page. It can also install the normal RFLink prerequisite YAML block into configuration.yaml for you."
       }
     },
     "error": {

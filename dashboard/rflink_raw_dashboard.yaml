@@ -1,0 +1,74 @@
+title: RFLink Raw Tools
+views:
+  - title: RFLink Raw Tools
+    path: rflink-raw-tools
+    icon: mdi:radio-tower
+    sections:
+      - type: grid
+        cards:
+          - type: picture
+            image: /local/rflink_raw/logo.png
+            tap_action:
+              action: none
+            hold_action:
+              action: none
+          - type: markdown
+            content: |
+              ## RFLink Raw Tools
+              A cleaner second page for daily use.
+
+              **Recommended flow:**
+              1. Use **Setup** first.
+              2. Use **Control** to send commands.
+              3. Use **Debug** to capture packets.
+              4. Use **Help** if you need logs or device-finding steps.
+      - type: grid
+        cards:
+          - type: entities
+            title: Setup
+            show_header_toggle: false
+            entities:
+              - text.setup_rflink_prerequisite_port
+              - switch.setup_rflink_prerequisite_wait_for_ack
+              - number.setup_rflink_prerequisite_reconnect_interval
+              - button.setup_load_default_prerequisite_values
+              - button.setup_install_rflink_prerequisite_yaml
+              - sensor.status_rflink_prerequisite_status
+          - type: entities
+            title: Control
+            show_header_toggle: false
+            entities:
+              - text.control_rflink_raw_command
+              - text.control_rflink_protocol_device_id
+              - text.control_rflink_protocol_command
+              - number.control_rflink_repeat_count
+              - number.control_rflink_repeat_delay
+              - button.control_send_rflink_raw_command
+              - button.control_send_rflink_protocol_command
+      - type: grid
+        cards:
+          - type: entities
+            title: Debug
+            show_header_toggle: false
+            entities:
+              - switch.debug_rflink_rfdebug
+              - switch.debug_rflink_qrfdebug
+              - button.debug_start_rfdebug_capture
+              - button.debug_stop_rfdebug_capture
+              - button.debug_start_qrfdebug_capture
+              - button.debug_stop_qrfdebug_capture
+              - button.debug_rflink_ping
+              - button.debug_rflink_version
+              - button.debug_rflink_status
+          - type: entities
+            title: Help & Status
+            show_header_toggle: false
+            entities:
+              - button.help_show_log_commands
+              - button.help_show_find_device_steps
+              - button.help_show_dashboard_setup
+              - button.help_load_example_raw_command
+              - button.help_load_example_protocol_command
+              - sensor.status_rflink_last_command
+              - sensor.status_rflink_last_response
+              - sensor.status_rflink_last_error

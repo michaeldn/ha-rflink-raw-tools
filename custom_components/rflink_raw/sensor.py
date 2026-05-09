@@ -25,31 +25,25 @@ from .store import get_state
 
 @dataclass(frozen=True, kw_only=True)
 class RFLinkRawSensorDescription(EntityDescription):
-    """Description for an RFLink Raw Tools sensor."""
-
     state_key: str
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
-    RFLinkRawSensorDescription(key="prereq_status", name="RFLink Prerequisite Status", icon="mdi:file-check-outline", state_key=KEY_PREREQ_STATUS),
-    RFLinkRawSensorDescription(key="last_command", name="RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND),
-    RFLinkRawSensorDescription(key="last_response", name="RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE),
-    RFLinkRawSensorDescription(key="last_error", name="RFLink Last Error", icon="mdi:alert-circle-outline", state_key=KEY_LAST_ERROR),
+    RFLinkRawSensorDescription(key="status_prereq_status", name="Status RFLink Prerequisite Status", icon="mdi:file-check-outline", state_key=KEY_PREREQ_STATUS),
+    RFLinkRawSensorDescription(key="status_last_command", name="Status RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND),
+    RFLinkRawSensorDescription(key="status_last_response", name="Status RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE),
+    RFLinkRawSensorDescription(key="status_last_error", name="Status RFLink Last Error", icon="mdi:alert-circle-outline", state_key=KEY_LAST_ERROR),
 )
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
-    """Set up RFLink Raw Tools sensors."""
     async_add_entities(RFLinkRawSensor(hass, entry.entry_id, description) for description in SENSORS)
 
 
 class RFLinkRawSensor(SensorEntity):
-    """RFLink Raw Tools sensor."""
-
     _attr_has_entity_name = False
 
     def __init__(self, hass, entry_id: str, description: RFLinkRawSensorDescription) -> None:
-        """Initialize the sensor."""
         self.hass = hass
         self.entity_description = description
         self._attr_name = description.name
@@ -64,7 +58,6 @@ class RFLinkRawSensor(SensorEntity):
 
     @property
     def native_value(self) -> str:
-        """Return sensor value."""
         value = get_state(self.hass).get(self.entity_description.state_key, "")
         if len(value) > 250:
             return value[:247] + "..."
