@@ -1,111 +1,75 @@
-"""RFLink Raw Tools custom integration."""
+"""RFLink Raw Tools integration."""
 
 from __future__ import annotations
-
-import logging
 
 import voluptuous as vol
 
 from homeassistant.const import CONF_COMMAND, CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import (
-    ATTR_DELAY_MS,
-    ATTR_MODE,
-    ATTR_RAW_COMMAND,
-    ATTR_REPEAT,
-    DOMAIN,
-    PLATFORMS,
-)
+from .const import DOMAIN, PLATFORMS
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .store import async_initialize_store
-
-_LOGGER = logging.getLogger(__name__)
+from .updater import restore_last_update, update_from_github
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
 
 SEND_RAW_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_RAW_COMMAND): cv.string,
-        vol.Optional(ATTR_REPEAT, default=1): vol.Coerce(int),
-        vol.Optional(ATTR_DELAY_MS, default=250): vol.Coerce(int),
+        vol.Required("raw_command"): cv.string,
+        vol.Optional("repeat", default=1): vol.Coerce(int),
+        vol.Optional("delay_ms", default=250): vol.Coerce(int),
     }
 )
-RFDEBUG_SCHEMA = vol.Schema({vol.Required(ATTR_MODE): vol.In(["on", "off", "ON", "OFF"])})
-QRFDEBUG_SCHEMA = vol.Schema({vol.Required(ATTR_MODE): vol.In(["on", "off", "ON", "OFF"])})
+
 SEND_PROTOCOL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_DEVICE_ID): cv.string,
         vol.Required(CONF_COMMAND): cv.string,
-        vol.Optional(ATTR_REPEAT, default=1): vol.Coerce(int),
-        vol.Optional(ATTR_DELAY_MS, default=250): vol.Coerce(int),
+        vol.Optional("repeat", default=1): vol.Coerce(int),
+        vol.Optional("delay_ms", default=250): vol.Coerce(int),
     }
 )
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up RFLink Raw Tools services."""
+    """Set up services."""
 
-    async def async_send_raw(call: ServiceCall) -> None:
-        await async_send_direct_command(
+    async def send_raw(call: ServiceCall) -> None:
+        await async_send_direct_command(hass, call.data["raw_command"], call.data["repeat"], call.data["delay_ms"])
+
+    async def send_protocol(call: ServiceCall) -> None:
+        await async_send_protocol_command(
             hass,
-            call.data[ATTR_RAW_COMMAND],
-            call.data.get(ATTR_REPEAT, 1),
-            call.data.get(ATTR_DELAY_MS, 250),
+            call.data[CONF_DEVICE_ID],
+            call.data[CONF_COMMAND],
+            call.data["repeat"],
+            call.data["delay_ms"],
         )
 
-    async def async_set_rfdebug(call: ServiceCall) -> None:
-        mode = call.data[ATTR_MODE].upper()
-        await async_send_direct_command(hass, f"10;RFDEBUG={mode};", 1, 250)
+    async def do_update(call: ServiceCall) -> None:
+        update_from_github(hass)
 
-    async def async_set_qrfdebug(call: ServiceCall) -> None:
-        mode = call.data[ATTR_MODE].upper()
-        await async_send_direct_command(hass, f"10;QRFDEBUG={mode};", 1, 250)
+    async def do_restore(call: ServiceCall) -> None:
+        restore_last_update(hass)
 
-    async def async_send_protocol(call: ServiceCall) -> None:
-        device_id = call.data[CONF_DEVICE_ID]
-        command = call.data[CONF_COMMAND]
+    hass.services.async_register(DOMAIN, "send_raw", send_raw, schema=SEND_RAW_SCHEMA)
+    hass.services.async_register(DOMAIN, "send_protocol", send_protocol, schema=SEND_PROTOCOL_SCHEMA)
+    hass.services.async_register(DOMAIN, "update_from_github", do_update)
+    hass.services.async_register(DOMAIN, "restore_last_update", do_restore)
 
-        ok = await async_send_protocol_command(
-            hass,
-            device_id,
-            command,
-            call.data.get(ATTR_REPEAT, 1),
-            call.data.get(ATTR_DELAY_MS, 250),
-        )
-
-        if ok is False:
-            raise HomeAssistantError(
-                f"RFLink command timed out or was not acknowledged: {device_id} {command}"
-            )
-
-    if not hass.services.has_service(DOMAIN, "send_raw"):
-        hass.services.async_register(DOMAIN, "send_raw", async_send_raw, schema=SEND_RAW_SCHEMA)
-
-    if not hass.services.has_service(DOMAIN, "rfdebug"):
-        hass.services.async_register(DOMAIN, "rfdebug", async_set_rfdebug, schema=RFDEBUG_SCHEMA)
-
-    if not hass.services.has_service(DOMAIN, "qrfdebug"):
-        hass.services.async_register(DOMAIN, "qrfdebug", async_set_qrfdebug, schema=QRFDEBUG_SCHEMA)
-
-    if not hass.services.has_service(DOMAIN, "send_protocol"):
-        hass.services.async_register(DOMAIN, "send_protocol", async_send_protocol, schema=SEND_PROTOCOL_SCHEMA)
-
-    _LOGGER.info("RFLink Raw Tools services registered")
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
-    """Set up RFLink Raw Tools from a config entry."""
+    """Set up config entry."""
     await async_initialize_store(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    _LOGGER.info("RFLink Raw Tools UI entities registered")
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
-    """Unload a config entry."""
+    """Unload config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

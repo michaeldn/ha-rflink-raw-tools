@@ -4,21 +4,13 @@ views:
     path: rflink-start
     icon: mdi:home-automation
     cards:
-      - type: picture
-        image: /local/rflink_raw/logo.png
-        tap_action:
-          action: none
-        hold_action:
-          action: none
-
       - type: markdown
         content: |
+          <p align="center"><img src="/local/rflink_raw/logo.png" width="120"></p>
+
           # RFLink Raw Tools
 
-          Safe build: every managed setup change has a matching undo switch.
-
-          Use **Setup** for dashboard/sidebar/prerequisite controls.
-          Use **Control** to send commands.
+          Clean reset. Setup actions are buttons; only the valid action is available.
 
       - type: grid
         columns: 2
@@ -53,6 +45,14 @@ views:
     path: rflink-setup
     icon: mdi:cog-outline
     cards:
+      - type: markdown
+        content: |
+          <p align="center"><img src="/local/rflink_raw/logo.png" width="96"></p>
+
+          ## Setup
+
+          Install buttons are one-way actions. Undo buttons appear only after something has been installed.
+
       - type: entities
         title: RFLink prerequisite
         show_header_toggle: false
@@ -63,27 +63,72 @@ views:
             name: Reconnect interval
           - entity: switch.rflink_prerequisite_wait_for_ack
             name: Wait for ACK
-          - entity: switch.install_rflink_prerequisite
-            name: Install RFLink prerequisite
 
-      - type: markdown
-        content: |
-          Turning **Install RFLink prerequisite** off removes only the managed RFLink block that RFLink Raw Tools created.
+      - type: grid
+        title: Prerequisite actions
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Install prerequisite
+            icon: mdi:file-cog-outline
+            entity: button.install_rflink_prerequisite
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.install_rflink_prerequisite
+          - type: button
+            name: Undo prerequisite
+            icon: mdi:file-remove-outline
+            entity: button.undo_rflink_prerequisite
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.undo_rflink_prerequisite
 
-      - type: entities
-        title: Dashboard
-        show_header_toggle: false
-        entities:
-          - entity: switch.add_dashboard
+      - type: grid
+        title: Dashboard actions
+        columns: 2
+        square: false
+        cards:
+          - type: button
             name: Add dashboard
-          - entity: switch.add_to_sidebar
+            icon: mdi:view-dashboard-plus-outline
+            entity: button.add_dashboard
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.add_dashboard
+          - type: button
+            name: Undo dashboard
+            icon: mdi:view-dashboard-remove-outline
+            entity: button.undo_dashboard
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.undo_dashboard
+          - type: button
             name: Add to sidebar
-          - entity: switch.dashboard_require_admin
-            name: Require admin
-
-      - type: markdown
-        content: |
-          Turning **Add dashboard** off removes the managed dashboard registration, dashboard YAML file, and RFLink Raw Tools logo folder.
+            icon: mdi:menu-open
+            entity: button.add_to_sidebar
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.add_to_sidebar
+          - type: button
+            name: Remove from sidebar
+            icon: mdi:menu
+            entity: button.remove_from_sidebar
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.remove_from_sidebar
 
   - title: Control
     path: rflink-control
@@ -93,15 +138,15 @@ views:
         title: Command
         show_header_toggle: false
         entities:
-          - entity: text.control_rflink_raw_command
+          - entity: text.rflink_raw_command
             name: Raw command
-          - entity: text.control_rflink_protocol_device_id
+          - entity: text.rflink_protocol_device_id
             name: Protocol device ID
-          - entity: text.control_rflink_protocol_command
+          - entity: text.rflink_protocol_command
             name: Protocol command
-          - entity: number.control_rflink_repeat_count
+          - entity: number.rflink_repeat_count
             name: Repeat
-          - entity: number.control_rflink_repeat_delay
+          - entity: number.rflink_repeat_delay
             name: Delay
 
       - type: grid
@@ -111,21 +156,21 @@ views:
           - type: button
             name: Send raw
             icon: mdi:send
-            entity: button.control_send_rflink_raw_command
+            entity: button.send_rflink_raw_command
             tap_action:
               action: call-service
               service: button.press
               target:
-                entity_id: button.control_send_rflink_raw_command
+                entity_id: button.send_rflink_raw_command
           - type: button
             name: Send protocol
             icon: mdi:remote
-            entity: button.control_send_rflink_protocol_command
+            entity: button.send_rflink_protocol_command
             tap_action:
               action: call-service
               service: button.press
               target:
-                entity_id: button.control_send_rflink_protocol_command
+                entity_id: button.send_rflink_protocol_command
 
   - title: Debug
     path: rflink-debug
@@ -135,9 +180,9 @@ views:
         title: Capture
         show_header_toggle: false
         entities:
-          - entity: switch.debug_rflink_qrfdebug
+          - entity: switch.rflink_qrfdebug
             name: QRFDEBUG
-          - entity: switch.debug_rflink_rfdebug
+          - entity: switch.rflink_rfdebug
             name: RFDEBUG
 
       - type: grid
@@ -147,21 +192,21 @@ views:
           - type: button
             name: Ping
             icon: mdi:access-point-check
-            entity: button.debug_rflink_ping
+            entity: button.rflink_ping
             tap_action:
               action: call-service
               service: button.press
               target:
-                entity_id: button.debug_rflink_ping
+                entity_id: button.rflink_ping
           - type: button
             name: Version
             icon: mdi:information-outline
-            entity: button.debug_rflink_version
+            entity: button.rflink_version
             tap_action:
               action: call-service
               service: button.press
               target:
-                entity_id: button.debug_rflink_version
+                entity_id: button.rflink_version
 
   - title: Update
     path: rflink-update
@@ -169,24 +214,23 @@ views:
     cards:
       - type: markdown
         content: |
-          Updates create a backup first. Use **Undo Last GitHub Update** if needed before restarting.
+          ## Update
 
-      - type: button
-        name: Download latest
-        icon: mdi:cloud-download-outline
-        entity: button.update_download_latest_from_github
-        tap_action:
-          action: call-service
-          service: button.press
-          target:
-            entity_id: button.update_download_latest_from_github
+          Use after pushing a known-good GitHub version.
 
-      - type: button
-        name: Undo last update
-        icon: mdi:backup-restore
-        entity: button.undo_last_github_update
-        tap_action:
-          action: call-service
-          service: button.press
-          target:
-            entity_id: button.undo_last_github_update
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: Download latest
+            icon: mdi:cloud-download-outline
+            tap_action:
+              action: call-service
+              service: rflink_raw.update_from_github
+          - type: button
+            name: Undo update
+            icon: mdi:backup-restore
+            tap_action:
+              action: call-service
+              service: rflink_raw.restore_last_update

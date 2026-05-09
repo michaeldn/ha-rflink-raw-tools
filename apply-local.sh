@@ -2,15 +2,14 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.4-flow-dashboard-update-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.4-flow-dashboard-update-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ui-reset-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ui-reset-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
   echo "ERROR: missing $ZIP"
   exit 1
 fi
-
 if [ ! -d "$REPO/.git" ]; then
   echo "ERROR: Git repo not found at $REPO"
   exit 1
@@ -22,13 +21,13 @@ mkdir -p "$EXTRACT"
 unzip -o "$ZIP" -d "$EXTRACT"
 
 cd "$REPO"
-rm -rf custom_components README.md LICENSE install.sh assets dashboard apply-local.sh undo-rflink-raw-tools.sh
+rm -rf custom_components README.md LICENSE install.sh assets dashboard apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
 cp -R "$EXTRACT"/* .
 
-chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh
+chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
 
 git add .
-git commit -m "Fix config flow and add update controls to dashboard" || true
+git commit -m "Reset RFLink Raw Tools to v0.0.1 UI reset" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"

@@ -1,14 +1,11 @@
 send_raw:
   name: Send raw RFLink command
-  description: Send one direct RFLink command line.
   fields:
     raw_command:
-      name: Raw command
       required: true
       selector:
         text:
     repeat:
-      name: Repeat
       default: 1
       selector:
         number:
@@ -16,7 +13,6 @@ send_raw:
           max: 50
           mode: box
     delay_ms:
-      name: Delay in milliseconds
       default: 250
       selector:
         number:
@@ -26,20 +22,16 @@ send_raw:
 
 send_protocol:
   name: Send RFLink protocol command
-  description: Send a Home Assistant RFLink device command.
   fields:
     device_id:
-      name: RFLink device id
       required: true
       selector:
         text:
     command:
-      name: Command
       required: true
       selector:
         text:
     repeat:
-      name: Repeat
       default: 1
       selector:
         number:
@@ -47,7 +39,6 @@ send_protocol:
           max: 50
           mode: box
     delay_ms:
-      name: Delay in milliseconds
       default: 250
       selector:
         number:
@@ -55,28 +46,10 @@ send_protocol:
           max: 10000
           mode: box
 
-rfdebug:
-  name: Set RFDEBUG
-  description: Turn RFLink RFDEBUG mode on or off.
-  fields:
-    mode:
-      name: Mode
-      required: true
-      selector:
-        select:
-          options:
-            - "on"
-            - "off"
+update_from_github:
+  name: Update from GitHub
+  description: Download the latest version from GitHub after creating a backup.
 
-qrfdebug:
-  name: Set QRFDEBUG
-  description: Turn RFLink QRFDEBUG mode on or off.
-  fields:
-    mode:
-      name: Mode
-      required: true
-      selector:
-        select:
-          options:
-            - "on"
-            - "off"
+restore_last_update:
+  name: Restore last update backup
+  description: Restore the last backup created by the update service.
