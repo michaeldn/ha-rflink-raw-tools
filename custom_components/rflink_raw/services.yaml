@@ -11,6 +11,29 @@ send_raw:
       required: true
       selector:
         text:
+    repeat:
+      name: Repeat count
+      description: Number of times to send the command.
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 50
+          step: 1
+          mode: box
+    delay_ms:
+      name: Repeat delay
+      description: Delay between repeated sends, in milliseconds.
+      required: false
+      default: 250
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 50
+          unit_of_measurement: ms
+          mode: box
 
 rfdebug:
   name: Set RFLink RFDEBUG
@@ -58,3 +81,26 @@ send_protocol:
       required: true
       selector:
         text:
+    repeat:
+      name: Repeat count
+      description: Number of times to send the command.
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 50
+          step: 1
+          mode: box
+    delay_ms:
+      name: Repeat delay
+      description: Delay between repeated sends, in milliseconds.
+      required: false
+      default: 250
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 50
+          unit_of_measurement: ms
+          mode: box

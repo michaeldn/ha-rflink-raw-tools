@@ -12,14 +12,16 @@ from .const import (
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
+    KEY_DELAY_MS,
     KEY_PROTOCOL_COMMAND,
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
+    KEY_REPEAT,
     MANUFACTURER,
     MODEL,
     VERSION,
 )
-from .helpers import send_direct_command, send_protocol_command
+from .helpers import async_send_direct_command, async_send_protocol_command
 from .store import get_state
 
 
@@ -44,48 +46,13 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         icon="mdi:remote",
         action_type="send_protocol_text",
     ),
-    RFLinkRawButtonDescription(
-        key="ping",
-        name="RFLink Ping",
-        icon="mdi:access-point-check",
-        command="10;PING;",
-    ),
-    RFLinkRawButtonDescription(
-        key="version",
-        name="RFLink Version",
-        icon="mdi:information-outline",
-        command="10;VERSION;",
-    ),
-    RFLinkRawButtonDescription(
-        key="status",
-        name="RFLink Status",
-        icon="mdi:list-status",
-        command="10;STATUS;",
-    ),
-    RFLinkRawButtonDescription(
-        key="rfdebug_on",
-        name="Start RFDEBUG Capture",
-        icon="mdi:radio-tower",
-        command="10;RFDEBUG=ON;",
-    ),
-    RFLinkRawButtonDescription(
-        key="rfdebug_off",
-        name="Stop RFDEBUG Capture",
-        icon="mdi:radio-tower",
-        command="10;RFDEBUG=OFF;",
-    ),
-    RFLinkRawButtonDescription(
-        key="qrfdebug_on",
-        name="Start QRFDEBUG Capture",
-        icon="mdi:signal",
-        command="10;QRFDEBUG=ON;",
-    ),
-    RFLinkRawButtonDescription(
-        key="qrfdebug_off",
-        name="Stop QRFDEBUG Capture",
-        icon="mdi:signal-off",
-        command="10;QRFDEBUG=OFF;",
-    ),
+    RFLinkRawButtonDescription(key="ping", name="RFLink Ping", icon="mdi:access-point-check", command="10;PING;"),
+    RFLinkRawButtonDescription(key="version", name="RFLink Version", icon="mdi:information-outline", command="10;VERSION;"),
+    RFLinkRawButtonDescription(key="status", name="RFLink Status", icon="mdi:list-status", command="10;STATUS;"),
+    RFLinkRawButtonDescription(key="rfdebug_on", name="Start RFDEBUG Capture", icon="mdi:radio-tower", command="10;RFDEBUG=ON;"),
+    RFLinkRawButtonDescription(key="rfdebug_off", name="Stop RFDEBUG Capture", icon="mdi:radio-tower", command="10;RFDEBUG=OFF;"),
+    RFLinkRawButtonDescription(key="qrfdebug_on", name="Start QRFDEBUG Capture", icon="mdi:signal", command="10;QRFDEBUG=ON;"),
+    RFLinkRawButtonDescription(key="qrfdebug_off", name="Stop QRFDEBUG Capture", icon="mdi:signal-off", command="10;QRFDEBUG=OFF;"),
 )
 
 
@@ -118,15 +85,22 @@ class RFLinkRawButton(ButtonEntity):
         state = get_state(self.hass)
 
         if self.entity_description.action_type == "send_raw_text":
-            send_direct_command(self.hass, state[KEY_RAW_COMMAND])
-            return
-
-        if self.entity_description.action_type == "send_protocol_text":
-            await send_protocol_command(
+            await async_send_direct_command(
                 self.hass,
-                state[KEY_PROTOCOL_DEVICE_ID],
-                state[KEY_PROTOCOL_COMMAND],
+                state[KEY_RAW_COMMAND],
+                state[KEY_REPEAT],
+                state[KEY_DELAY_MS],
             )
             return
 
-        send_direct_command(self.hass, self.entity_description.command)
+        if self.entity_description.action_type == "send_protocol_text":
+            await async_send_protocol_command(
+                self.hass,
+                state[KEY_PROTOCOL_DEVICE_ID],
+                state[KEY_PROTOCOL_COMMAND],
+                state[KEY_REPEAT],
+                state[KEY_DELAY_MS],
+            )
+            return
+
+        await async_send_direct_command(self.hass, self.entity_description.command, 1, 250)

@@ -9,12 +9,14 @@ from homeassistant.core import HomeAssistant, callback
 from .const import (
     DATA_STATE,
     DOMAIN,
+    KEY_DELAY_MS,
     KEY_LAST_COMMAND,
     KEY_LAST_ERROR,
     KEY_LAST_RESPONSE,
     KEY_PROTOCOL_COMMAND,
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
+    KEY_REPEAT,
 )
 
 
@@ -22,6 +24,8 @@ DEFAULT_STATE = {
     KEY_RAW_COMMAND: "10;PING;",
     KEY_PROTOCOL_DEVICE_ID: "",
     KEY_PROTOCOL_COMMAND: "on",
+    KEY_REPEAT: 1,
+    KEY_DELAY_MS: 250,
     KEY_LAST_COMMAND: "",
     KEY_LAST_RESPONSE: "",
     KEY_LAST_ERROR: "",

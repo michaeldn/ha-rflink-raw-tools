@@ -30,24 +30,9 @@ class RFLinkRawSensorDescription(EntityDescription):
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
-    RFLinkRawSensorDescription(
-        key="last_command",
-        name="RFLink Last Command",
-        icon="mdi:history",
-        state_key=KEY_LAST_COMMAND,
-    ),
-    RFLinkRawSensorDescription(
-        key="last_response",
-        name="RFLink Last Response",
-        icon="mdi:message-reply-text",
-        state_key=KEY_LAST_RESPONSE,
-    ),
-    RFLinkRawSensorDescription(
-        key="last_error",
-        name="RFLink Last Error",
-        icon="mdi:alert-circle-outline",
-        state_key=KEY_LAST_ERROR,
-    ),
+    RFLinkRawSensorDescription(key="last_command", name="RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND),
+    RFLinkRawSensorDescription(key="last_response", name="RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE),
+    RFLinkRawSensorDescription(key="last_error", name="RFLink Last Error", icon="mdi:alert-circle-outline", state_key=KEY_LAST_ERROR),
 )
 
 

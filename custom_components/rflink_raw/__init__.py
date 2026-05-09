@@ -12,8 +12,15 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const import ATTR_MODE, ATTR_RAW_COMMAND, DOMAIN, PLATFORMS
-from .helpers import send_direct_command, send_protocol_command
+from .const import (
+    ATTR_DELAY_MS,
+    ATTR_MODE,
+    ATTR_RAW_COMMAND,
+    ATTR_REPEAT,
+    DOMAIN,
+    PLATFORMS,
+)
+from .helpers import async_send_direct_command, async_send_protocol_command
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,11 +31,22 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-SEND_RAW_SCHEMA = vol.Schema({vol.Required(ATTR_RAW_COMMAND): cv.string})
+SEND_RAW_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_RAW_COMMAND): cv.string,
+        vol.Optional(ATTR_REPEAT, default=1): vol.Coerce(int),
+        vol.Optional(ATTR_DELAY_MS, default=250): vol.Coerce(int),
+    }
+)
 RFDEBUG_SCHEMA = vol.Schema({vol.Required(ATTR_MODE): vol.In(["on", "off", "ON", "OFF"])})
 QRFDEBUG_SCHEMA = vol.Schema({vol.Required(ATTR_MODE): vol.In(["on", "off", "ON", "OFF"])})
 SEND_PROTOCOL_SCHEMA = vol.Schema(
-    {vol.Required(CONF_DEVICE_ID): cv.string, vol.Required(CONF_COMMAND): cv.string}
+    {
+        vol.Required(CONF_DEVICE_ID): cv.string,
+        vol.Required(CONF_COMMAND): cv.string,
+        vol.Optional(ATTR_REPEAT, default=1): vol.Coerce(int),
+        vol.Optional(ATTR_DELAY_MS, default=250): vol.Coerce(int),
+    }
 )
 
 
@@ -36,21 +54,32 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up RFLink Raw Tools services."""
 
     async def async_send_raw(call: ServiceCall) -> None:
-        send_direct_command(hass, call.data[ATTR_RAW_COMMAND])
+        await async_send_direct_command(
+            hass,
+            call.data[ATTR_RAW_COMMAND],
+            call.data.get(ATTR_REPEAT, 1),
+            call.data.get(ATTR_DELAY_MS, 250),
+        )
 
     async def async_set_rfdebug(call: ServiceCall) -> None:
         mode = call.data[ATTR_MODE].upper()
-        send_direct_command(hass, f"10;RFDEBUG={mode};")
+        await async_send_direct_command(hass, f"10;RFDEBUG={mode};", 1, 250)
 
     async def async_set_qrfdebug(call: ServiceCall) -> None:
         mode = call.data[ATTR_MODE].upper()
-        send_direct_command(hass, f"10;QRFDEBUG={mode};")
+        await async_send_direct_command(hass, f"10;QRFDEBUG={mode};", 1, 250)
 
     async def async_send_protocol(call: ServiceCall) -> None:
         device_id = call.data[CONF_DEVICE_ID]
         command = call.data[CONF_COMMAND]
 
-        ok = await send_protocol_command(hass, device_id, command)
+        ok = await async_send_protocol_command(
+            hass,
+            device_id,
+            command,
+            call.data.get(ATTR_REPEAT, 1),
+            call.data.get(ATTR_DELAY_MS, 250),
+        )
 
         if ok is False:
             raise HomeAssistantError(

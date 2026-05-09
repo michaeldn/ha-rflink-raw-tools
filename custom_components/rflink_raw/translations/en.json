@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Set up RFLink Raw Tools",
-        "description": "This adds an RFLink Raw Tools device with command buttons, debug switches, text inputs, and RFLink protocol-send controls. Keep the normal RFLink integration configured first."
+        "description": "This adds an RFLink Raw Tools device with command buttons, debug switches, repeat controls, text inputs, and RFLink protocol-send controls. Keep the normal RFLink integration configured first."
       }
     },
     "abort": {

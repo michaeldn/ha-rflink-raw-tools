@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from homeassistant.components.rflink.entity import RflinkCommand
@@ -51,19 +52,69 @@ def normalize_raw_command(raw_command: str) -> str:
     return command
 
 
-def send_direct_command(hass: HomeAssistant, raw_command: str) -> None:
-    """Send one direct RFLink serial command line."""
+def normalize_repeat(repeat: int | float | str | None) -> int:
+    """Normalize repeat count."""
+    try:
+        value = int(float(repeat if repeat is not None else 1))
+    except (TypeError, ValueError) as err:
+        raise HomeAssistantError("repeat must be a number.") from err
+
+    if value < 1:
+        raise HomeAssistantError("repeat must be 1 or greater.")
+
+    if value > 50:
+        raise HomeAssistantError("repeat is capped at 50 for safety.")
+
+    return value
+
+
+def normalize_delay_ms(delay_ms: int | float | str | None) -> int:
+    """Normalize repeat delay in milliseconds."""
+    try:
+        value = int(float(delay_ms if delay_ms is not None else 250))
+    except (TypeError, ValueError) as err:
+        raise HomeAssistantError("delay_ms must be a number.") from err
+
+    if value < 0:
+        raise HomeAssistantError("delay_ms cannot be negative.")
+
+    if value > 10000:
+        raise HomeAssistantError("delay_ms is capped at 10000 for safety.")
+
+    return value
+
+
+async def async_send_direct_command(
+    hass: HomeAssistant,
+    raw_command: str,
+    repeat: int | float | str | None = 1,
+    delay_ms: int | float | str | None = 250,
+) -> None:
+    """Send one direct RFLink serial command line, optionally repeated."""
     try:
         command = normalize_raw_command(raw_command)
+        repeat_count = normalize_repeat(repeat)
+        delay_value_ms = normalize_delay_ms(delay_ms)
         protocol = get_rflink_protocol()
 
-        _LOGGER.warning("Sending direct RFLink command line: %s", command)
-        protocol.send_raw_packet(command)
+        _LOGGER.warning(
+            "Sending direct RFLink command line: %s repeat=%s delay_ms=%s",
+            command,
+            repeat_count,
+            delay_value_ms,
+        )
+
+        for index in range(repeat_count):
+            protocol.send_raw_packet(command)
+            if index < repeat_count - 1 and delay_value_ms:
+                await asyncio.sleep(delay_value_ms / 1000)
 
         update_state(
             hass,
             **{
-                KEY_LAST_COMMAND: timestamped(command),
+                KEY_LAST_COMMAND: timestamped(
+                    f"{command} repeat={repeat_count} delay_ms={delay_value_ms}"
+                ),
                 KEY_LAST_RESPONSE: "Command written to RFLink serial connection",
                 KEY_LAST_ERROR: "",
             },
@@ -73,10 +124,14 @@ def send_direct_command(hass: HomeAssistant, raw_command: str) -> None:
         raise
 
 
-async def send_protocol_command(
-    hass: HomeAssistant, device_id: str, command: str
+async def async_send_protocol_command(
+    hass: HomeAssistant,
+    device_id: str,
+    command: str,
+    repeat: int | float | str | None = 1,
+    delay_ms: int | float | str | None = 250,
 ) -> bool | None:
-    """Send a normal RFLink protocol/device command."""
+    """Send a normal RFLink protocol/device command, optionally repeated."""
     if not device_id.strip():
         raise HomeAssistantError("protocol device_id cannot be empty.")
 
@@ -86,16 +141,33 @@ async def send_protocol_command(
     if not RflinkCommand.is_connected():
         raise HomeAssistantError("RFLink is not connected.")
 
-    _LOGGER.info("Sending RFLink protocol command: %s -> %s", device_id, command)
-    ok = await RflinkCommand.send_command(device_id.strip(), command.strip())
+    repeat_count = normalize_repeat(repeat)
+    delay_value_ms = normalize_delay_ms(delay_ms)
+    last_result = None
+
+    _LOGGER.info(
+        "Sending RFLink protocol command: %s -> %s repeat=%s delay_ms=%s",
+        device_id,
+        command,
+        repeat_count,
+        delay_value_ms,
+    )
+
+    for index in range(repeat_count):
+        last_result = await RflinkCommand.send_command(device_id.strip(), command.strip())
+        if index < repeat_count - 1 and delay_value_ms:
+            await asyncio.sleep(delay_value_ms / 1000)
 
     update_state(
         hass,
         **{
-            KEY_LAST_COMMAND: timestamped(f"{device_id.strip()} -> {command.strip()}"),
-            KEY_LAST_RESPONSE: f"RFLink protocol command returned: {ok}",
+            KEY_LAST_COMMAND: timestamped(
+                f"{device_id.strip()} -> {command.strip()} "
+                f"repeat={repeat_count} delay_ms={delay_value_ms}"
+            ),
+            KEY_LAST_RESPONSE: f"RFLink protocol command returned: {last_result}",
             KEY_LAST_ERROR: "",
         },
     )
 
-    return ok
+    return last_result

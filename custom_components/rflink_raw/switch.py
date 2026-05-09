@@ -8,15 +8,8 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
-from .const import (
-    DEVICE_IDENTIFIER,
-    DEVICE_NAME,
-    DOMAIN,
-    MANUFACTURER,
-    MODEL,
-    VERSION,
-)
-from .helpers import send_direct_command
+from .const import DEVICE_IDENTIFIER, DEVICE_NAME, DOMAIN, MANUFACTURER, MODEL, VERSION
+from .helpers import async_send_direct_command
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -72,12 +65,12 @@ class RFLinkRawSwitch(SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on debug mode."""
-        send_direct_command(self.hass, self.entity_description.on_command)
+        await async_send_direct_command(self.hass, self.entity_description.on_command, 1, 250)
         self._attr_is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off debug mode."""
-        send_direct_command(self.hass, self.entity_description.off_command)
+        await async_send_direct_command(self.hass, self.entity_description.off_command, 1, 250)
         self._attr_is_on = False
         self.async_write_ha_state()

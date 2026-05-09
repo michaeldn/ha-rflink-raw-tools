@@ -3,7 +3,7 @@
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 
-PLATFORMS = ["button", "switch", "text", "sensor"]
+PLATFORMS = ["button", "switch", "text", "number", "sensor"]
 
 DATA_STATE = "state"
 
@@ -11,14 +11,18 @@ DEVICE_IDENTIFIER = "rflink_raw_tools_controller"
 DEVICE_NAME = "RFLink Raw Tools"
 MANUFACTURER = "Custom Home Assistant"
 MODEL = "RFLink Command UI"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 ATTR_RAW_COMMAND = "raw_command"
 ATTR_MODE = "mode"
+ATTR_REPEAT = "repeat"
+ATTR_DELAY_MS = "delay_ms"
 
 KEY_RAW_COMMAND = "raw_command"
 KEY_PROTOCOL_DEVICE_ID = "protocol_device_id"
 KEY_PROTOCOL_COMMAND = "protocol_command"
+KEY_REPEAT = "repeat"
+KEY_DELAY_MS = "delay_ms"
 KEY_LAST_COMMAND = "last_command"
 KEY_LAST_RESPONSE = "last_response"
 KEY_LAST_ERROR = "last_error"
