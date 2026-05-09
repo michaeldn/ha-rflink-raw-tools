@@ -27,6 +27,10 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial setup step."""
+        existing_entries = self._async_current_entries()
+        if existing_entries:
+            return self.async_abort(reason="already_configured")
+
         await self.async_set_unique_id("rflink_raw_tools")
         self._abort_if_unique_id_configured()
 
@@ -77,15 +81,15 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Return the options flow."""
-        return RFLinkRawOptionsFlow(config_entry)
+        return RFLinkRawOptionsFlow()
 
 
 class RFLinkRawOptionsFlow(config_entries.OptionsFlow):
-    """Handle RFLink Raw Tools options."""
+    """Handle RFLink Raw Tools options.
 
-    def __init__(self, config_entry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
+    Current Home Assistant exposes the entry as self.config_entry.
+    Do not define __init__ or assign self.config_entry.
+    """
 
     async def async_step_init(self, user_input=None):
         """Manage options."""

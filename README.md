@@ -9,6 +9,13 @@ RFLink Raw Tools is a Home Assistant custom integration for RFLink command sendi
 This build is designed so every managed change has a matching undo path.
 
 
+
+## v0.1.4 config flow + dashboard update fix
+
+This build fixes the Home Assistant gear/configure 500 error by using the current Options Flow pattern: Home Assistant now provides `self.config_entry` on the options flow, so the integration no longer passes or assigns `config_entry`.
+
+It also places **Download latest** and **Undo update** on the RFLink Raw Tools dashboard so you do not have to find the update button under the integration entity list.
+
 ## v0.1.3 admin page behavior
 
 The Home Assistant device page cannot run a true navigation/open action from an integration-created button. Home Assistant renders integration button entities with a **Press** action.

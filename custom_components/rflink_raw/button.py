@@ -57,7 +57,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         icon="mdi:cloud-download-outline",
         action_type="update_from_github",
         entity_category="config",
-        enabled_default=False,
+        enabled_default=True,
         device_area="admin",
     ),
     RFLinkRawButtonDescription(
@@ -66,7 +66,7 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         icon="mdi:backup-restore",
         action_type="restore_last_update",
         entity_category="config",
-        enabled_default=False,
+        enabled_default=True,
         device_area="admin",
     ),
     RFLinkRawButtonDescription(
