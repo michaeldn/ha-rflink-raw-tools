@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from homeassistant.components import persistent_notification
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
 from .const import (
     DEVICE_IDENTIFIER,
@@ -48,30 +48,36 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Dashboard Install / Update Sidebar Page",
         icon="mdi:view-dashboard-edit-outline",
         action_type="install_dashboard",
+        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawButtonDescription(
         key="update_download_latest",
         name="Update Download Latest From GitHub",
         icon="mdi:cloud-download-outline",
         action_type="update_from_github",
+        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawButtonDescription(
         key="update_show_status",
         name="Update Show Installed Location",
         icon="mdi:information-outline",
         action_type="show_update_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(
         key="setup_load_default_prerequisite_values",
         name="Setup Load Default Prerequisite Values",
         icon="mdi:tune-variant",
         action_type="load_default_prereq",
+        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawButtonDescription(
         key="setup_install_prerequisite",
         name="Setup Install RFLink Prerequisite YAML",
         icon="mdi:file-cog-outline",
         action_type="install_prerequisite",
+        entity_category=EntityCategory.CONFIG,
     ),
     RFLinkRawButtonDescription(
         key="control_send_raw_text",
@@ -90,30 +96,40 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         name="Help Load Example Raw Command",
         icon="mdi:code-tags",
         action_type="load_example_raw",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(
         key="help_load_example_protocol",
         name="Help Load Example Protocol Command",
         icon="mdi:gesture-tap-button",
         action_type="load_example_protocol",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(
         key="help_show_logs",
         name="Help Show Log Commands",
         icon="mdi:text-box-search-outline",
         action_type="show_logs_help",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(
         key="help_show_find_device",
         name="Help Show Find Device Steps",
         icon="mdi:radar",
         action_type="show_find_device_help",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(
         key="help_show_dashboard_setup",
         name="Help Show Dashboard Setup",
         icon="mdi:view-dashboard-edit-outline",
         action_type="show_dashboard_help",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
     ),
     RFLinkRawButtonDescription(key="debug_ping", name="Debug RFLink Ping", icon="mdi:access-point-check", command="10;PING;"),
     RFLinkRawButtonDescription(key="debug_version", name="Debug RFLink Version", icon="mdi:information-outline", command="10;VERSION;"),

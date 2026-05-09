@@ -37,6 +37,18 @@ ha core restart
 
 The clean RFLink Raw Tools dashboard should then appear in the left sidebar.
 
+## Default device page cleanup
+
+The Home Assistant device page cannot be fully redesigned by a custom integration. Home Assistant controls that layout.
+
+This release reduces the mess on that page by marking most setup fields as configuration entities and most status/log/help items as diagnostic entities. The main user experience should be the sidebar dashboard, while the device page should now be treated as an admin/config page.
+
+The clean daily-use UI is the sidebar dashboard:
+
+```text
+RFLink Raw Tools
+```
+
 ## Why this exists
 
 The default Home Assistant device page lists every entity in one long view. That is why it can look like a CVS receipt.

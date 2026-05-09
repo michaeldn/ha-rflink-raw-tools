@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
 from .const import (
     DEVICE_IDENTIFIER,

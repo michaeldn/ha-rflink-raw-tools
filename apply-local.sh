@@ -2,13 +2,13 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Downloads/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.0-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-onefile-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.0-main-clean-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-main-clean-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
   echo "ERROR: missing $ZIP"
-  echo "Download ha-rflink-raw-tools-v0.1.0-onefile.zip to /Users/michaeldumas/Downloads first."
+  echo "Download ha-rflink-raw-tools-v0.1.0-main-clean-onefile.zip to /Users/michaeldumas/Downloads first."
   exit 1
 fi
 
@@ -31,7 +31,7 @@ chmod +x install.sh
 chmod +x apply-local.sh
 
 git add .
-git commit -m "Add dashboard/sidebar setup options and all-in-one package" || true
+git commit -m "Clean default device page and keep dashboard primary" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"

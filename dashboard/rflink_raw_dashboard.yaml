@@ -55,8 +55,6 @@ views:
             name: Dashboard/sidebar
           - entity: sensor.status_rflink_update_status
             name: Update
-          - entity: sensor.status_rflink_last_error
-            name: Last error
 
   - title: Setup
     path: rflink-setup
@@ -207,8 +205,6 @@ views:
             name: Last command
           - entity: sensor.status_rflink_last_response
             name: Last response
-          - entity: sensor.status_rflink_last_error
-            name: Last error
 
   - title: Debug
     path: rflink-debug
