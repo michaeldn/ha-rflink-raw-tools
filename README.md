@@ -27,6 +27,25 @@ After Home Assistant restarts, add the integration:
 Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
+## Integration icon / logo
+
+RFLink Raw Tools includes Home Assistant local brand assets in:
+
+```text
+custom_components/rflink_raw/brand/
+```
+
+Included files:
+
+```text
+icon.png
+dark_icon.png
+logo.png
+dark_logo.png
+```
+
+Home Assistant 2026.3 and later can load custom integration brand images directly from the integration `brand/` folder. After updating, restart Home Assistant Core and hard refresh the browser if the old placeholder icon is still cached.
+
 ## What improved in the UI
 
 The default device page is organized by prefixes so it is easier to scan:

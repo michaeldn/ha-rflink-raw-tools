@@ -11,7 +11,7 @@ DEVICE_IDENTIFIER = "rflink_raw_tools_controller"
 DEVICE_NAME = "RFLink Raw Tools"
 MANUFACTURER = "Custom Home Assistant"
 MODEL = "RFLink Command UI"
-VERSION = "0.8.0"
+VERSION = "0.1.0"
 
 ATTR_RAW_COMMAND = "raw_command"
 ATTR_MODE = "mode"
