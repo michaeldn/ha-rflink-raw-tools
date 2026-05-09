@@ -29,3 +29,15 @@ sh /config/repair-stale-rflink-raw-entities.sh
 ```
 
 Then restart Home Assistant Core.
+
+
+## Missing platform fix
+
+This package includes the required Home Assistant platform files:
+
+```text
+custom_components/rflink_raw/text.py
+custom_components/rflink_raw/number.py
+```
+
+Those files are required because `PLATFORMS = ["button", "switch", "text", "number"]`.
