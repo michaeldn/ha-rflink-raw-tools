@@ -9,6 +9,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
+    COMMAND_DEVICE_IDENTIFIER,
+    COMMAND_DEVICE_NAME,
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
@@ -29,11 +31,13 @@ class RFLinkRawTextDescription(EntityDescription):
 
     state_key: str
     native_max: int = 255
-    entity_category: str | None = "config"
+    entity_category: str | None = None
+    enabled_default: bool = True
+    device_area: str = "command"
 
 
 TEXTS: tuple[RFLinkRawTextDescription, ...] = (
-    RFLinkRawTextDescription(key="setup_prereq_port", name="Setup RFLink Prerequisite Port", icon="mdi:serial-port", state_key=KEY_PREREQ_PORT, native_max=255),
+    RFLinkRawTextDescription(key="setup_prereq_port", name="Setup RFLink Prerequisite Port", icon="mdi:serial-port", state_key=KEY_PREREQ_PORT, native_max=255, entity_category="config", enabled_default=False, device_area="admin"),
     RFLinkRawTextDescription(key="control_raw_command", name="Control RFLink Raw Command", icon="mdi:code-string", state_key=KEY_RAW_COMMAND, native_max=2048),
     RFLinkRawTextDescription(key="control_protocol_device_id", name="Control RFLink Protocol Device ID", icon="mdi:identifier", state_key=KEY_PROTOCOL_DEVICE_ID, native_max=255),
     RFLinkRawTextDescription(key="control_protocol_command", name="Control RFLink Protocol Command", icon="mdi:gesture-tap-button", state_key=KEY_PROTOCOL_COMMAND, native_max=80),
@@ -57,10 +61,19 @@ class RFLinkRawText(TextEntity):
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
         self._attr_entity_category = description.entity_category
+        self._attr_entity_registry_enabled_default = description.enabled_default
         self._attr_native_max = description.native_max
+
+        if description.device_area == "admin":
+            identifier = DEVICE_IDENTIFIER
+            name = DEVICE_NAME
+        else:
+            identifier = COMMAND_DEVICE_IDENTIFIER
+            name = COMMAND_DEVICE_NAME
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
-            name=DEVICE_NAME,
+            identifiers={(DOMAIN, identifier)},
+            name=name,
             manufacturer=MANUFACTURER,
             model=MODEL,
             sw_version=VERSION,

@@ -1,13 +1,15 @@
-"""Simple in-memory state store for RFLink Raw Tools."""
+"""Persistent state store for RFLink Raw Tools."""
 
 from __future__ import annotations
 
 from datetime import datetime
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.storage import Store
 
 from .const import (
     DATA_STATE,
+    DATA_STORE,
     DOMAIN,
     KEY_DASHBOARD_REQUIRE_ADMIN,
     KEY_DASHBOARD_SHOW_IN_SIDEBAR,
@@ -25,6 +27,8 @@ from .const import (
     KEY_RAW_COMMAND,
     KEY_REPEAT,
     KEY_UPDATE_STATUS,
+    STORAGE_KEY,
+    STORAGE_VERSION,
 )
 
 DEFAULT_STATE = {
@@ -47,19 +51,33 @@ DEFAULT_STATE = {
 }
 
 
+async def async_initialize_store(hass: HomeAssistant) -> None:
+    """Initialize persistent storage."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+    loaded = await store.async_load()
+    state = DEFAULT_STATE.copy()
+    if isinstance(loaded, dict):
+        state.update(loaded)
+    domain_data[DATA_STORE] = store
+    domain_data[DATA_STATE] = state
+
+
 @callback
 def get_state(hass: HomeAssistant) -> dict:
     """Get integration state."""
     domain_data = hass.data.setdefault(DOMAIN, {})
-    state = domain_data.setdefault(DATA_STATE, DEFAULT_STATE.copy())
-    return state
+    return domain_data.setdefault(DATA_STATE, DEFAULT_STATE.copy())
 
 
 @callback
 def update_state(hass: HomeAssistant, **kwargs) -> None:
-    """Update integration state."""
+    """Update integration state and save it."""
     state = get_state(hass)
     state.update(kwargs)
+    store = hass.data.get(DOMAIN, {}).get(DATA_STORE)
+    if store is not None:
+        hass.async_create_task(store.async_save(dict(state)))
 
 
 def timestamped(value: str) -> str:

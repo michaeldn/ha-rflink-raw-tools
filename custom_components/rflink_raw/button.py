@@ -10,6 +10,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
+    COMMAND_DEVICE_IDENTIFIER,
+    COMMAND_DEVICE_NAME,
+    DASHBOARD_URL,
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
@@ -42,15 +45,30 @@ class RFLinkRawButtonDescription(EntityDescription):
     action_type: str = "direct"
     entity_category: str | None = None
     enabled_default: bool = True
+    device_area: str = "command"
 
 
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
     RFLinkRawButtonDescription(
-        key="dashboard_install",
-        name="Dashboard Install / Update Sidebar Page",
-        icon="mdi:view-dashboard-edit-outline",
-        action_type="install_dashboard",
-        entity_category="config",
+        key="open_dashboard",
+        name="Open RFLink Tools Dashboard",
+        icon="mdi:open-in-new",
+        action_type="open_dashboard",
+        device_area="admin",
+    ),
+    RFLinkRawButtonDescription(
+        key="add_dashboard",
+        name="Add Dashboard",
+        icon="mdi:view-dashboard-plus-outline",
+        action_type="add_dashboard",
+        device_area="admin",
+    ),
+    RFLinkRawButtonDescription(
+        key="add_to_sidebar",
+        name="Add To Sidebar",
+        icon="mdi:menu-open",
+        action_type="add_to_sidebar",
+        device_area="admin",
     ),
     RFLinkRawButtonDescription(
         key="update_download_latest",
@@ -58,21 +76,8 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         icon="mdi:cloud-download-outline",
         action_type="update_from_github",
         entity_category="config",
-    ),
-    RFLinkRawButtonDescription(
-        key="update_show_status",
-        name="Update Show Installed Location",
-        icon="mdi:information-outline",
-        action_type="show_update_status",
-        entity_category="diagnostic",
         enabled_default=False,
-    ),
-    RFLinkRawButtonDescription(
-        key="setup_load_default_prerequisite_values",
-        name="Setup Load Default Prerequisite Values",
-        icon="mdi:tune-variant",
-        action_type="load_default_prereq",
-        entity_category="config",
+        device_area="admin",
     ),
     RFLinkRawButtonDescription(
         key="setup_install_prerequisite",
@@ -80,6 +85,8 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         icon="mdi:file-cog-outline",
         action_type="install_prerequisite",
         entity_category="config",
+        enabled_default=False,
+        device_area="admin",
     ),
     RFLinkRawButtonDescription(
         key="control_send_raw_text",
@@ -109,35 +116,8 @@ BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
         entity_category="diagnostic",
         enabled_default=False,
     ),
-    RFLinkRawButtonDescription(
-        key="help_show_logs",
-        name="Help Show Log Commands",
-        icon="mdi:text-box-search-outline",
-        action_type="show_logs_help",
-        entity_category="diagnostic",
-        enabled_default=False,
-    ),
-    RFLinkRawButtonDescription(
-        key="help_show_find_device",
-        name="Help Show Find Device Steps",
-        icon="mdi:radar",
-        action_type="show_find_device_help",
-        entity_category="diagnostic",
-        enabled_default=False,
-    ),
-    RFLinkRawButtonDescription(
-        key="help_show_dashboard_setup",
-        name="Help Show Dashboard Setup",
-        icon="mdi:view-dashboard-edit-outline",
-        action_type="show_dashboard_help",
-        entity_category="diagnostic",
-        enabled_default=False,
-    ),
     RFLinkRawButtonDescription(key="debug_ping", name="Debug RFLink Ping", icon="mdi:access-point-check", command="10;PING;", entity_category="config"),
     RFLinkRawButtonDescription(key="debug_version", name="Debug RFLink Version", icon="mdi:information-outline", command="10;VERSION;", entity_category="config"),
-    RFLinkRawButtonDescription(key="debug_status", name="Debug RFLink Status", icon="mdi:list-status", command="10;STATUS;", entity_category="config"),
-    RFLinkRawButtonDescription(key="debug_rfdebug_on", name="Debug Start RFDEBUG Capture", icon="mdi:radio-tower", command="10;RFDEBUG=ON;", entity_category="config"),
-    RFLinkRawButtonDescription(key="debug_rfdebug_off", name="Debug Stop RFDEBUG Capture", icon="mdi:radio-tower-off", command="10;RFDEBUG=OFF;", entity_category="config"),
     RFLinkRawButtonDescription(key="debug_qrfdebug_on", name="Debug Start QRFDEBUG Capture", icon="mdi:signal", command="10;QRFDEBUG=ON;", entity_category="config"),
     RFLinkRawButtonDescription(key="debug_qrfdebug_off", name="Debug Stop QRFDEBUG Capture", icon="mdi:signal-off", command="10;QRFDEBUG=OFF;", entity_category="config"),
 )
@@ -160,9 +140,17 @@ class RFLinkRawButton(ButtonEntity):
         self._attr_unique_id = f"{entry_id}_{description.key}"
         self._attr_entity_category = description.entity_category
         self._attr_entity_registry_enabled_default = description.enabled_default
+
+        if description.device_area == "admin":
+            identifier = DEVICE_IDENTIFIER
+            name = DEVICE_NAME
+        else:
+            identifier = COMMAND_DEVICE_IDENTIFIER
+            name = COMMAND_DEVICE_NAME
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
-            name=DEVICE_NAME,
+            identifiers={(DOMAIN, identifier)},
+            name=name,
             manufacturer=MANUFACTURER,
             model=MODEL,
             sw_version=VERSION,
@@ -171,22 +159,33 @@ class RFLinkRawButton(ButtonEntity):
     async def async_press(self) -> None:
         state = get_state(self.hass)
 
-        if self.entity_description.action_type == "install_dashboard":
-            install_dashboard_registration(
-                self.hass,
-                bool(state.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True)),
-                bool(state.get(KEY_DASHBOARD_REQUIRE_ADMIN, False)),
-            )
+        if self.entity_description.action_type == "open_dashboard":
             persistent_notification.async_create(
                 self.hass,
-                """RFLink Raw Tools dashboard was registered.
+                f"Open the **RFLink Raw Tools** item in the left sidebar. Direct path: `{DASHBOARD_URL}`",
+                title="RFLink Raw Tools • Open Dashboard",
+                notification_id="rflink_raw_open_dashboard",
+            )
+            return
 
-Next steps:
-1. Run `ha core check`.
-2. Restart Home Assistant Core.
-3. Look for **RFLink Raw Tools** in the sidebar if **Dashboard Show In Sidebar** is on.""",
-                title="RFLink Raw Tools • Dashboard Registered",
-                notification_id="rflink_raw_dashboard_done",
+        if self.entity_description.action_type == "add_dashboard":
+            install_dashboard_registration(self.hass, False, False)
+            persistent_notification.async_create(
+                self.hass,
+                "Dashboard registered. To also put it in the left menu, press **Add To Sidebar**, then restart Home Assistant Core.",
+                title="RFLink Raw Tools • Dashboard Added",
+                notification_id="rflink_raw_dashboard_added",
+            )
+            return
+
+        if self.entity_description.action_type == "add_to_sidebar":
+            update_state(self.hass, **{KEY_DASHBOARD_SHOW_IN_SIDEBAR: True, KEY_DASHBOARD_REQUIRE_ADMIN: False})
+            install_dashboard_registration(self.hass, True, False)
+            persistent_notification.async_create(
+                self.hass,
+                "Dashboard registered with sidebar enabled. Run `ha core check`, restart Home Assistant Core, then use **RFLink Raw Tools** in the left sidebar.",
+                title="RFLink Raw Tools • Added To Sidebar",
+                notification_id="rflink_raw_sidebar_added",
             )
             return
 
@@ -194,50 +193,9 @@ Next steps:
             update_from_github(self.hass)
             persistent_notification.async_create(
                 self.hass,
-                """RFLink Raw Tools was downloaded from GitHub and copied into Home Assistant.
-
-Next step:
-Restart Home Assistant Core from Settings → System, or run `ha core restart`.
-
-A backup was saved in `/config/.rflink_raw_backups`.""",
+                "RFLink Raw Tools was updated from GitHub. Restart Home Assistant Core.",
                 title="RFLink Raw Tools • Update Downloaded",
                 notification_id="rflink_raw_update_done",
-            )
-            return
-
-        if self.entity_description.action_type == "show_update_status":
-            show_update_status(self.hass)
-            persistent_notification.async_create(
-                self.hass,
-                """To update without command line:
-
-1. Press **Update Download Latest From GitHub**.
-2. Wait for the success notification.
-3. Restart Home Assistant Core from Settings → System.""",
-                title="RFLink Raw Tools • Update Help",
-                notification_id="rflink_raw_update_help",
-            )
-            return
-
-        if self.entity_description.action_type == "load_default_prereq":
-            update_state(
-                self.hass,
-                **{
-                    KEY_PREREQ_PORT: "/dev/ttyUSB0",
-                    KEY_PREREQ_WAIT_FOR_ACK: False,
-                    KEY_PREREQ_RECONNECT_INTERVAL: 10,
-                },
-            )
-            persistent_notification.async_create(
-                self.hass,
-                """Default RFLink prerequisite values loaded:
-- Port: /dev/ttyUSB0
-- Wait For ACK: off
-- Reconnect Interval: 10
-
-Next press **Setup Install RFLink Prerequisite YAML**.""",
-                title="RFLink Raw Tools • Defaults Loaded",
-                notification_id="rflink_raw_defaults",
             )
             return
 
@@ -250,11 +208,7 @@ Next press **Setup Install RFLink Prerequisite YAML**.""",
             )
             persistent_notification.async_create(
                 self.hass,
-                """RFLink prerequisite YAML was written to configuration.yaml.
-
-Next steps:
-1. Run `ha core check`.
-2. Restart Home Assistant Core.""",
+                "RFLink prerequisite YAML was written. Run `ha core check` and restart.",
                 title="RFLink Raw Tools • Prerequisite Installed",
                 notification_id="rflink_raw_prereq_done",
             )
@@ -285,18 +239,6 @@ Next steps:
 
         if self.entity_description.action_type == "load_example_protocol":
             update_state(self.hass, **{KEY_PROTOCOL_DEVICE_ID: "newkaku_0cac142_3", KEY_PROTOCOL_COMMAND: "on", KEY_REPEAT: 3, KEY_DELAY_MS: 250})
-            return
-
-        if self.entity_description.action_type == "show_logs_help":
-            persistent_notification.async_create(self.hass, "Logs: Settings → System → Logs, or `ha core logs | grep -i rflink`.", title="RFLink Raw Tools • Logs")
-            return
-
-        if self.entity_description.action_type == "show_find_device_help":
-            persistent_notification.async_create(self.hass, "Start QRFDEBUG, press the RF remote/device button, then check logs.", title="RFLink Raw Tools • Find Device")
-            return
-
-        if self.entity_description.action_type == "show_dashboard_help":
-            persistent_notification.async_create(self.hass, "Install the sidebar dashboard using Dashboard Install / Update Sidebar Page.", title="RFLink Raw Tools • Dashboard")
             return
 
         await async_send_direct_command(self.hass, self.entity_description.command, 1, 250)

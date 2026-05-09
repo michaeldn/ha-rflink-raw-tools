@@ -5,10 +5,16 @@ NAME = "RFLink Raw Tools"
 
 PLATFORMS = ["button", "switch", "text", "number", "sensor"]
 
-DATA_STATE = "state"
+STORAGE_VERSION = 1
+STORAGE_KEY = "rflink_raw_tools_state"
 
-DEVICE_IDENTIFIER = "rflink_raw_tools_controller"
+DATA_STATE = "state"
+DATA_STORE = "store"
+
+DEVICE_IDENTIFIER = "rflink_raw_tools_admin"
 DEVICE_NAME = "RFLink Raw Tools"
+COMMAND_DEVICE_IDENTIFIER = "rflink_raw_tools_command_center"
+COMMAND_DEVICE_NAME = "RFLink Raw Tools Command Center"
 MANUFACTURER = "Custom Home Assistant"
 MODEL = "RFLink Command UI"
 VERSION = "0.1.0"
@@ -48,3 +54,4 @@ DASHBOARD_KEY = "rflink-raw-tools"
 DASHBOARD_FILENAME = "rflink_raw_dashboard.yaml"
 DASHBOARD_TITLE = "RFLink Raw Tools"
 DASHBOARD_ICON = "mdi:radio-tower"
+DASHBOARD_URL = "/rflink-raw-tools/rflink-start"

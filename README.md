@@ -2,13 +2,22 @@
 
 <p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="220"></p>
 
-RFLink Raw Tools is a Home Assistant custom integration that adds a cleaner RFLink control UI, RFDEBUG/QRFDEBUG helpers, repeat controls, GitHub updating, and dashboard/sidebar setup.
+RFLink Raw Tools is a Home Assistant custom integration for RFLink command sending, RFDEBUG/QRFDEBUG, dashboard/sidebar setup, and UI-based updates.
 
-## Important: clean up old test entities
+## What changed in this build
 
-If you installed earlier test builds, Home Assistant may keep old entity names in the entity registry. That is why you may still see duplicate controls like both `RFLink Ping` and `Debug RFLink Ping`.
+- The main RFLink Raw Tools device page is now only an admin landing page.
+- The only enabled admin controls are:
+  - Open RFLink Tools Dashboard
+  - Add Dashboard
+  - Add To Sidebar
+- Command controls are moved to a separate device named RFLink Raw Tools Command Center.
+- Status/log sensors are diagnostic and disabled by default to stop activity/log clutter.
+- Settings are persisted in Home Assistant storage instead of being wiped on restart/update.
 
-After installing this build, remove and re-add the integration once:
+## Clean old test entities
+
+Earlier test builds created many duplicate entities. Delete and re-add the integration once:
 
 ```text
 Settings → Devices & services → RFLink Raw Tools → three dots → Delete
@@ -16,31 +25,14 @@ Restart Home Assistant
 Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
-Then enable:
-
-```text
-Install dashboard: yes
-Dashboard Show In Sidebar: yes
-```
-
-The default Home Assistant device page is now treated as an admin/config page. The primary daily UI is the sidebar dashboard.
-
 ## First install
-
-Open the Home Assistant Terminal and run:
 
 ```bash
 wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/install.sh | sh
 ha core restart
 ```
 
-Then go to:
-
-```text
-Settings → Devices & services → Add integration → RFLink Raw Tools
-```
-
-During setup, leave these enabled unless you already configured them yourself:
+Then add the integration and keep:
 
 ```text
 Install prerequisite: yes
@@ -49,39 +41,11 @@ Dashboard Show In Sidebar: yes
 Dashboard Require Admin: no
 ```
 
-After setup:
+Then:
 
 ```bash
 ha core check
 ha core restart
 ```
 
-The clean RFLink Raw Tools dashboard should then appear in the left sidebar.
-
-## Why this exists
-
-The default Home Assistant device page lists enabled entities in Home Assistant's own layout. This integration keeps that page for admin/config and uses a dedicated dashboard as the main user page:
-
-```text
-Start
-Setup
-Control
-Debug
-Update
-```
-
-## Update from the UI
-
-After the first install, open the RFLink Raw Tools device and press:
-
-```text
-Update Download Latest From GitHub
-```
-
-Then restart Home Assistant Core.
-
-## Important limitation
-
-This integration sends RFLink gateway text commands.
-
-It does not make classic RFLink R48 replay arbitrary `DEBUG;Pulses=...` captures unless the RFLink firmware itself supports a transmit command for that format.
+Use the RFLink Raw Tools item in the left sidebar as the primary UI.

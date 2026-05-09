@@ -9,6 +9,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
+    COMMAND_DEVICE_IDENTIFIER,
+    COMMAND_DEVICE_NAME,
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
@@ -31,11 +33,13 @@ class RFLinkRawNumberDescription(EntityDescription):
     native_max_value: float
     native_step: float
     native_unit_of_measurement: str | None = None
-    entity_category: str | None = "config"
+    entity_category: str | None = None
+    enabled_default: bool = True
+    device_area: str = "command"
 
 
 NUMBERS: tuple[RFLinkRawNumberDescription, ...] = (
-    RFLinkRawNumberDescription(key="setup_prereq_reconnect_interval", name="Setup RFLink Prerequisite Reconnect Interval", icon="mdi:connection", state_key=KEY_PREREQ_RECONNECT_INTERVAL, native_min_value=1, native_max_value=3600, native_step=1, native_unit_of_measurement="s"),
+    RFLinkRawNumberDescription(key="setup_prereq_reconnect_interval", name="Setup RFLink Prerequisite Reconnect Interval", icon="mdi:connection", state_key=KEY_PREREQ_RECONNECT_INTERVAL, native_min_value=1, native_max_value=3600, native_step=1, native_unit_of_measurement="s", entity_category="config", enabled_default=False, device_area="admin"),
     RFLinkRawNumberDescription(key="control_repeat", name="Control RFLink Repeat Count", icon="mdi:repeat", state_key=KEY_REPEAT, native_min_value=1, native_max_value=50, native_step=1),
     RFLinkRawNumberDescription(key="control_delay_ms", name="Control RFLink Repeat Delay", icon="mdi:timer-outline", state_key=KEY_DELAY_MS, native_min_value=0, native_max_value=10000, native_step=50, native_unit_of_measurement="ms"),
 )
@@ -58,13 +62,22 @@ class RFLinkRawNumber(NumberEntity):
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
         self._attr_entity_category = description.entity_category
+        self._attr_entity_registry_enabled_default = description.enabled_default
         self._attr_native_min_value = description.native_min_value
         self._attr_native_max_value = description.native_max_value
         self._attr_native_step = description.native_step
         self._attr_native_unit_of_measurement = description.native_unit_of_measurement
+
+        if description.device_area == "admin":
+            identifier = DEVICE_IDENTIFIER
+            name = DEVICE_NAME
+        else:
+            identifier = COMMAND_DEVICE_IDENTIFIER
+            name = COMMAND_DEVICE_NAME
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
-            name=DEVICE_NAME,
+            identifiers={(DOMAIN, identifier)},
+            name=name,
             manufacturer=MANUFACTURER,
             model=MODEL,
             sw_version=VERSION,

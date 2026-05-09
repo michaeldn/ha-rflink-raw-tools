@@ -9,6 +9,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
 from .const import (
+    COMMAND_DEVICE_IDENTIFIER,
+    COMMAND_DEVICE_NAME,
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
@@ -32,44 +34,16 @@ class RFLinkRawSwitchDescription(EntityDescription):
     on_command: str | None = None
     off_command: str | None = None
     entity_category: str | None = "config"
+    enabled_default: bool = False
+    device_area: str = "command"
 
 
 SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
-    RFLinkRawSwitchDescription(
-        key="dashboard_show_in_sidebar",
-        name="Dashboard Show In Sidebar",
-        icon="mdi:menu-open",
-        state_key=KEY_DASHBOARD_SHOW_IN_SIDEBAR,
-        switch_type="state",
-    ),
-    RFLinkRawSwitchDescription(
-        key="dashboard_require_admin",
-        name="Dashboard Require Admin",
-        icon="mdi:shield-account-outline",
-        state_key=KEY_DASHBOARD_REQUIRE_ADMIN,
-        switch_type="state",
-    ),
-    RFLinkRawSwitchDescription(
-        key="setup_prereq_wait_for_ack",
-        name="Setup RFLink Prerequisite Wait For ACK",
-        icon="mdi:handshake-outline",
-        state_key=KEY_PREREQ_WAIT_FOR_ACK,
-        switch_type="state",
-    ),
-    RFLinkRawSwitchDescription(
-        key="debug_rfdebug",
-        name="Debug RFLink RFDEBUG",
-        icon="mdi:radio-tower",
-        on_command="10;RFDEBUG=ON;",
-        off_command="10;RFDEBUG=OFF;",
-    ),
-    RFLinkRawSwitchDescription(
-        key="debug_qrfdebug",
-        name="Debug RFLink QRFDEBUG",
-        icon="mdi:signal",
-        on_command="10;QRFDEBUG=ON;",
-        off_command="10;QRFDEBUG=OFF;",
-    ),
+    RFLinkRawSwitchDescription(key="dashboard_show_in_sidebar", name="Dashboard Show In Sidebar", icon="mdi:menu-open", state_key=KEY_DASHBOARD_SHOW_IN_SIDEBAR, switch_type="state", device_area="admin"),
+    RFLinkRawSwitchDescription(key="dashboard_require_admin", name="Dashboard Require Admin", icon="mdi:shield-account-outline", state_key=KEY_DASHBOARD_REQUIRE_ADMIN, switch_type="state", device_area="admin"),
+    RFLinkRawSwitchDescription(key="setup_prereq_wait_for_ack", name="Setup RFLink Prerequisite Wait For ACK", icon="mdi:handshake-outline", state_key=KEY_PREREQ_WAIT_FOR_ACK, switch_type="state", device_area="admin"),
+    RFLinkRawSwitchDescription(key="debug_rfdebug", name="Debug RFLink RFDEBUG", icon="mdi:radio-tower", on_command="10;RFDEBUG=ON;", off_command="10;RFDEBUG=OFF;", enabled_default=True),
+    RFLinkRawSwitchDescription(key="debug_qrfdebug", name="Debug RFLink QRFDEBUG", icon="mdi:signal", on_command="10;QRFDEBUG=ON;", off_command="10;QRFDEBUG=OFF;", enabled_default=True),
 )
 
 
@@ -89,10 +63,19 @@ class RFLinkRawSwitch(SwitchEntity):
         self._attr_name = description.name
         self._attr_unique_id = f"{entry_id}_{description.key}"
         self._attr_entity_category = description.entity_category
+        self._attr_entity_registry_enabled_default = description.enabled_default
         self._attr_is_on = False
+
+        if description.device_area == "admin":
+            identifier = DEVICE_IDENTIFIER
+            name = DEVICE_NAME
+        else:
+            identifier = COMMAND_DEVICE_IDENTIFIER
+            name = COMMAND_DEVICE_NAME
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, DEVICE_IDENTIFIER)},
-            name=DEVICE_NAME,
+            identifiers={(DOMAIN, identifier)},
+            name=name,
             manufacturer=MANUFACTURER,
             model=MODEL,
             sw_version=VERSION,

@@ -21,6 +21,7 @@ from .const import (
     PLATFORMS,
 )
 from .helpers import async_send_direct_command, async_send_protocol_command
+from .store import async_initialize_store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,6 +107,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     """Set up RFLink Raw Tools from a config entry."""
+    await async_initialize_store(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _LOGGER.info("RFLink Raw Tools UI entities registered")
     return True

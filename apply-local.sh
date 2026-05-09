@@ -2,13 +2,12 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Downloads/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.0-ui-clean-importfix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-ui-clean-importfix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.1.0-stable-ui-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-stable-ui-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
   echo "ERROR: missing $ZIP"
-  echo "Download ha-rflink-raw-tools-v0.1.0-ui-clean-importfix-onefile.zip to /Users/michaeldumas/Downloads first."
   exit 1
 fi
 
@@ -18,7 +17,6 @@ if [ ! -d "$REPO/.git" ]; then
 fi
 
 cp -R "$REPO" "$BACKUP"
-
 rm -rf "$EXTRACT"
 mkdir -p "$EXTRACT"
 unzip -o "$ZIP" -d "$EXTRACT"
@@ -30,7 +28,7 @@ cp -R "$EXTRACT"/* .
 chmod +x install.sh apply-local.sh
 
 git add .
-git commit -m "Fix import error and clean admin device page" || true
+git commit -m "Stabilize UI, persist settings, and reduce admin controls" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"
