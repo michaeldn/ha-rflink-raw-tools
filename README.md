@@ -4,14 +4,17 @@
 
 Version: **0.0.1**
 
-## UI reset
+## No-Press UI build
 
-- The dashboard logo is small.
-- `Install RFLink Prerequisite` is a button, not a switch.
-- `Install RFLink Prerequisite` is only available when the managed prerequisite block is not installed.
-- `Undo RFLink Prerequisite` is available only after it is installed.
-- Dashboard actions are also button pairs: Add / Undo and Add to sidebar / Remove from sidebar.
-- The gear/configure page has no install actions.
+Home Assistant's native `ButtonEntity` renders with a **Press** CTA on the device page. This build removes the ButtonEntity platform entirely.
+
+- Setup/undo controls are on/off switches.
+- Turning `RFLink Prerequisite` on installs the managed RFLink block.
+- Turning `RFLink Prerequisite` off removes only that managed block.
+- Turning `RFLink Dashboard` on adds the dashboard.
+- Turning `RFLink Dashboard` off removes the managed dashboard.
+- Dashboard one-time actions call services directly, so the dashboard can show clear CTAs like `Send raw`, `Ping`, and `Download latest`.
+- Version remains `0.0.1`.
 
 ## Install
 
@@ -20,38 +23,11 @@ wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/i
 ha core restart
 ```
 
-## Stale entity repair
+## Remove stale old button entities
 
-If old switches or old buttons from prior builds still show, copy/run:
+Prior builds created RFLink Raw Tools button entities. This build has no button platform, so after installing run:
 
 ```bash
 sh /config/repair-stale-rflink-raw-entities.sh
+ha core restart
 ```
-
-Then restart Home Assistant Core.
-
-
-## Missing platform fix
-
-This package includes the required Home Assistant platform files:
-
-```text
-custom_components/rflink_raw/text.py
-custom_components/rflink_raw/number.py
-```
-
-Those files are required because `PLATFORMS = ["button", "switch", "text", "number"]`.
-
-
-## Approved logo fix
-
-This package restores the approved RFLink Raw Tools logo and includes the Home Assistant brand assets:
-
-```text
-custom_components/rflink_raw/brand/icon.png
-custom_components/rflink_raw/brand/logo.png
-custom_components/rflink_raw/brand/dark_icon.png
-custom_components/rflink_raw/brand/dark_logo.png
-```
-
-The version remains `0.0.1`.

@@ -46,6 +46,18 @@ send_protocol:
           max: 10000
           mode: box
 
+send_stored_raw:
+  name: Send stored raw RFLink command
+
+send_stored_protocol:
+  name: Send stored RFLink protocol command
+
+ping:
+  name: RFLink ping
+
+version:
+  name: RFLink version
+
 update_from_github:
   name: Update from GitHub
   description: Download the latest version from GitHub after creating a backup.
@@ -53,3 +65,21 @@ update_from_github:
 restore_last_update:
   name: Restore last update backup
   description: Restore the last backup created by the update service.
+
+install_prerequisite:
+  name: Install RFLink prerequisite
+
+remove_prerequisite:
+  name: Remove RFLink prerequisite
+
+add_dashboard:
+  name: Add RFLink Raw Tools dashboard
+
+remove_dashboard:
+  name: Remove RFLink Raw Tools dashboard
+
+add_sidebar:
+  name: Add RFLink Raw Tools to sidebar
+
+remove_sidebar:
+  name: Remove RFLink Raw Tools from sidebar

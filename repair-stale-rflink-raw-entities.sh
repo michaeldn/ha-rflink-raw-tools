@@ -19,30 +19,21 @@ if not p.exists():
 
 data = json.loads(p.read_text())
 entities = data.get("data", {}).get("entities", [])
-remove_prefixes = (
-    "button.setup_",
-    "button.dashboard_install",
-    "button.open_rflink_tools_dashboard",
-    "button.show_rflink_dashboard_path",
-    "button.add_dashboard",
-    "button.add_to_sidebar",
-    "switch.install_rflink_prerequisite",
-    "switch.add_dashboard",
-    "switch.add_to_sidebar",
-)
 
 kept = []
 removed = []
 for e in entities:
     eid = e.get("entity_id", "")
-    if e.get("platform") == "rflink_raw" and eid.startswith(remove_prefixes):
+    platform = e.get("platform", "")
+    # This build has no RFLink Raw Tools ButtonEntity platform.
+    if platform == "rflink_raw" and eid.startswith("button."):
         removed.append(eid)
     else:
         kept.append(e)
 
 data["data"]["entities"] = kept
 p.write_text(json.dumps(data, indent=2, sort_keys=True))
-print("Removed stale entities:", len(removed))
+print("Removed stale RFLink Raw Tools button entities:", len(removed))
 for eid in removed:
     print(" -", eid)
 PY

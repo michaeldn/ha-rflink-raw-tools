@@ -4,7 +4,7 @@ DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 VERSION = "0.0.1"
 
-PLATFORMS = ["button", "switch", "text", "number"]
+PLATFORMS = ["switch", "text", "number"]
 
 STORAGE_VERSION = 1
 STORAGE_KEY = "rflink_raw_tools_state"
