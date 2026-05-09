@@ -37,10 +37,36 @@ class RFLinkRawTextDescription(EntityDescription):
 
 
 TEXTS: tuple[RFLinkRawTextDescription, ...] = (
-    RFLinkRawTextDescription(key="setup_prereq_port", name="Setup RFLink Prerequisite Port", icon="mdi:serial-port", state_key=KEY_PREREQ_PORT, native_max=255, entity_category="config", enabled_default=False, device_area="admin"),
-    RFLinkRawTextDescription(key="control_raw_command", name="Control RFLink Raw Command", icon="mdi:code-string", state_key=KEY_RAW_COMMAND, native_max=2048),
-    RFLinkRawTextDescription(key="control_protocol_device_id", name="Control RFLink Protocol Device ID", icon="mdi:identifier", state_key=KEY_PROTOCOL_DEVICE_ID, native_max=255),
-    RFLinkRawTextDescription(key="control_protocol_command", name="Control RFLink Protocol Command", icon="mdi:gesture-tap-button", state_key=KEY_PROTOCOL_COMMAND, native_max=80),
+    RFLinkRawTextDescription(
+        key="setup_prereq_port",
+        name="RFLink Prerequisite Port",
+        icon="mdi:serial-port",
+        state_key=KEY_PREREQ_PORT,
+        native_max=255,
+        entity_category="config",
+        device_area="admin",
+    ),
+    RFLinkRawTextDescription(
+        key="control_raw_command",
+        name="Control RFLink Raw Command",
+        icon="mdi:code-string",
+        state_key=KEY_RAW_COMMAND,
+        native_max=2048,
+    ),
+    RFLinkRawTextDescription(
+        key="control_protocol_device_id",
+        name="Control RFLink Protocol Device ID",
+        icon="mdi:identifier",
+        state_key=KEY_PROTOCOL_DEVICE_ID,
+        native_max=255,
+    ),
+    RFLinkRawTextDescription(
+        key="control_protocol_command",
+        name="Control RFLink Protocol Command",
+        icon="mdi:gesture-tap-button",
+        state_key=KEY_PROTOCOL_COMMAND,
+        native_max=80,
+    ),
 )
 
 

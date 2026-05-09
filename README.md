@@ -4,48 +4,61 @@
 
 RFLink Raw Tools is a Home Assistant custom integration for RFLink command sending, RFDEBUG/QRFDEBUG, dashboard/sidebar setup, and UI-based updates.
 
-## What changed in this build
+## v0.1.2 Safe Undo Build
 
-- The main RFLink Raw Tools device page is now only an admin landing page.
-- The only enabled admin controls are:
-  - Open RFLink Tools Dashboard
-  - Add Dashboard
-  - Add To Sidebar
-- Command controls are moved to a separate device named RFLink Raw Tools Command Center.
-- Status/log sensors are diagnostic and disabled by default to stop activity/log clutter.
-- Settings are persisted in Home Assistant storage instead of being wiped on restart/update.
+This build is designed so every managed change has a matching undo path.
 
-## Clean old test entities
+### UI undo switches
 
-Earlier test builds created many duplicate entities. Delete and re-add the integration once:
+| Thing it does | On | Off / undo |
+|---|---|---|
+| Install RFLink prerequisite | Writes a marked RFLink block to `configuration.yaml` | Removes only that marked block |
+| Add dashboard | Writes the marked Lovelace dashboard block and dashboard files | Removes the marked block, dashboard YAML, and logo folder |
+| Add to sidebar | Updates the marked dashboard block with `show_in_sidebar: true` | Updates the marked dashboard block with `show_in_sidebar: false` |
+| Require admin | Updates the marked dashboard block with `require_admin: true` | Updates it back to `false` |
+| GitHub update | Backs up the current integration/dashboard/logo files first | `Undo Last GitHub Update` restores that backup |
+
+### Full undo script
+
+This package includes:
 
 ```text
-Settings → Devices & services → RFLink Raw Tools → three dots → Delete
-Restart Home Assistant
-Settings → Devices & services → Add integration → RFLink Raw Tools
+undo-rflink-raw-tools.sh
 ```
 
+It disables the custom integration folder, removes RFLink Raw Tools managed YAML blocks, removes dashboard/logo files, removes RFLink Raw Tools storage dashboard entries, and backs everything up first.
+
 ## First install
+
+Open the Home Assistant Terminal add-on and run:
 
 ```bash
 wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/install.sh | sh
 ha core restart
 ```
 
-Then add the integration and keep:
+Then add the integration:
 
 ```text
-Install prerequisite: yes
-Install dashboard: yes
-Dashboard Show In Sidebar: yes
-Dashboard Require Admin: no
+Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
-Then:
+Safe defaults now do **not** write the prerequisite or dashboard automatically. Use the switches after the integration loads:
 
-```bash
-ha core check
-ha core restart
+```text
+Install RFLink Prerequisite
+Add Dashboard
+Add To Sidebar
 ```
 
-Use the RFLink Raw Tools item in the left sidebar as the primary UI.
+## Local development apply
+
+The included `apply-local.sh` expects the local repo here:
+
+```text
+/Users/michaeldumas/Projects/ha-rflink-raw-tools
+```
+
+## Important limitation
+
+This integration sends RFLink gateway text commands. It does not make classic RFLink R48 replay arbitrary `DEBUG;Pulses=...` captures unless the RFLink firmware itself supports a transmit command for that format.

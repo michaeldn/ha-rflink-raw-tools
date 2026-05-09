@@ -1,47 +1,66 @@
 send_raw:
-  name: Send raw RFLink command line
-  description: >
-    Sends one direct RFLink gateway command line through the existing Home Assistant
-    RFLink connection. This sends RFLink serial text commands, not arbitrary raw
-    RF pulse replays unless your RFLink firmware supports that command.
+  name: Send raw RFLink command
+  description: Send one direct RFLink command line.
   fields:
     raw_command:
       name: Raw command
-      description: "Direct RFLink command. Must start with 10;. Example: 10;QRFDEBUG=ON;"
       required: true
       selector:
         text:
     repeat:
-      name: Repeat count
-      description: Number of times to send the command.
-      required: false
+      name: Repeat
       default: 1
       selector:
         number:
           min: 1
           max: 50
-          step: 1
           mode: box
     delay_ms:
-      name: Repeat delay
-      description: Delay between repeated sends, in milliseconds.
-      required: false
+      name: Delay in milliseconds
       default: 250
       selector:
         number:
           min: 0
           max: 10000
-          step: 50
-          unit_of_measurement: ms
+          mode: box
+
+send_protocol:
+  name: Send RFLink protocol command
+  description: Send a Home Assistant RFLink device command.
+  fields:
+    device_id:
+      name: RFLink device id
+      required: true
+      selector:
+        text:
+    command:
+      name: Command
+      required: true
+      selector:
+        text:
+    repeat:
+      name: Repeat
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 50
+          mode: box
+    delay_ms:
+      name: Delay in milliseconds
+      default: 250
+      selector:
+        number:
+          min: 0
+          max: 10000
           mode: box
 
 rfdebug:
-  name: Set RFLink RFDEBUG
-  description: Turns RFLink RFDEBUG mode on or off.
+  name: Set RFDEBUG
+  description: Turn RFLink RFDEBUG mode on or off.
   fields:
     mode:
       name: Mode
-      description: Turn RFDEBUG on or off.
       required: true
       selector:
         select:
@@ -50,57 +69,14 @@ rfdebug:
             - "off"
 
 qrfdebug:
-  name: Set RFLink QRFDEBUG
-  description: Turns RFLink QRFDEBUG mode on or off.
+  name: Set QRFDEBUG
+  description: Turn RFLink QRFDEBUG mode on or off.
   fields:
     mode:
       name: Mode
-      description: Turn QRFDEBUG on or off.
       required: true
       selector:
         select:
           options:
             - "on"
             - "off"
-
-send_protocol:
-  name: Send RFLink protocol command
-  description: >
-    Sends a normal RFLink protocol/device command using Home Assistant's RFLink
-    command helper. Example device_id newkaku_0cac142_3 with command on.
-  fields:
-    device_id:
-      name: Device ID
-      description: "RFLink device id, for example newkaku_0cac142_3."
-      required: true
-      selector:
-        text:
-    command:
-      name: Command
-      description: "RFLink command, for example on, off, UP, DOWN, STOP, PAIR."
-      required: true
-      selector:
-        text:
-    repeat:
-      name: Repeat count
-      description: Number of times to send the command.
-      required: false
-      default: 1
-      selector:
-        number:
-          min: 1
-          max: 50
-          step: 1
-          mode: box
-    delay_ms:
-      name: Repeat delay
-      description: Delay between repeated sends, in milliseconds.
-      required: false
-      default: 250
-      selector:
-        number:
-          min: 0
-          max: 10000
-          step: 50
-          unit_of_measurement: ms
-          mode: box

@@ -39,9 +39,37 @@ class RFLinkRawNumberDescription(EntityDescription):
 
 
 NUMBERS: tuple[RFLinkRawNumberDescription, ...] = (
-    RFLinkRawNumberDescription(key="setup_prereq_reconnect_interval", name="Setup RFLink Prerequisite Reconnect Interval", icon="mdi:connection", state_key=KEY_PREREQ_RECONNECT_INTERVAL, native_min_value=1, native_max_value=3600, native_step=1, native_unit_of_measurement="s", entity_category="config", enabled_default=False, device_area="admin"),
-    RFLinkRawNumberDescription(key="control_repeat", name="Control RFLink Repeat Count", icon="mdi:repeat", state_key=KEY_REPEAT, native_min_value=1, native_max_value=50, native_step=1),
-    RFLinkRawNumberDescription(key="control_delay_ms", name="Control RFLink Repeat Delay", icon="mdi:timer-outline", state_key=KEY_DELAY_MS, native_min_value=0, native_max_value=10000, native_step=50, native_unit_of_measurement="ms"),
+    RFLinkRawNumberDescription(
+        key="setup_prereq_reconnect_interval",
+        name="RFLink Prerequisite Reconnect Interval",
+        icon="mdi:connection",
+        state_key=KEY_PREREQ_RECONNECT_INTERVAL,
+        native_min_value=1,
+        native_max_value=3600,
+        native_step=1,
+        native_unit_of_measurement="s",
+        entity_category="config",
+        device_area="admin",
+    ),
+    RFLinkRawNumberDescription(
+        key="control_repeat",
+        name="Control RFLink Repeat Count",
+        icon="mdi:repeat",
+        state_key=KEY_REPEAT,
+        native_min_value=1,
+        native_max_value=50,
+        native_step=1,
+    ),
+    RFLinkRawNumberDescription(
+        key="control_delay_ms",
+        name="Control RFLink Repeat Delay",
+        icon="mdi:timer-outline",
+        state_key=KEY_DELAY_MS,
+        native_min_value=0,
+        native_max_value=10000,
+        native_step=50,
+        native_unit_of_measurement="ms",
+    ),
 )
 
 

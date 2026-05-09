@@ -15,12 +15,21 @@ views:
         content: |
           # RFLink Raw Tools
 
-          This is the primary UI. The Home Assistant device page is only for admin/configuration.
+          Safe build: every managed setup change has a matching undo switch.
+
+          Use **Setup** for dashboard/sidebar/prerequisite controls.
+          Use **Control** to send commands.
 
       - type: grid
         columns: 2
         square: false
         cards:
+          - type: button
+            name: Setup
+            icon: mdi:cog-outline
+            tap_action:
+              action: navigate
+              navigation_path: /rflink-raw-tools/rflink-setup
           - type: button
             name: Control
             icon: mdi:remote
@@ -34,12 +43,6 @@ views:
               action: navigate
               navigation_path: /rflink-raw-tools/rflink-debug
           - type: button
-            name: Setup
-            icon: mdi:cog-outline
-            tap_action:
-              action: navigate
-              navigation_path: /rflink-raw-tools/rflink-setup
-          - type: button
             name: Update
             icon: mdi:update
             tap_action:
@@ -51,27 +54,36 @@ views:
     icon: mdi:cog-outline
     cards:
       - type: entities
+        title: RFLink prerequisite
+        show_header_toggle: false
+        entities:
+          - entity: text.rflink_prerequisite_port
+            name: Port
+          - entity: number.rflink_prerequisite_reconnect_interval
+            name: Reconnect interval
+          - entity: switch.rflink_prerequisite_wait_for_ack
+            name: Wait for ACK
+          - entity: switch.install_rflink_prerequisite
+            name: Install RFLink prerequisite
+
+      - type: markdown
+        content: |
+          Turning **Install RFLink prerequisite** off removes only the managed RFLink block that RFLink Raw Tools created.
+
+      - type: entities
         title: Dashboard
         show_header_toggle: false
         entities:
-          - type: button
+          - entity: switch.add_dashboard
             name: Add dashboard
-            icon: mdi:view-dashboard-plus-outline
-            action_name: Add
-            tap_action:
-              action: call-service
-              service: button.press
-              target:
-                entity_id: button.add_dashboard
-          - type: button
+          - entity: switch.add_to_sidebar
             name: Add to sidebar
-            icon: mdi:menu-open
-            action_name: Add
-            tap_action:
-              action: call-service
-              service: button.press
-              target:
-                entity_id: button.add_to_sidebar
+          - entity: switch.dashboard_require_admin
+            name: Require admin
+
+      - type: markdown
+        content: |
+          Turning **Add dashboard** off removes the managed dashboard registration, dashboard YAML file, and RFLink Raw Tools logo folder.
 
   - title: Control
     path: rflink-control
@@ -119,28 +131,19 @@ views:
     path: rflink-debug
     icon: mdi:radio-tower
     cards:
+      - type: entities
+        title: Capture
+        show_header_toggle: false
+        entities:
+          - entity: switch.debug_rflink_qrfdebug
+            name: QRFDEBUG
+          - entity: switch.debug_rflink_rfdebug
+            name: RFDEBUG
+
       - type: grid
         columns: 2
         square: false
         cards:
-          - type: button
-            name: Start QRFDEBUG
-            icon: mdi:signal
-            entity: button.debug_start_qrfdebug_capture
-            tap_action:
-              action: call-service
-              service: button.press
-              target:
-                entity_id: button.debug_start_qrfdebug_capture
-          - type: button
-            name: Stop QRFDEBUG
-            icon: mdi:signal-off
-            entity: button.debug_stop_qrfdebug_capture
-            tap_action:
-              action: call-service
-              service: button.press
-              target:
-                entity_id: button.debug_stop_qrfdebug_capture
           - type: button
             name: Ping
             icon: mdi:access-point-check
@@ -164,6 +167,10 @@ views:
     path: rflink-update
     icon: mdi:update
     cards:
+      - type: markdown
+        content: |
+          Updates create a backup first. Use **Undo Last GitHub Update** if needed before restarting.
+
       - type: button
         name: Download latest
         icon: mdi:cloud-download-outline
@@ -173,3 +180,13 @@ views:
           service: button.press
           target:
             entity_id: button.update_download_latest_from_github
+
+      - type: button
+        name: Undo last update
+        icon: mdi:backup-restore
+        entity: button.undo_last_github_update
+        tap_action:
+          action: call-service
+          service: button.press
+          target:
+            entity_id: button.undo_last_github_update

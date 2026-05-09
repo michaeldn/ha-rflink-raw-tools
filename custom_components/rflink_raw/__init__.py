@@ -25,12 +25,7 @@ from .store import async_initialize_store
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Any(None, vol.Schema({})),
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
 
 SEND_RAW_SCHEMA = vol.Schema(
     {
@@ -97,9 +92,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass.services.async_register(DOMAIN, "qrfdebug", async_set_qrfdebug, schema=QRFDEBUG_SCHEMA)
 
     if not hass.services.has_service(DOMAIN, "send_protocol"):
-        hass.services.async_register(
-            DOMAIN, "send_protocol", async_send_protocol, schema=SEND_PROTOCOL_SCHEMA
-        )
+        hass.services.async_register(DOMAIN, "send_protocol", async_send_protocol, schema=SEND_PROTOCOL_SCHEMA)
 
     _LOGGER.info("RFLink Raw Tools services registered")
     return True

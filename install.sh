@@ -7,10 +7,24 @@ TMP_DIR="/tmp/ha-rflink-raw-tools-main"
 TARGET_DIR="/config/custom_components/rflink_raw"
 WWW_DIR="/config/www/rflink_raw"
 DASHBOARD_FILE="/config/rflink_raw_dashboard.yaml"
+BACKUP_DIR="/config/.rflink_raw_installer_backups/install_$(date +%Y%m%d_%H%M%S)"
 
 echo "Installing RFLink Raw Tools from GitHub..."
 mkdir -p /config/custom_components
 mkdir -p "$WWW_DIR"
+mkdir -p "$BACKUP_DIR"
+
+if [ -d "$TARGET_DIR" ]; then
+  cp -R "$TARGET_DIR" "$BACKUP_DIR/rflink_raw"
+fi
+
+if [ -f "$DASHBOARD_FILE" ]; then
+  cp "$DASHBOARD_FILE" "$BACKUP_DIR/rflink_raw_dashboard.yaml"
+fi
+
+if [ -d "$WWW_DIR" ]; then
+  cp -R "$WWW_DIR" "$BACKUP_DIR/www_rflink_raw"
+fi
 
 rm -f "$TMP_ZIP"
 rm -rf "$TMP_DIR"
@@ -30,6 +44,6 @@ if [ -f "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" ]; then
 fi
 
 echo "Installed to $TARGET_DIR"
-echo "Dashboard YAML copied to $DASHBOARD_FILE"
+echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core next:"
 echo "ha core restart"

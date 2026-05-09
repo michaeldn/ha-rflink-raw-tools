@@ -1,4 +1,4 @@
-"""Dashboard installer for RFLink Raw Tools."""
+"""Dashboard installer/remover for RFLink Raw Tools."""
 
 from __future__ import annotations
 
@@ -15,11 +15,22 @@ from .const import (
     DASHBOARD_ICON,
     DASHBOARD_KEY,
     DASHBOARD_TITLE,
+    KEY_DASHBOARD_ENABLED,
+    KEY_DASHBOARD_REQUIRE_ADMIN,
+    KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_DASHBOARD_STATUS,
     MANAGED_DASHBOARD_BLOCK_END,
     MANAGED_DASHBOARD_BLOCK_START,
 )
 from .store import timestamped, update_state
+
+
+def _backup_config(config_path: Path, label: str) -> Path:
+    backup_path = config_path.with_name(
+        f"configuration.yaml.rflink_raw_{label}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
+    shutil.copy2(config_path, backup_path)
+    return backup_path
 
 
 def build_dashboard_yaml_block(show_in_sidebar: bool = True, require_admin: bool = False) -> str:
@@ -61,7 +72,7 @@ def install_dashboard_registration(
     show_in_sidebar: bool = True,
     require_admin: bool = False,
 ) -> Path:
-    """Install or update the managed Lovelace dashboard registration block."""
+    """Install/update the managed Lovelace dashboard registration block."""
     config_path = Path(hass.config.path("configuration.yaml"))
     if not config_path.exists():
         raise HomeAssistantError(f"Could not find configuration.yaml at {config_path}")
@@ -77,11 +88,7 @@ def install_dashboard_registration(
         update_state(hass, **{KEY_DASHBOARD_STATUS: timestamped(msg)})
         raise HomeAssistantError(msg)
 
-    backup_path = config_path.with_name(
-        f"configuration.yaml.rflink_raw_dashboard_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    )
-    shutil.copy2(config_path, backup_path)
-
+    backup_path = _backup_config(config_path, "dashboard_install_backup")
     new_block = build_dashboard_yaml_block(show_in_sidebar, require_admin)
 
     if MANAGED_DASHBOARD_BLOCK_START in text and MANAGED_DASHBOARD_BLOCK_END in text:
@@ -102,5 +109,44 @@ def install_dashboard_registration(
         f"Dashboard registered. show_in_sidebar={show_in_sidebar}, "
         f"require_admin={require_admin}. Run 'ha core check' and restart Home Assistant Core."
     )
-    update_state(hass, **{KEY_DASHBOARD_STATUS: timestamped(msg)})
+    update_state(
+        hass,
+        **{
+            KEY_DASHBOARD_STATUS: timestamped(msg),
+            KEY_DASHBOARD_ENABLED: True,
+            KEY_DASHBOARD_SHOW_IN_SIDEBAR: show_in_sidebar,
+            KEY_DASHBOARD_REQUIRE_ADMIN: require_admin,
+        },
+    )
+    return backup_path
+
+
+def remove_dashboard_registration(hass: HomeAssistant, remove_files: bool = True) -> Path:
+    """Remove only the managed dashboard registration block and optional dashboard files."""
+    config_path = Path(hass.config.path("configuration.yaml"))
+    if not config_path.exists():
+        raise HomeAssistantError(f"Could not find configuration.yaml at {config_path}")
+
+    text = config_path.read_text()
+    backup_path = _backup_config(config_path, "dashboard_remove_backup")
+    updated = _strip_managed_dashboard_block(text)
+    config_path.write_text(updated)
+
+    if remove_files:
+        dashboard_file = Path(hass.config.path(DASHBOARD_FILENAME))
+        if dashboard_file.exists():
+            dashboard_file.unlink()
+        logo_dir = Path(hass.config.path("www/rflink_raw"))
+        if logo_dir.exists():
+            shutil.rmtree(logo_dir)
+
+    msg = "Managed dashboard registration removed. Run 'ha core check' and restart Home Assistant Core."
+    update_state(
+        hass,
+        **{
+            KEY_DASHBOARD_STATUS: timestamped(msg),
+            KEY_DASHBOARD_ENABLED: False,
+            KEY_DASHBOARD_SHOW_IN_SIDEBAR: False,
+        },
+    )
     return backup_path

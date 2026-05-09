@@ -2,28 +2,31 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up RFLink Raw Tools",
-        "description": "Install RFLink Raw Tools, optionally install the RFLink prerequisite, and register the clean dashboard/sidebar page."
+        "title": "RFLink Raw Tools",
+        "description": "Safe setup. All managed changes are reversible from switches. Default is no configuration changes unless you choose them.",
+        "data": {
+          "install_prerequisite": "Install RFLink prerequisite now",
+          "prereq_port": "RFLink port",
+          "prereq_wait_for_ack": "Wait for ACK",
+          "prereq_reconnect_interval": "Reconnect interval",
+          "install_dashboard": "Add dashboard now",
+          "dashboard_show_in_sidebar": "Add to sidebar",
+          "dashboard_require_admin": "Require admin for dashboard"
+        }
       }
     },
     "error": {
-      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually.",
-      "dashboard_install_failed": "Could not install the RFLink Raw Tools dashboard. If configuration.yaml already has a top-level lovelace: block, add the dashboard manually under that existing block."
+      "prerequisite_install_failed": "Could not install RFLink prerequisite. Check logs.",
+      "dashboard_install_failed": "Could not install dashboard. Check logs."
     },
     "abort": {
       "already_configured": "RFLink Raw Tools is already configured."
     }
   },
   "options": {
-    "step": {
-      "init": {
-        "title": "RFLink Raw Tools options",
-        "description": "Optionally install or update the normal RFLink prerequisite YAML block in configuration.yaml."
-      }
-    },
     "error": {
-      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually.",
-      "dashboard_install_failed": "Could not install the RFLink Raw Tools dashboard. If configuration.yaml already has a top-level lovelace: block, add the dashboard manually under that existing block."
+      "prerequisite_install_failed": "Could not install RFLink prerequisite. Check logs.",
+      "dashboard_install_failed": "Could not install dashboard. Check logs."
     }
   }
 }

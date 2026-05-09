@@ -48,7 +48,7 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 try:
                     install_dashboard_registration(
                         self.hass,
-                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, False),
                         user_input.get(KEY_DASHBOARD_REQUIRE_ADMIN, False),
                     )
                 except Exception:
@@ -61,12 +61,12 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional("install_prerequisite", default=True): bool,
+                    vol.Optional("install_prerequisite", default=False): bool,
                     vol.Optional(KEY_PREREQ_PORT, default="/dev/ttyUSB0"): str,
                     vol.Optional(KEY_PREREQ_WAIT_FOR_ACK, default=False): bool,
                     vol.Optional(KEY_PREREQ_RECONNECT_INTERVAL, default=10): int,
-                    vol.Optional("install_dashboard", default=True): bool,
-                    vol.Optional(KEY_DASHBOARD_SHOW_IN_SIDEBAR, default=True): bool,
+                    vol.Optional("install_dashboard", default=False): bool,
+                    vol.Optional(KEY_DASHBOARD_SHOW_IN_SIDEBAR, default=False): bool,
                     vol.Optional(KEY_DASHBOARD_REQUIRE_ADMIN, default=False): bool,
                 }
             ),
@@ -107,7 +107,7 @@ class RFLinkRawOptionsFlow(config_entries.OptionsFlow):
                 try:
                     install_dashboard_registration(
                         self.hass,
-                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, False),
                         user_input.get(KEY_DASHBOARD_REQUIRE_ADMIN, False),
                     )
                 except Exception:
@@ -138,7 +138,7 @@ class RFLinkRawOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional("install_dashboard", default=False): bool,
                     vol.Optional(
                         KEY_DASHBOARD_SHOW_IN_SIDEBAR,
-                        default=current.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                        default=current.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, False),
                     ): bool,
                     vol.Optional(
                         KEY_DASHBOARD_REQUIRE_ADMIN,

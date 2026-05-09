@@ -1,4 +1,4 @@
-"""RFLink prerequisite installer for RFLink Raw Tools."""
+"""RFLink prerequisite installer/remover for RFLink Raw Tools."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
+    KEY_PREREQ_INSTALLED,
     KEY_PREREQ_STATUS,
     MANAGED_BLOCK_END,
     MANAGED_BLOCK_START,
@@ -22,20 +23,21 @@ def _bool_yaml(value: bool) -> str:
     return "true" if value else "false"
 
 
-def build_rflink_yaml_block(
-    port: str,
-    wait_for_ack: bool,
-    reconnect_interval: int,
-) -> str:
+def _backup_config(config_path: Path, label: str) -> Path:
+    backup_path = config_path.with_name(
+        f"configuration.yaml.rflink_raw_{label}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
+    shutil.copy2(config_path, backup_path)
+    return backup_path
+
+
+def build_rflink_yaml_block(port: str, wait_for_ack: bool, reconnect_interval: int) -> str:
     """Build the managed RFLink YAML prerequisite block."""
     clean_port = port.strip()
-
     if not clean_port:
         raise HomeAssistantError("RFLink port cannot be empty.")
-
     if "\n" in clean_port or "\r" in clean_port:
         raise HomeAssistantError("RFLink port must be one line.")
-
     if reconnect_interval < 1:
         raise HomeAssistantError("Reconnect interval must be at least 1 second.")
 
@@ -49,14 +51,17 @@ def build_rflink_yaml_block(
     )
 
 
-def _has_existing_unmanaged_rflink(text: str) -> bool:
-    """Return true if configuration.yaml already has an unmanaged rflink block."""
-    text_without_managed = re.sub(
+def _strip_managed_rflink_block(text: str) -> str:
+    return re.sub(
         rf"{re.escape(MANAGED_BLOCK_START)}.*?{re.escape(MANAGED_BLOCK_END)}\n?",
         "",
         text,
         flags=re.S,
     )
+
+
+def _has_existing_unmanaged_rflink(text: str) -> bool:
+    text_without_managed = _strip_managed_rflink_block(text)
     return re.search(r"(?m)^rflink:\s*$", text_without_managed) is not None
 
 
@@ -66,12 +71,7 @@ def install_rflink_prerequisite(
     wait_for_ack: bool,
     reconnect_interval: int,
 ) -> Path:
-    """Install or update the managed RFLink prerequisite block in configuration.yaml.
-
-    This writes a managed block to /config/configuration.yaml and creates a timestamped backup first.
-    It refuses to write if an unmanaged top-level rflink: block already exists, to avoid creating duplicate
-    RFLink configuration.
-    """
+    """Install/update the managed RFLink prerequisite block."""
     config_path = Path(hass.config.path("configuration.yaml"))
     if not config_path.exists():
         raise HomeAssistantError(f"Could not find configuration.yaml at {config_path}")
@@ -88,10 +88,7 @@ def install_rflink_prerequisite(
         update_state(hass, **{KEY_PREREQ_STATUS: timestamped(msg)})
         raise HomeAssistantError(msg)
 
-    backup_path = config_path.with_name(
-        f"configuration.yaml.rflink_raw_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    )
-    shutil.copy2(config_path, backup_path)
+    backup_path = _backup_config(config_path, "prereq_install_backup")
 
     if MANAGED_BLOCK_START in text and MANAGED_BLOCK_END in text:
         updated = re.sub(
@@ -112,5 +109,21 @@ def install_rflink_prerequisite(
         f"Port={port.strip()}, wait_for_ack={wait_for_ack}, reconnect_interval={int(reconnect_interval)}. "
         "Run 'ha core check' and restart Home Assistant Core."
     )
-    update_state(hass, **{KEY_PREREQ_STATUS: timestamped(msg)})
+    update_state(hass, **{KEY_PREREQ_STATUS: timestamped(msg), KEY_PREREQ_INSTALLED: True})
+    return backup_path
+
+
+def remove_rflink_prerequisite(hass: HomeAssistant) -> Path:
+    """Remove only the managed RFLink prerequisite block."""
+    config_path = Path(hass.config.path("configuration.yaml"))
+    if not config_path.exists():
+        raise HomeAssistantError(f"Could not find configuration.yaml at {config_path}")
+
+    text = config_path.read_text()
+    backup_path = _backup_config(config_path, "prereq_remove_backup")
+    updated = _strip_managed_rflink_block(text)
+    config_path.write_text(updated)
+
+    msg = "Managed RFLink prerequisite block removed. Run 'ha core check' and restart Home Assistant Core."
+    update_state(hass, **{KEY_PREREQ_STATUS: timestamped(msg), KEY_PREREQ_INSTALLED: False})
     return backup_path

@@ -38,12 +38,45 @@ class RFLinkRawSensorDescription(EntityDescription):
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
-    RFLinkRawSensorDescription(key="status_prereq_status", name="Status RFLink Prerequisite Status", icon="mdi:file-check-outline", state_key=KEY_PREREQ_STATUS),
-    RFLinkRawSensorDescription(key="status_dashboard_status", name="Status RFLink Dashboard Status", icon="mdi:view-dashboard-outline", state_key=KEY_DASHBOARD_STATUS),
-    RFLinkRawSensorDescription(key="status_update_status", name="Status RFLink Update Status", icon="mdi:update", state_key=KEY_UPDATE_STATUS),
-    RFLinkRawSensorDescription(key="status_last_command", name="Status RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND, device_area="command"),
-    RFLinkRawSensorDescription(key="status_last_response", name="Status RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE, device_area="command"),
-    RFLinkRawSensorDescription(key="status_last_error", name="Status RFLink Last Error", icon="mdi:alert-circle-outline", state_key=KEY_LAST_ERROR, device_area="command"),
+    RFLinkRawSensorDescription(
+        key="status_prereq_status",
+        name="Status RFLink Prerequisite Status",
+        icon="mdi:file-check-outline",
+        state_key=KEY_PREREQ_STATUS,
+    ),
+    RFLinkRawSensorDescription(
+        key="status_dashboard_status",
+        name="Status RFLink Dashboard Status",
+        icon="mdi:view-dashboard-outline",
+        state_key=KEY_DASHBOARD_STATUS,
+    ),
+    RFLinkRawSensorDescription(
+        key="status_update_status",
+        name="Status RFLink Update Status",
+        icon="mdi:update",
+        state_key=KEY_UPDATE_STATUS,
+    ),
+    RFLinkRawSensorDescription(
+        key="status_last_command",
+        name="Status RFLink Last Command",
+        icon="mdi:history",
+        state_key=KEY_LAST_COMMAND,
+        device_area="command",
+    ),
+    RFLinkRawSensorDescription(
+        key="status_last_response",
+        name="Status RFLink Last Response",
+        icon="mdi:message-reply-text",
+        state_key=KEY_LAST_RESPONSE,
+        device_area="command",
+    ),
+    RFLinkRawSensorDescription(
+        key="status_last_error",
+        name="Status RFLink Last Error",
+        icon="mdi:alert-circle-outline",
+        state_key=KEY_LAST_ERROR,
+        device_area="command",
+    ),
 )
 
 
