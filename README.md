@@ -2,17 +2,9 @@
 
 <p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="220"></p>
 
-RFLink Raw Tools is a Home Assistant custom integration that adds a **Devices & services UI** for RFLink gateway commands.
+RFLink Raw Tools is a Home Assistant custom integration that adds a cleaner RFLink control UI, RFDEBUG/QRFDEBUG helpers, repeat controls, GitHub updating, and dashboard/sidebar setup.
 
-It now also includes:
-
-- a bundled **logo**
-- clearer button labels that say what to press and what happens next
-- built-in **Help** buttons for logs, device finding, and dashboard setup
-- a cleaner optional **second page** dashboard YAML
-- a GUI helper to install the normal Home Assistant RFLink prerequisite YAML
-
-## Linux / Home Assistant OS install
+## First install
 
 Open the Home Assistant Terminal and run:
 
@@ -21,62 +13,35 @@ wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/i
 ha core restart
 ```
 
-After Home Assistant restarts, add the integration:
+Then go to:
 
 ```text
 Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
-## Integration icon / logo
-
-RFLink Raw Tools includes Home Assistant local brand assets in:
+During setup, leave these enabled unless you already configured them yourself:
 
 ```text
-custom_components/rflink_raw/brand/
+Install prerequisite: yes
+Install dashboard: yes
+Dashboard Show In Sidebar: yes
+Dashboard Require Admin: no
 ```
 
-Included files:
+After setup:
 
-```text
-icon.png
-dark_icon.png
-logo.png
-dark_logo.png
+```bash
+ha core check
+ha core restart
 ```
 
-Home Assistant 2026.3 and later can load custom integration brand images directly from the integration `brand/` folder. After updating, restart Home Assistant Core and hard refresh the browser if the old placeholder icon is still cached.
+The clean RFLink Raw Tools dashboard should then appear in the left sidebar.
 
-## What improved in the UI
+## Why this exists
 
-The default device page is organized by prefixes so it is easier to scan:
+The default Home Assistant device page lists every entity in one long view. That is why it can look like a CVS receipt.
 
-- **Setup ...**
-- **Control ...**
-- **Debug ...**
-- **Help ...**
-- **Status ...**
-
-Buttons are clearer now. For example, instead of vague actions, you now get labels like:
-
-- **Help Show Log Commands**
-- **Help Show Find Device Steps**
-- **Help Load Example Raw Command**
-- **Control Send RFLink Raw Command**
-- **Setup Install RFLink Prerequisite YAML**
-
-The Help buttons open persistent notifications inside Home Assistant with the next step to take.
-
-## Cleaner second page dashboard
-
-The default Home Assistant device page is functional, but it can look crowded because Home Assistant lists every entity in one long device view.
-
-RFLink Raw Tools includes a cleaner dedicated dashboard file:
-
-```text
-/config/rflink_raw_dashboard.yaml
-```
-
-It is organized into separate pages:
+RFLink Raw Tools uses a dedicated dashboard as the primary user-facing page instead:
 
 ```text
 Start
@@ -86,66 +51,28 @@ Debug
 Update
 ```
 
-This avoids the long “CVS receipt” control section and gives non-technical users a clearer flow.
+## Dashboard yes/no / sidebar yes/no
 
-To use it, go to:
+RFLink Raw Tools can register the bundled dashboard automatically.
 
-```text
-Settings → Dashboards
+It writes a managed Lovelace dashboard block like this:
+
+```yaml
+lovelace:
+  resource_mode: storage
+  dashboards:
+    rflink-raw-tools:
+      mode: yaml
+      filename: rflink_raw_dashboard.yaml
+      title: RFLink Raw Tools
+      icon: mdi:radio-tower
+      show_in_sidebar: true
+      require_admin: false
 ```
 
-Create a new dashboard and import/use the YAML from:
+If `show_in_sidebar` is on, Home Assistant shows **RFLink Raw Tools** in the left sidebar.
 
-```text
-/config/rflink_raw_dashboard.yaml
-```
-
-## Update from the UI
-
-After the first install, non-technical users do not need to update from the command line.
-
-Open:
-
-```text
-Settings → Devices & services → Devices → RFLink Raw Tools
-```
-
-Press:
-
-```text
-Update Download Latest From GitHub
-```
-
-Then restart Home Assistant Core from the UI:
-
-```text
-Settings → System → Restart Home Assistant
-```
-
-The update button downloads the public GitHub `main` branch, copies the integration into `/config/custom_components/rflink_raw`, refreshes the bundled logo/dashboard files, and saves a backup in:
-
-```text
-/config/.rflink_raw_backups
-```
-
-The only command-line step is the first install, because Home Assistant custom integrations cannot install themselves before they exist.
-
-## How to Run
-
-Open the created device:
-
-```text
-Settings → Devices & services → Devices → RFLink Raw Tools
-```
-
-Recommended flow:
-
-1. Press **Setup Load Default Prerequisite Values** if needed.
-2. Press **Setup Install RFLink Prerequisite YAML**.
-3. Run `ha core check` and restart Home Assistant.
-4. Use **Control ...** entities/buttons to send commands.
-5. Use **Debug ...** entities/buttons to capture RF activity.
-6. Use **Help ...** buttons any time you need instructions.
+Home Assistant supports multiple dashboards, each dashboard can be added to the sidebar, and YAML dashboards are defined under `lovelace.dashboards` with options including `filename`, `title`, `icon`, and `show_in_sidebar`.
 
 ## Prerequisite
 
@@ -166,12 +93,24 @@ You should see this in the Home Assistant logs:
 Connected to Rflink
 ```
 
-## Manual install
+## Update from the UI
 
-Copy `custom_components/rflink_raw` to `/config/custom_components/rflink_raw` and then restart Home Assistant.
+After the first install, open:
+
+```text
+Settings → Devices & services → Devices → RFLink Raw Tools
+```
+
+Press:
+
+```text
+Update Download Latest From GitHub
+```
+
+Then restart Home Assistant Core from the UI.
 
 ## Important limitation
 
 This integration sends RFLink gateway text commands.
 
-It does **not** make classic RFLink R48 replay arbitrary `DEBUG;Pulses=...` captures unless the RFLink firmware itself supports a transmit command for that format.
+It does not make classic RFLink R48 replay arbitrary `DEBUG;Pulses=...` captures unless the RFLink firmware itself supports a transmit command for that format.

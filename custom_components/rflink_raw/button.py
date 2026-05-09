@@ -13,6 +13,8 @@ from .const import (
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
+    KEY_DASHBOARD_REQUIRE_ADMIN,
+    KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_DELAY_MS,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
@@ -25,6 +27,7 @@ from .const import (
     MODEL,
     VERSION,
 )
+from .dashboard import install_dashboard_registration
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .prereq import install_rflink_prerequisite
 from .store import get_state, update_state
@@ -40,6 +43,12 @@ class RFLinkRawButtonDescription(EntityDescription):
 
 
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
+    RFLinkRawButtonDescription(
+        key="dashboard_install",
+        name="Dashboard Install / Update Sidebar Page",
+        icon="mdi:view-dashboard-edit-outline",
+        action_type="install_dashboard",
+    ),
     RFLinkRawButtonDescription(
         key="update_download_latest",
         name="Update Download Latest From GitHub",
@@ -142,6 +151,25 @@ class RFLinkRawButton(ButtonEntity):
     async def async_press(self) -> None:
         state = get_state(self.hass)
 
+        if self.entity_description.action_type == "install_dashboard":
+            install_dashboard_registration(
+                self.hass,
+                bool(state.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True)),
+                bool(state.get(KEY_DASHBOARD_REQUIRE_ADMIN, False)),
+            )
+            persistent_notification.async_create(
+                self.hass,
+                """RFLink Raw Tools dashboard was registered.
+
+Next steps:
+1. Run `ha core check`.
+2. Restart Home Assistant Core.
+3. Look for **RFLink Raw Tools** in the sidebar if **Dashboard Show In Sidebar** is on.""",
+                title="RFLink Raw Tools • Dashboard Registered",
+                notification_id="rflink_raw_dashboard_done",
+            )
+            return
+
         if self.entity_description.action_type == "update_from_github":
             update_from_github(self.hass)
             persistent_notification.async_create(
@@ -165,9 +193,7 @@ A backup was saved in `/config/.rflink_raw_backups`.""",
 
 1. Press **Update Download Latest From GitHub**.
 2. Wait for the success notification.
-3. Restart Home Assistant Core from Settings → System.
-
-The update button downloads the public GitHub main branch and copies the files into `/config/custom_components/rflink_raw`.""",
+3. Restart Home Assistant Core from Settings → System.""",
                 title="RFLink Raw Tools • Update Help",
                 notification_id="rflink_raw_update_help",
             )
@@ -207,10 +233,8 @@ Next press **Setup Install RFLink Prerequisite YAML**.""",
                 """RFLink prerequisite YAML was written to configuration.yaml.
 
 Next steps:
-1. Go to **Settings → System → Logs** if you want to review messages.
-2. Run `ha core check`.
-3. Restart Home Assistant Core.
-4. Open the RFLink Raw Tools dashboard/device page.""",
+1. Run `ha core check`.
+2. Restart Home Assistant Core.""",
                 title="RFLink Raw Tools • Prerequisite Installed",
                 notification_id="rflink_raw_prereq_done",
             )
@@ -246,11 +270,7 @@ Next steps:
             )
             persistent_notification.async_create(
                 self.hass,
-                """Loaded an example raw RFLink command into the control fields:
-
-10;NewKaku;0cac142;3;ON;
-
-You can copy/edit it from the **Control RFLink Raw Command** text field, then press **Control Send RFLink Raw Command**.""",
+                "Loaded example raw command. Edit it, then press **Control Send RFLink Raw Command**.",
                 title="RFLink Raw Tools • Example Raw Command Loaded",
                 notification_id="rflink_raw_example_raw",
             )
@@ -268,14 +288,7 @@ You can copy/edit it from the **Control RFLink Raw Command** text field, then pr
             )
             persistent_notification.async_create(
                 self.hass,
-                """Loaded an example RFLink protocol command into the control fields:
-
-Device ID: newkaku_0cac142_3
-Command: on
-Repeat: 3
-Delay: 250 ms
-
-Next press **Control Send RFLink Protocol Command**.""",
+                "Loaded example protocol command. Next press **Control Send RFLink Protocol Command**.",
                 title="RFLink Raw Tools • Example Protocol Command Loaded",
                 notification_id="rflink_raw_example_protocol",
             )
@@ -287,10 +300,7 @@ Next press **Control Send RFLink Protocol Command**.""",
                 """**Where to see logs**
 
 - UI: **Settings → System → Logs**
-- Terminal command: `ha core logs | grep -i -E "rflink|rflink_raw|debug|pulses|raw"`
-- Follow live logs: `ha core logs --follow | grep -i -E "rflink|debug|pulses|raw"`
-
-Use the **Debug** buttons/switches first, then look here for packets and responses.""",
+- Terminal: `ha core logs | grep -i -E "rflink|rflink_raw|debug|pulses|raw"`""",
                 title="RFLink Raw Tools • Log Commands",
                 notification_id="rflink_raw_log_help",
             )
@@ -299,16 +309,12 @@ Use the **Debug** buttons/switches first, then look here for packets and respons
         if self.entity_description.action_type == "show_find_device_help":
             persistent_notification.async_create(
                 self.hass,
-                """**How to find a device / packet**
+                """**How to find a device**
 
 1. Press **Debug Start QRFDEBUG Capture**.
-2. Press the remote button or trigger the RF device.
-3. Open logs from **Settings → System → Logs** or run the live log command.
-4. Look for supported decoded packets such as `RTS`, `NewKaku`, `EV1527`, etc.
-5. If Home Assistant sees a supported packet, it can auto-create a device/entity.
-6. If you only see raw/debug pulses, RFLink may not support auto-adding that device type.
-
-When finished, press **Debug Stop QRFDEBUG Capture**.""",
+2. Press the remote/device button.
+3. Check logs for decoded packets.
+4. Stop QRFDEBUG when finished.""",
                 title="RFLink Raw Tools • Find Device Steps",
                 notification_id="rflink_raw_find_device_help",
             )
@@ -317,17 +323,9 @@ When finished, press **Debug Stop QRFDEBUG Capture**.""",
         if self.entity_description.action_type == "show_dashboard_help":
             persistent_notification.async_create(
                 self.hass,
-                """**Cleaner second page / dashboard**
+                """The clean dashboard is registered through **Dashboard Install / Update Sidebar Page**.
 
-This package installs a dashboard file at `/config/rflink_raw_dashboard.yaml` and a logo at `/config/www/rflink_raw/logo.png`.
-
-To use it in Home Assistant:
-1. Go to **Settings → Dashboards**.
-2. Add a new dashboard.
-3. Choose YAML mode or import the file contents from `/config/rflink_raw_dashboard.yaml`.
-4. Save it as your dedicated RFLink Raw Tools page.
-
-This gives you a cleaner second page than the default device screen.""",
+If **Dashboard Show In Sidebar** is on, it appears in the left menu after restart.""",
                 title="RFLink Raw Tools • Dashboard Setup",
                 notification_id="rflink_raw_dashboard_help",
             )

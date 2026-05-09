@@ -28,6 +28,11 @@ KEY_PREREQ_PORT = "prereq_port"
 KEY_PREREQ_WAIT_FOR_ACK = "prereq_wait_for_ack"
 KEY_PREREQ_RECONNECT_INTERVAL = "prereq_reconnect_interval"
 KEY_PREREQ_STATUS = "prereq_status"
+
+KEY_DASHBOARD_SHOW_IN_SIDEBAR = "dashboard_show_in_sidebar"
+KEY_DASHBOARD_REQUIRE_ADMIN = "dashboard_require_admin"
+KEY_DASHBOARD_STATUS = "dashboard_status"
+
 KEY_UPDATE_STATUS = "update_status"
 
 KEY_LAST_COMMAND = "last_command"
@@ -36,3 +41,10 @@ KEY_LAST_ERROR = "last_error"
 
 MANAGED_BLOCK_START = "# BEGIN RFLink Raw Tools managed RFLink prerequisite"
 MANAGED_BLOCK_END = "# END RFLink Raw Tools managed RFLink prerequisite"
+
+MANAGED_DASHBOARD_BLOCK_START = "# BEGIN RFLink Raw Tools managed dashboard"
+MANAGED_DASHBOARD_BLOCK_END = "# END RFLink Raw Tools managed dashboard"
+DASHBOARD_KEY = "rflink-raw-tools"
+DASHBOARD_FILENAME = "rflink_raw_dashboard.yaml"
+DASHBOARD_TITLE = "RFLink Raw Tools"
+DASHBOARD_ICON = "mdi:radio-tower"

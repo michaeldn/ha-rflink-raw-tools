@@ -3,11 +3,12 @@
     "step": {
       "user": {
         "title": "Set up RFLink Raw Tools",
-        "description": "This adds the RFLink Raw Tools UI, clearer action labels, help buttons, and an optional dashboard page. It can also install the normal RFLink prerequisite YAML block into configuration.yaml for you."
+        "description": "Install RFLink Raw Tools, optionally install the RFLink prerequisite, and register the clean dashboard/sidebar page."
       }
     },
     "error": {
-      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually."
+      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually.",
+      "dashboard_install_failed": "Could not install the RFLink Raw Tools dashboard. If configuration.yaml already has a top-level lovelace: block, add the dashboard manually under that existing block."
     },
     "abort": {
       "already_configured": "RFLink Raw Tools is already configured."
@@ -21,7 +22,8 @@
       }
     },
     "error": {
-      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually."
+      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually.",
+      "dashboard_install_failed": "Could not install the RFLink Raw Tools dashboard. If configuration.yaml already has a top-level lovelace: block, add the dashboard manually under that existing block."
     }
   }
 }

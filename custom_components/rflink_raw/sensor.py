@@ -12,6 +12,7 @@ from .const import (
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
+    KEY_DASHBOARD_STATUS,
     KEY_LAST_COMMAND,
     KEY_LAST_ERROR,
     KEY_LAST_RESPONSE,
@@ -26,11 +27,14 @@ from .store import get_state
 
 @dataclass(frozen=True, kw_only=True)
 class RFLinkRawSensorDescription(EntityDescription):
+    """Description for an RFLink Raw Tools sensor."""
+
     state_key: str
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
     RFLinkRawSensorDescription(key="status_prereq_status", name="Status RFLink Prerequisite Status", icon="mdi:file-check-outline", state_key=KEY_PREREQ_STATUS),
+    RFLinkRawSensorDescription(key="status_dashboard_status", name="Status RFLink Dashboard Status", icon="mdi:view-dashboard-outline", state_key=KEY_DASHBOARD_STATUS),
     RFLinkRawSensorDescription(key="status_update_status", name="Status RFLink Update Status", icon="mdi:update", state_key=KEY_UPDATE_STATUS),
     RFLinkRawSensorDescription(key="status_last_command", name="Status RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND),
     RFLinkRawSensorDescription(key="status_last_response", name="Status RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE),
@@ -39,10 +43,13 @@ SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
+    """Set up RFLink Raw Tools sensors."""
     async_add_entities(RFLinkRawSensor(hass, entry.entry_id, description) for description in SENSORS)
 
 
 class RFLinkRawSensor(SensorEntity):
+    """RFLink Raw Tools sensor."""
+
     _attr_has_entity_name = False
 
     def __init__(self, hass, entry_id: str, description: RFLinkRawSensorDescription) -> None:
@@ -60,6 +67,7 @@ class RFLinkRawSensor(SensorEntity):
 
     @property
     def native_value(self) -> str:
+        """Return sensor value."""
         value = get_state(self.hass).get(self.entity_description.state_key, "")
         if len(value) > 250:
             return value[:247] + "..."

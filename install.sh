@@ -32,6 +32,5 @@ fi
 echo "Installed to $TARGET_DIR"
 echo "Logo copied to $WWW_DIR/logo.png"
 echo "Dashboard YAML copied to $DASHBOARD_FILE"
-echo "Brand assets included in integration folder at $TARGET_DIR/brand"
 echo "Restart Home Assistant Core next:"
 echo "ha core restart"

@@ -12,6 +12,8 @@ from .const import (
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
+    KEY_DASHBOARD_REQUIRE_ADMIN,
+    KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_PREREQ_WAIT_FOR_ACK,
     MANUFACTURER,
     MODEL,
@@ -23,13 +25,29 @@ from .store import get_state, update_state
 
 @dataclass(frozen=True, kw_only=True)
 class RFLinkRawSwitchDescription(EntityDescription):
-    on_command: str | None = None
-    off_command: str | None = None
+    """Description for an RFLink Raw Tools switch."""
+
     state_key: str | None = None
     switch_type: str = "command"
+    on_command: str | None = None
+    off_command: str | None = None
 
 
 SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
+    RFLinkRawSwitchDescription(
+        key="dashboard_show_in_sidebar",
+        name="Dashboard Show In Sidebar",
+        icon="mdi:menu-open",
+        state_key=KEY_DASHBOARD_SHOW_IN_SIDEBAR,
+        switch_type="state",
+    ),
+    RFLinkRawSwitchDescription(
+        key="dashboard_require_admin",
+        name="Dashboard Require Admin",
+        icon="mdi:shield-account-outline",
+        state_key=KEY_DASHBOARD_REQUIRE_ADMIN,
+        switch_type="state",
+    ),
     RFLinkRawSwitchDescription(
         key="setup_prereq_wait_for_ack",
         name="Setup RFLink Prerequisite Wait For ACK",
@@ -55,10 +73,13 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
+    """Set up RFLink Raw Tools switches."""
     async_add_entities(RFLinkRawSwitch(hass, entry.entry_id, description) for description in SWITCHES)
 
 
 class RFLinkRawSwitch(SwitchEntity):
+    """RFLink Raw Tools switch."""
+
     _attr_has_entity_name = False
 
     def __init__(self, hass, entry_id: str, description: RFLinkRawSwitchDescription) -> None:
@@ -77,11 +98,13 @@ class RFLinkRawSwitch(SwitchEntity):
 
     @property
     def is_on(self) -> bool:
+        """Return switch state."""
         if self.entity_description.switch_type == "state":
             return bool(get_state(self.hass).get(self.entity_description.state_key, False))
         return bool(self._attr_is_on)
 
     async def async_turn_on(self, **kwargs) -> None:
+        """Turn on."""
         if self.entity_description.switch_type == "state":
             update_state(self.hass, **{self.entity_description.state_key: True})
         else:
@@ -90,6 +113,7 @@ class RFLinkRawSwitch(SwitchEntity):
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
+        """Turn off."""
         if self.entity_description.switch_type == "state":
             update_state(self.hass, **{self.entity_description.state_key: False})
         else:

@@ -9,11 +9,14 @@ from homeassistant.core import callback
 
 from .const import (
     DOMAIN,
+    KEY_DASHBOARD_REQUIRE_ADMIN,
+    KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_PREREQ_WAIT_FOR_ACK,
     NAME,
 )
+from .dashboard import install_dashboard_registration
 from .prereq import install_rflink_prerequisite
 
 
@@ -40,9 +43,18 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                 except Exception:
                     errors["base"] = "prerequisite_install_failed"
-                else:
-                    return self.async_create_entry(title=NAME, data=user_input)
-            else:
+
+            if not errors and user_input.get("install_dashboard"):
+                try:
+                    install_dashboard_registration(
+                        self.hass,
+                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                        user_input.get(KEY_DASHBOARD_REQUIRE_ADMIN, False),
+                    )
+                except Exception:
+                    errors["base"] = "dashboard_install_failed"
+
+            if not errors:
                 return self.async_create_entry(title=NAME, data=user_input)
 
         return self.async_show_form(
@@ -53,6 +65,9 @@ class RFLinkRawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(KEY_PREREQ_PORT, default="/dev/ttyUSB0"): str,
                     vol.Optional(KEY_PREREQ_WAIT_FOR_ACK, default=False): bool,
                     vol.Optional(KEY_PREREQ_RECONNECT_INTERVAL, default=10): int,
+                    vol.Optional("install_dashboard", default=True): bool,
+                    vol.Optional(KEY_DASHBOARD_SHOW_IN_SIDEBAR, default=True): bool,
+                    vol.Optional(KEY_DASHBOARD_REQUIRE_ADMIN, default=False): bool,
                 }
             ),
             errors=errors,
@@ -87,9 +102,18 @@ class RFLinkRawOptionsFlow(config_entries.OptionsFlow):
                     )
                 except Exception:
                     errors["base"] = "prerequisite_install_failed"
-                else:
-                    return self.async_create_entry(title="", data=user_input)
-            else:
+
+            if not errors and user_input.get("install_dashboard"):
+                try:
+                    install_dashboard_registration(
+                        self.hass,
+                        user_input.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                        user_input.get(KEY_DASHBOARD_REQUIRE_ADMIN, False),
+                    )
+                except Exception:
+                    errors["base"] = "dashboard_install_failed"
+
+            if not errors:
                 return self.async_create_entry(title="", data=user_input)
 
         current = {**self.config_entry.data, **self.config_entry.options}
@@ -111,6 +135,15 @@ class RFLinkRawOptionsFlow(config_entries.OptionsFlow):
                         KEY_PREREQ_RECONNECT_INTERVAL,
                         default=current.get(KEY_PREREQ_RECONNECT_INTERVAL, 10),
                     ): int,
+                    vol.Optional("install_dashboard", default=False): bool,
+                    vol.Optional(
+                        KEY_DASHBOARD_SHOW_IN_SIDEBAR,
+                        default=current.get(KEY_DASHBOARD_SHOW_IN_SIDEBAR, True),
+                    ): bool,
+                    vol.Optional(
+                        KEY_DASHBOARD_REQUIRE_ADMIN,
+                        default=current.get(KEY_DASHBOARD_REQUIRE_ADMIN, False),
+                    ): bool,
                 }
             ),
             errors=errors,
