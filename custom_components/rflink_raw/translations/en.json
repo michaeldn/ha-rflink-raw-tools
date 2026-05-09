@@ -3,11 +3,25 @@
     "step": {
       "user": {
         "title": "Set up RFLink Raw Tools",
-        "description": "This adds an RFLink Raw Tools device with command buttons, debug switches, repeat controls, text inputs, and RFLink protocol-send controls. Keep the normal RFLink integration configured first."
+        "description": "This adds the RFLink Raw Tools UI. It can also install the normal RFLink prerequisite YAML block into configuration.yaml for you."
       }
+    },
+    "error": {
+      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually."
     },
     "abort": {
       "already_configured": "RFLink Raw Tools is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "RFLink Raw Tools options",
+        "description": "Optionally install or update the normal RFLink prerequisite YAML block in configuration.yaml."
+      }
+    },
+    "error": {
+      "prerequisite_install_failed": "Could not install the RFLink prerequisite YAML. Check Home Assistant logs. If configuration.yaml already has a top-level rflink: block, edit that existing block manually."
     }
   }
 }

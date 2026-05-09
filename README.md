@@ -2,7 +2,7 @@
 
 RFLink Raw Tools is a Home Assistant custom integration that adds a **Devices & services UI** for RFLink gateway commands.
 
-It is meant to make RFLink easier to use from Home Assistant without opening the Windows RFLink Loader or manually writing to `/dev/ttyUSB0`.
+It also includes a GUI helper to install the normal Home Assistant RFLink prerequisite YAML.
 
 ## What this adds
 
@@ -12,51 +12,20 @@ After installation, add it from:
 Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
-It creates one Home Assistant device named:
+During setup, the UI can write this prerequisite block into `configuration.yaml` for you:
 
-```text
-RFLink Raw Tools
+```yaml
+rflink:
+  port: /dev/ttyUSB0
+  wait_for_ack: false
+  reconnect_interval: 10
 ```
 
-The device includes:
-
-### Text inputs
-
-- **RFLink Raw Command** — default: `10;PING;`
-- **RFLink Protocol Device ID** — example: `newkaku_0cac142_3`
-- **RFLink Protocol Command** — example: `on`, `off`, `UP`, `DOWN`, `STOP`, `PAIR`
-
-### Repeat controls
-
-- **RFLink Repeat Count** — number of times to send the command
-- **RFLink Repeat Delay** — delay between repeated sends, in milliseconds
-
-### Buttons
-
-- **Send RFLink Raw Command**
-- **Send RFLink Protocol Command**
-- **RFLink Ping**
-- **RFLink Version**
-- **RFLink Status**
-- **Start RFDEBUG Capture**
-- **Stop RFDEBUG Capture**
-- **Start QRFDEBUG Capture**
-- **Stop QRFDEBUG Capture**
-
-### Switches
-
-- **RFLink RFDEBUG**
-- **RFLink QRFDEBUG**
-
-### Sensors
-
-- **RFLink Last Command**
-- **RFLink Last Response**
-- **RFLink Last Error**
+The installer creates a timestamped backup of `configuration.yaml` before writing.
 
 ## Prerequisite
 
-The normal Home Assistant RFLink integration must already be working.
+The normal Home Assistant RFLink integration must already be working before RFLink Raw Tools can send RFLink commands.
 
 Example `configuration.yaml`:
 
@@ -73,6 +42,88 @@ You should see this in the Home Assistant logs:
 Connected to Rflink
 ```
 
+## GUI prerequisite installer
+
+RFLink Raw Tools can install/update the prerequisite block for you.
+
+In the RFLink Raw Tools setup UI, keep **Install prerequisite** enabled and set:
+
+```text
+RFLink Prerequisite Port = /dev/ttyUSB0
+RFLink Prerequisite Wait For ACK = off
+RFLink Prerequisite Reconnect Interval = 10
+```
+
+Then complete setup.
+
+You can also install/update it later from the created device:
+
+```text
+Settings → Devices & services → Devices → RFLink Raw Tools
+```
+
+Set the prerequisite entities:
+
+```text
+RFLink Prerequisite Port
+RFLink Prerequisite Wait For ACK
+RFLink Prerequisite Reconnect Interval
+```
+
+Then press:
+
+```text
+Install RFLink Prerequisite YAML
+```
+
+After installing the prerequisite YAML, run:
+
+```bash
+ha core check
+ha core restart
+```
+
+## Normal RFLink command UI
+
+The created device includes:
+
+### Text inputs
+
+- **RFLink Raw Command** — default: `10;PING;`
+- **RFLink Protocol Device ID** — example: `newkaku_0cac142_3`
+- **RFLink Protocol Command** — example: `on`, `off`, `UP`, `DOWN`, `STOP`, `PAIR`
+
+### Repeat controls
+
+- **RFLink Repeat Count** — number of times to send the command
+- **RFLink Repeat Delay** — delay between repeated sends, in milliseconds
+
+### Buttons
+
+- **Install RFLink Prerequisite YAML**
+- **Send RFLink Raw Command**
+- **Send RFLink Protocol Command**
+- **RFLink Ping**
+- **RFLink Version**
+- **RFLink Status**
+- **Start RFDEBUG Capture**
+- **Stop RFDEBUG Capture**
+- **Start QRFDEBUG Capture**
+- **Stop QRFDEBUG Capture**
+
+### Switches
+
+- **RFLink Prerequisite Wait For ACK**
+- **RFLink RFDEBUG**
+- **RFLink QRFDEBUG**
+
+### Sensors
+
+- **RFLink Prerequisite Status**
+- **RFLink Last Command**
+- **RFLink Last Response**
+- **RFLink Last Error**
+
 ## Easy install from GitHub
 
 In the Home Assistant Terminal, run:
@@ -88,32 +139,6 @@ After Home Assistant restarts:
 Settings → Devices & services → Add integration → RFLink Raw Tools
 ```
 
-## Manual install
-
-Copy this folder from the repository:
-
-```text
-custom_components/rflink_raw
-```
-
-to Home Assistant:
-
-```text
-/config/custom_components/rflink_raw
-```
-
-Restart Home Assistant:
-
-```bash
-ha core restart
-```
-
-Then add it from:
-
-```text
-Settings → Devices & services → Add integration → RFLink Raw Tools
-```
-
 ## Updating
 
 Run the installer again:
@@ -123,54 +148,7 @@ wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/i
 ha core restart
 ```
 
-## Using the UI
-
-### Send a direct RFLink command
-
-Set:
-
-```text
-RFLink Raw Command = 10;QRFDEBUG=ON;
-RFLink Repeat Count = 1
-RFLink Repeat Delay = 250
-```
-
-Then press:
-
-```text
-Send RFLink Raw Command
-```
-
-### Send a normal RFLink protocol command
-
-Set:
-
-```text
-RFLink Protocol Device ID = newkaku_0cac142_3
-RFLink Protocol Command = on
-RFLink Repeat Count = 3
-RFLink Repeat Delay = 250
-```
-
-Then press:
-
-```text
-Send RFLink Protocol Command
-```
-
-This will send the RFLink command three times with a 250 ms delay between transmissions.
-
 ## Services
-
-The integration also exposes Home Assistant actions.
-
-### Send raw command once
-
-```yaml
-action: rflink_raw.send_raw
-data:
-  raw_command: "10;QRFDEBUG=ON;"
-```
 
 ### Send raw command with repeat
 
@@ -193,60 +171,8 @@ data:
   delay_ms: 250
 ```
 
-### Turn RFDEBUG on/off
-
-```yaml
-action: rflink_raw.rfdebug
-data:
-  mode: "on"
-```
-
-```yaml
-action: rflink_raw.rfdebug
-data:
-  mode: "off"
-```
-
-### Turn QRFDEBUG on/off
-
-```yaml
-action: rflink_raw.qrfdebug
-data:
-  mode: "on"
-```
-
-```yaml
-action: rflink_raw.qrfdebug
-data:
-  mode: "off"
-```
-
 ## Important limitation
 
 This integration sends RFLink gateway text commands.
 
 It does **not** make classic RFLink R48 replay arbitrary `DEBUG;Pulses=...` captures unless the RFLink firmware itself supports a transmit command for that format.
-
-For classic RFLink Gateway firmware, normal transmit commands require a supported RFLink protocol, such as:
-
-```text
-10;NewKaku;0cac142;3;ON;
-10;EV1527;000080;0;ON;
-10;RTS;1a602a;0;ON;
-```
-
-## Troubleshooting
-
-Check the logs:
-
-```bash
-ha core logs | grep -i -E "rflink|rflink_raw|Connected to Rflink|error"
-```
-
-If the RFLink Raw Tools integration is loaded, you should see:
-
-```text
-RFLink Raw Tools services registered
-```
-
-If commands fail, confirm the normal RFLink integration is connected first.

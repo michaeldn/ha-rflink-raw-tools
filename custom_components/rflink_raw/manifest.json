@@ -3,11 +3,11 @@
   "name": "RFLink Raw Tools",
   "codeowners": [],
   "config_flow": true,
-  "dependencies": [
+  "after_dependencies": [
     "rflink"
   ],
   "documentation": "https://github.com/michaeldn/ha-rflink-raw-tools",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/michaeldn/ha-rflink-raw-tools/issues",
-  "version": "0.4.0"
+  "version": "0.5.0"
 }

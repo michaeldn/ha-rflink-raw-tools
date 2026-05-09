@@ -12,6 +12,7 @@ from .const import (
     DEVICE_IDENTIFIER,
     DEVICE_NAME,
     DOMAIN,
+    KEY_PREREQ_PORT,
     KEY_PROTOCOL_COMMAND,
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
@@ -31,6 +32,13 @@ class RFLinkRawTextDescription(EntityDescription):
 
 
 TEXTS: tuple[RFLinkRawTextDescription, ...] = (
+    RFLinkRawTextDescription(
+        key="prereq_port",
+        name="RFLink Prerequisite Port",
+        icon="mdi:serial-port",
+        state_key=KEY_PREREQ_PORT,
+        native_max=255,
+    ),
     RFLinkRawTextDescription(
         key="raw_command",
         name="RFLink Raw Command",

@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.const import UnitOfTime
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
@@ -14,6 +13,7 @@ from .const import (
     DEVICE_NAME,
     DOMAIN,
     KEY_DELAY_MS,
+    KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_REPEAT,
     MANUFACTURER,
     MODEL,
@@ -34,6 +34,16 @@ class RFLinkRawNumberDescription(EntityDescription):
 
 
 NUMBERS: tuple[RFLinkRawNumberDescription, ...] = (
+    RFLinkRawNumberDescription(
+        key="prereq_reconnect_interval",
+        name="RFLink Prerequisite Reconnect Interval",
+        icon="mdi:connection",
+        state_key=KEY_PREREQ_RECONNECT_INTERVAL,
+        native_min_value=1,
+        native_max_value=3600,
+        native_step=1,
+        native_unit_of_measurement="s",
+    ),
     RFLinkRawNumberDescription(
         key="repeat",
         name="RFLink Repeat Count",
@@ -92,9 +102,5 @@ class RFLinkRawNumber(NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set number value."""
-        if self.entity_description.state_key == KEY_REPEAT:
-            value = int(value)
-        else:
-            value = int(value)
-        update_state(self.hass, **{self.entity_description.state_key: value})
+        update_state(self.hass, **{self.entity_description.state_key: int(value)})
         self.async_write_ha_state()

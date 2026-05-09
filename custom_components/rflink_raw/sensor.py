@@ -15,6 +15,7 @@ from .const import (
     KEY_LAST_COMMAND,
     KEY_LAST_ERROR,
     KEY_LAST_RESPONSE,
+    KEY_PREREQ_STATUS,
     MANUFACTURER,
     MODEL,
     VERSION,
@@ -30,6 +31,7 @@ class RFLinkRawSensorDescription(EntityDescription):
 
 
 SENSORS: tuple[RFLinkRawSensorDescription, ...] = (
+    RFLinkRawSensorDescription(key="prereq_status", name="RFLink Prerequisite Status", icon="mdi:file-check-outline", state_key=KEY_PREREQ_STATUS),
     RFLinkRawSensorDescription(key="last_command", name="RFLink Last Command", icon="mdi:history", state_key=KEY_LAST_COMMAND),
     RFLinkRawSensorDescription(key="last_response", name="RFLink Last Response", icon="mdi:message-reply-text", state_key=KEY_LAST_RESPONSE),
     RFLinkRawSensorDescription(key="last_error", name="RFLink Last Error", icon="mdi:alert-circle-outline", state_key=KEY_LAST_ERROR),

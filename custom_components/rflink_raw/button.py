@@ -13,6 +13,9 @@ from .const import (
     DEVICE_NAME,
     DOMAIN,
     KEY_DELAY_MS,
+    KEY_PREREQ_PORT,
+    KEY_PREREQ_RECONNECT_INTERVAL,
+    KEY_PREREQ_WAIT_FOR_ACK,
     KEY_PROTOCOL_COMMAND,
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
@@ -22,6 +25,7 @@ from .const import (
     VERSION,
 )
 from .helpers import async_send_direct_command, async_send_protocol_command
+from .prereq import install_rflink_prerequisite
 from .store import get_state
 
 
@@ -34,6 +38,12 @@ class RFLinkRawButtonDescription(EntityDescription):
 
 
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
+    RFLinkRawButtonDescription(
+        key="install_prerequisite",
+        name="Install RFLink Prerequisite YAML",
+        icon="mdi:file-cog-outline",
+        action_type="install_prerequisite",
+    ),
     RFLinkRawButtonDescription(
         key="send_raw_text",
         name="Send RFLink Raw Command",
@@ -81,8 +91,17 @@ class RFLinkRawButton(ButtonEntity):
         )
 
     async def async_press(self) -> None:
-        """Send the RFLink command."""
+        """Send the RFLink command or install the prerequisite YAML."""
         state = get_state(self.hass)
+
+        if self.entity_description.action_type == "install_prerequisite":
+            install_rflink_prerequisite(
+                self.hass,
+                state[KEY_PREREQ_PORT],
+                bool(state[KEY_PREREQ_WAIT_FOR_ACK]),
+                int(state[KEY_PREREQ_RECONNECT_INTERVAL]),
+            )
+            return
 
         if self.entity_description.action_type == "send_raw_text":
             await async_send_direct_command(

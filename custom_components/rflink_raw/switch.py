@@ -8,19 +8,37 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
-from .const import DEVICE_IDENTIFIER, DEVICE_NAME, DOMAIN, MANUFACTURER, MODEL, VERSION
+from .const import (
+    DEVICE_IDENTIFIER,
+    DEVICE_NAME,
+    DOMAIN,
+    KEY_PREREQ_WAIT_FOR_ACK,
+    MANUFACTURER,
+    MODEL,
+    VERSION,
+)
 from .helpers import async_send_direct_command
+from .store import get_state, update_state
 
 
 @dataclass(frozen=True, kw_only=True)
 class RFLinkRawSwitchDescription(EntityDescription):
     """Description for an RFLink raw command switch."""
 
-    on_command: str
-    off_command: str
+    on_command: str | None = None
+    off_command: str | None = None
+    state_key: str | None = None
+    switch_type: str = "command"
 
 
 SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
+    RFLinkRawSwitchDescription(
+        key="prereq_wait_for_ack",
+        name="RFLink Prerequisite Wait For ACK",
+        icon="mdi:handshake-outline",
+        state_key=KEY_PREREQ_WAIT_FOR_ACK,
+        switch_type="state",
+    ),
     RFLinkRawSwitchDescription(
         key="rfdebug",
         name="RFLink RFDEBUG",
@@ -44,7 +62,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
 
 class RFLinkRawSwitch(SwitchEntity):
-    """RFLink debug mode switch."""
+    """RFLink Raw Tools switch."""
 
     _attr_has_entity_name = False
 
@@ -63,14 +81,27 @@ class RFLinkRawSwitch(SwitchEntity):
             sw_version=VERSION,
         )
 
+    @property
+    def is_on(self) -> bool:
+        """Return switch state."""
+        if self.entity_description.switch_type == "state":
+            return bool(get_state(self.hass).get(self.entity_description.state_key, False))
+        return bool(self._attr_is_on)
+
     async def async_turn_on(self, **kwargs) -> None:
-        """Turn on debug mode."""
-        await async_send_direct_command(self.hass, self.entity_description.on_command, 1, 250)
-        self._attr_is_on = True
+        """Turn on."""
+        if self.entity_description.switch_type == "state":
+            update_state(self.hass, **{self.entity_description.state_key: True})
+        else:
+            await async_send_direct_command(self.hass, self.entity_description.on_command, 1, 250)
+            self._attr_is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
-        """Turn off debug mode."""
-        await async_send_direct_command(self.hass, self.entity_description.off_command, 1, 250)
-        self._attr_is_on = False
+        """Turn off."""
+        if self.entity_description.switch_type == "state":
+            update_state(self.hass, **{self.entity_description.state_key: False})
+        else:
+            await async_send_direct_command(self.hass, self.entity_description.off_command, 1, 250)
+            self._attr_is_on = False
         self.async_write_ha_state()
