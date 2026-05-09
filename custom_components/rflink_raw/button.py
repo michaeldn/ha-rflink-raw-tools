@@ -28,6 +28,7 @@ from .const import (
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .prereq import install_rflink_prerequisite
 from .store import get_state, update_state
+from .updater import show_update_status, update_from_github
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -39,6 +40,18 @@ class RFLinkRawButtonDescription(EntityDescription):
 
 
 BUTTONS: tuple[RFLinkRawButtonDescription, ...] = (
+    RFLinkRawButtonDescription(
+        key="update_download_latest",
+        name="Update Download Latest From GitHub",
+        icon="mdi:cloud-download-outline",
+        action_type="update_from_github",
+    ),
+    RFLinkRawButtonDescription(
+        key="update_show_status",
+        name="Update Show Installed Location",
+        icon="mdi:information-outline",
+        action_type="show_update_status",
+    ),
     RFLinkRawButtonDescription(
         key="setup_load_default_prerequisite_values",
         name="Setup Load Default Prerequisite Values",
@@ -128,6 +141,37 @@ class RFLinkRawButton(ButtonEntity):
 
     async def async_press(self) -> None:
         state = get_state(self.hass)
+
+        if self.entity_description.action_type == "update_from_github":
+            update_from_github(self.hass)
+            persistent_notification.async_create(
+                self.hass,
+                """RFLink Raw Tools was downloaded from GitHub and copied into Home Assistant.
+
+Next step:
+Restart Home Assistant Core from Settings → System, or run `ha core restart`.
+
+A backup was saved in `/config/.rflink_raw_backups`.""",
+                title="RFLink Raw Tools • Update Downloaded",
+                notification_id="rflink_raw_update_done",
+            )
+            return
+
+        if self.entity_description.action_type == "show_update_status":
+            show_update_status(self.hass)
+            persistent_notification.async_create(
+                self.hass,
+                """To update without command line:
+
+1. Press **Update Download Latest From GitHub**.
+2. Wait for the success notification.
+3. Restart Home Assistant Core from Settings → System.
+
+The update button downloads the public GitHub main branch and copies the files into `/config/custom_components/rflink_raw`.""",
+                title="RFLink Raw Tools • Update Help",
+                notification_id="rflink_raw_update_help",
+            )
+            return
 
         if self.entity_description.action_type == "load_default_prereq":
             update_state(

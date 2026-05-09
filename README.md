@@ -66,6 +66,36 @@ and create/import a dashboard using `/config/rflink_raw_dashboard.yaml`.
 
 That second page is cleaner than the default device page and uses the bundled logo.
 
+## Update from the UI
+
+After the first install, non-technical users do not need to update from the command line.
+
+Open:
+
+```text
+Settings → Devices & services → Devices → RFLink Raw Tools
+```
+
+Press:
+
+```text
+Update Download Latest From GitHub
+```
+
+Then restart Home Assistant Core from the UI:
+
+```text
+Settings → System → Restart Home Assistant
+```
+
+The update button downloads the public GitHub `main` branch, copies the integration into `/config/custom_components/rflink_raw`, refreshes the bundled logo/dashboard files, and saves a backup in:
+
+```text
+/config/.rflink_raw_backups
+```
+
+The only command-line step is the first install, because Home Assistant custom integrations cannot install themselves before they exist.
+
 ## How to Run
 
 Open the created device:

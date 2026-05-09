@@ -21,7 +21,7 @@ views:
               1. Use **Setup** first.
               2. Use **Control** to send commands.
               3. Use **Debug** to capture packets.
-              4. Use **Help** if you need logs or device-finding steps.
+              4. Use **Help** if you need logs or device-finding steps.\n                  5. Use **Update** to download the latest version without command line.
       - type: grid
         cards:
           - type: entities

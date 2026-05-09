@@ -21,6 +21,7 @@ from .const import (
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
     KEY_REPEAT,
+    KEY_UPDATE_STATUS,
 )
 
 
@@ -34,6 +35,7 @@ DEFAULT_STATE = {
     KEY_PREREQ_WAIT_FOR_ACK: False,
     KEY_PREREQ_RECONNECT_INTERVAL: 10,
     KEY_PREREQ_STATUS: "Not installed from RFLink Raw Tools",
+    KEY_UPDATE_STATUS: "Not updated from RFLink Raw Tools",
     KEY_LAST_COMMAND: "",
     KEY_LAST_RESPONSE: "",
     KEY_LAST_ERROR: "",
