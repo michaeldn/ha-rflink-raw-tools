@@ -72,6 +72,11 @@ if [ -f "$TMP_DIR/post-update-rflink-cleanup-notes.sh" ]; then
   chmod +x /config/post-update-rflink-cleanup-notes.sh
 fi
 
+if [ -f "$TMP_DIR/check-rflink-dashboard-send-actions.sh" ]; then
+  cp "$TMP_DIR/check-rflink-dashboard-send-actions.sh" /config/check-rflink-dashboard-send-actions.sh
+  chmod +x /config/check-rflink-dashboard-send-actions.sh
+fi
+
 echo "Installed RFLink Raw Tools."
 echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core: ha core restart"

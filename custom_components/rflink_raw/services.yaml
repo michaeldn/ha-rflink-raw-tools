@@ -102,3 +102,12 @@ ping_gateway:
 version_gateway:
   name: RFLink gateway version
   description: Send a raw RFLink VERSION command with no device_id required.
+
+
+send_saved_raw:
+  name: Send saved raw RFLink command
+  description: Send the raw RFLink command currently stored in the RFLink Raw Command text field. No device_id is required.
+
+send_saved_protocol:
+  name: Send saved RFLink protocol command
+  description: Send the protocol command currently stored in the protocol fields.

@@ -233,7 +233,7 @@ views:
         columns: 2
         square: false
         cards:
-{_button_card('Send raw', 'mdi:send', 'rflink_raw.send_stored_raw')}{_button_card('Send protocol', 'mdi:remote', 'rflink_raw.send_stored_protocol')}
+{_button_card('Send raw', 'mdi:send', 'rflink_raw.send_saved_raw')}{_button_card('Send protocol', 'mdi:remote', 'rflink_raw.send_saved_protocol')}
   - title: Debug
     path: rflink-debug
     icon: mdi:radio-tower

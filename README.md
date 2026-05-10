@@ -583,3 +583,36 @@ A helper note is also installed at:
 ```bash
 sh /config/post-update-rflink-cleanup-notes.sh
 ```
+
+
+## Send action service-name fix
+
+Some Home Assistant installs can retain stale action schemas after multiple custom integration updates. If an old action schema is retained, clicking **Send raw** can incorrectly fail with:
+
+```text
+required key not provided @ data['device_id']
+```
+
+The dashboard now uses new no-argument service names that were not used by older builds:
+
+```text
+rflink_raw.send_saved_raw
+rflink_raw.send_saved_protocol
+```
+
+These actions read the saved UI fields and do not require `device_id` in the action payload.
+
+The older services remain registered for compatibility, but the dashboard no longer uses them:
+
+```text
+rflink_raw.send_stored_raw
+rflink_raw.send_stored_protocol
+```
+
+After installing, run:
+
+```text
+Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
+```
+
+Then restart Core if the sidebar dashboard still uses old service names.
