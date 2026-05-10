@@ -442,3 +442,20 @@ rflink:
   wait_for_ack: false
   reconnect_interval: 10
 ```
+
+
+## Thread-safe GUI update fix
+
+The updater now follows this rule:
+
+- blocking network/filesystem update work runs in `hass.async_add_executor_job(...)`
+- Home Assistant state writes run back on the event loop
+- worker-thread update code no longer calls `hass.async_create_task(...)`
+
+This fixes the Home Assistant error:
+
+```text
+calls hass.async_create_task from a thread other than the event loop
+```
+
+Because the currently installed GUI updater may still be the broken one, install this package once with the terminal installer after pushing it to GitHub.

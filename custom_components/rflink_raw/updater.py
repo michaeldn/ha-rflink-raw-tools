@@ -1,8 +1,7 @@
 """Updater helpers for RFLink Raw Tools.
 
-These functions are intentionally synchronous because they perform network and
-filesystem I/O. Call them with hass.async_add_executor_job(...), never
-directly inside the Home Assistant event loop.
+These functions are synchronous because they perform network and filesystem
+I/O. Call them with hass.async_add_executor_job(...).
 """
 
 from __future__ import annotations
@@ -17,13 +16,10 @@ from pathlib import Path
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import KEY_LAST_UPDATE_BACKUP
-from .store import get_state, update_state
-
 REPO_ZIP_URL = "https://github.com/michaeldn/ha-rflink-raw-tools/archive/refs/heads/main.zip"
 
 
-def update_from_github(hass: HomeAssistant) -> None:
+def update_from_github(hass: HomeAssistant) -> str:
     """Update the integration files from GitHub with a backup first."""
     config_dir = Path(hass.config.path())
     target_dir = config_dir / "custom_components" / "rflink_raw"
@@ -77,13 +73,11 @@ def update_from_github(hass: HomeAssistant) -> None:
                 shutil.copy2(script, target)
                 target.chmod(0o755)
 
-    update_state(hass, **{KEY_LAST_UPDATE_BACKUP: str(backup_dir)})
+    return str(backup_dir)
 
 
-def restore_last_update(hass: HomeAssistant) -> None:
-    """Restore the last integration backup created by update_from_github."""
-    state = get_state(hass)
-    backup_path = state.get(KEY_LAST_UPDATE_BACKUP)
+def restore_last_update(hass: HomeAssistant, backup_path: str) -> str:
+    """Restore the last integration backup."""
     if not backup_path:
         raise HomeAssistantError("No update backup is stored.")
 
@@ -96,3 +90,5 @@ def restore_last_update(hass: HomeAssistant) -> None:
     if target_dir.exists():
         shutil.rmtree(target_dir)
     shutil.copytree(component_backup, target_dir)
+
+    return str(backup_dir)

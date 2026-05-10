@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
@@ -62,11 +64,28 @@ def get_state(hass: HomeAssistant) -> dict:
 
 
 @callback
-def update_state(hass: HomeAssistant, **changes) -> None:
-    """Update state, persist it, and refresh entities."""
+def _update_state_in_loop(hass: HomeAssistant, changes: dict) -> None:
+    """Update state from the Home Assistant event loop."""
     state = get_state(hass)
     state.update(changes)
     store = hass.data.get(DOMAIN, {}).get(DATA_STORE)
     if store is not None:
         hass.async_create_task(store.async_save(dict(state)))
     async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
+
+
+def update_state(hass: HomeAssistant, **changes) -> None:
+    """Update state and persist it.
+
+    Safe if called from a worker thread: state mutation and Store.async_save
+    are marshalled back onto Home Assistant's event loop.
+    """
+    try:
+        running_in_loop = threading.get_ident() == hass.loop._thread_id
+    except AttributeError:
+        running_in_loop = False
+
+    if running_in_loop:
+        _update_state_in_loop(hass, changes)
+    else:
+        hass.loop.call_soon_threadsafe(_update_state_in_loop, hass, changes)

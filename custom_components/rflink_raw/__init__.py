@@ -14,6 +14,7 @@ from .const import (
     DOMAIN,
     KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_DELAY_MS,
+    KEY_LAST_UPDATE_BACKUP,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_PREREQ_WAIT_FOR_ACK,
@@ -27,7 +28,7 @@ from .dashboard_builder import async_write_dashboard_file
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite, sync_prerequisite_state
 from .registry_cleanup import async_reset_ui_registry
-from .store import async_initialize_store, get_state
+from .store import async_initialize_store, get_state, update_state
 from .updater import restore_last_update, update_from_github
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
@@ -95,11 +96,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def do_version_gateway(call: ServiceCall) -> None:
         await async_send_direct_command(hass, "10;VERSION;", 1, 250)
 
-    async def do_update(call: ServiceCall) -> None:
-        await hass.async_add_executor_job(update_from_github, hass)
 
-    async def do_restore(call: ServiceCall) -> None:
-        await hass.async_add_executor_job(restore_last_update, hass)
+async def do_update(call: ServiceCall) -> None:
+    backup_path = await hass.async_add_executor_job(update_from_github, hass)
+    update_state(hass, **{KEY_LAST_UPDATE_BACKUP: backup_path})
+
+
+
+async def do_restore(call: ServiceCall) -> None:
+    state = get_state(hass)
+    backup_path = state.get(KEY_LAST_UPDATE_BACKUP, "")
+    restored_path = await hass.async_add_executor_job(restore_last_update, hass, backup_path)
+    update_state(hass, **{KEY_LAST_UPDATE_BACKUP: restored_path})
+
 
     async def do_install_prerequisite(call: ServiceCall) -> None:
         state = get_state(hass)

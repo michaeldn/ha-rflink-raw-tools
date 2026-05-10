@@ -18,11 +18,11 @@ from .const import (
     DOMAIN,
     KEY_DASHBOARD_ENABLED,
     KEY_DASHBOARD_SHOW_IN_SIDEBAR,
+    KEY_DELAY_MS,
     KEY_PREREQ_INSTALLED,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_PREREQ_WAIT_FOR_ACK,
-    KEY_DELAY_MS,
     KEY_PROTOCOL_COMMAND,
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
@@ -35,7 +35,6 @@ from .const import (
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite
 from .store import get_state, update_state
-from .updater import restore_last_update, update_from_github
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -54,7 +53,7 @@ class RFLinkRawSwitchDescription(EntityDescription):
 SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
     RFLinkRawSwitchDescription(
         key="managed_prerequisite",
-        name="RFLink Prerequisite",
+        name="Install RFLink",
         icon="mdi:file-cog-outline",
         switch_type="managed_prerequisite",
         state_key=KEY_PREREQ_INSTALLED,
@@ -128,22 +127,6 @@ SWITCHES: tuple[RFLinkRawSwitchDescription, ...] = (
         on_command="10;VERSION;",
         device_area="command",
     ),
-    RFLinkRawSwitchDescription(
-        key="update_from_github",
-        name="Update Download Latest From GitHub",
-        icon="mdi:cloud-download-outline",
-        switch_type="momentary_update",
-        entity_category="config",
-        enabled_default=False,
-    ),
-    RFLinkRawSwitchDescription(
-        key="restore_last_update",
-        name="Undo Last GitHub Update",
-        icon="mdi:backup-restore",
-        switch_type="momentary_restore",
-        entity_category="config",
-        enabled_default=False,
-    ),
 )
 
 
@@ -153,11 +136,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
 
 class RFLinkRawSwitch(SwitchEntity):
-    """RFLink Raw Tools switch.
-
-    There are no ButtonEntity objects in this build because Home Assistant's native
-    device page renders ButtonEntity actions as "Press".
-    """
+    """RFLink Raw Tools switch."""
 
     _attr_has_entity_name = False
 
@@ -208,10 +187,11 @@ class RFLinkRawSwitch(SwitchEntity):
         self._momentary_is_on = False
         self.async_write_ha_state()
 
-    async def _run_momentary(self, coro_or_fn) -> None:
+    async def _run_momentary(self, coro_fn) -> None:
+        """Run a one-shot action while briefly showing the switch as on."""
         self._momentary_is_on = True
         self.async_write_ha_state()
-        result = coro_or_fn()
+        result = coro_fn()
         if hasattr(result, "__await__"):
             await result
         self.hass.async_create_task(self._momentary_done())
@@ -275,14 +255,6 @@ class RFLinkRawSwitch(SwitchEntity):
             async def action():
                 await async_send_direct_command(self.hass, self.entity_description.on_command, 1, 250)
             await self._run_momentary(action)
-            return
-
-        if switch_type == "momentary_update":
-            await self._run_momentary(lambda: self.hass.async_add_executor_job(update_from_github, self.hass))
-            return
-
-        if switch_type == "momentary_restore":
-            await self._run_momentary(lambda: self.hass.async_add_executor_job(restore_last_update, self.hass))
             return
 
     async def async_turn_off(self, **kwargs) -> None:
