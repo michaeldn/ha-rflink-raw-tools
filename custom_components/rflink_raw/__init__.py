@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import voluptuous as vol
 
 from homeassistant.components import persistent_notification
@@ -15,6 +17,12 @@ from .const import (
     KEY_DASHBOARD_SHOW_IN_SIDEBAR,
     KEY_DELAY_MS,
     KEY_LAST_UPDATE_BACKUP,
+    KEY_LAST_UPDATE_FINISHED_AT,
+    KEY_LAST_UPDATE_STARTED_AT,
+    KEY_UPDATE_ERROR,
+    KEY_UPDATE_MESSAGE,
+    KEY_UPDATE_PROGRESS,
+    KEY_UPDATE_STATUS,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_PREREQ_WAIT_FOR_ACK,
@@ -108,7 +116,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def do_restore(call: ServiceCall) -> None:
         state = get_state(hass)
-        backup_path = state.get(KEY_LAST_UPDATE_BACKUP, "")
+        backup_path = state.get(KEY_LAST_UPDATE_BACKUP,
+    KEY_LAST_UPDATE_FINISHED_AT,
+    KEY_LAST_UPDATE_STARTED_AT,
+    KEY_UPDATE_ERROR,
+    KEY_UPDATE_MESSAGE,
+    KEY_UPDATE_PROGRESS,
+    KEY_UPDATE_STATUS, "")
         restored_path = await hass.async_add_executor_job(
             restore_last_update,
             hass,

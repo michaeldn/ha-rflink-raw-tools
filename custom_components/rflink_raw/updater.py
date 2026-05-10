@@ -12,14 +12,22 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 REPO_ZIP_URL = "https://github.com/michaeldn/ha-rflink-raw-tools/archive/refs/heads/main.zip"
 
+ProgressCallback = Callable[[int, str, str], None]
 
-def update_from_github(hass: HomeAssistant) -> str:
+
+def _progress(callback: ProgressCallback | None, pct: int, status: str, message: str) -> None:
+    if callback is not None:
+        callback(pct, status, message)
+
+
+def update_from_github(hass: HomeAssistant, progress_callback: ProgressCallback | None = None) -> str:
     """Update the integration files from GitHub with a backup first."""
     config_dir = Path(hass.config.path())
     target_dir = config_dir / "custom_components" / "rflink_raw"
@@ -30,6 +38,7 @@ def update_from_github(hass: HomeAssistant) -> str:
     if not target_dir.exists():
         raise HomeAssistantError(f"Missing integration folder: {target_dir}")
 
+    _progress(progress_callback, 10, "backing_up", "Backing up current RFLink Raw Tools files.")
     shutil.copytree(target_dir, backup_dir / "rflink_raw")
 
     with tempfile.TemporaryDirectory(prefix="rflink_raw_update_") as tmp:
@@ -37,8 +46,10 @@ def update_from_github(hass: HomeAssistant) -> str:
         zip_path = tmp_path / "repo.zip"
         extract_path = tmp_path / "extract"
 
+        _progress(progress_callback, 25, "downloading", "Downloading latest package from GitHub.")
         urllib.request.urlretrieve(REPO_ZIP_URL, zip_path)
 
+        _progress(progress_callback, 45, "extracting", "Extracting downloaded package.")
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_path)
 
@@ -47,9 +58,11 @@ def update_from_github(hass: HomeAssistant) -> str:
         if not new_component.exists():
             raise HomeAssistantError("Downloaded repo does not contain custom_components/rflink_raw.")
 
+        _progress(progress_callback, 65, "installing", "Replacing integration files.")
         shutil.rmtree(target_dir)
         shutil.copytree(new_component, target_dir)
 
+        _progress(progress_callback, 80, "copying_assets", "Copying dashboard, logo, and helper scripts.")
         logo = repo_root / "assets" / "logo.png"
         if logo.exists():
             www = config_dir / "www" / "rflink_raw"
@@ -64,6 +77,7 @@ def update_from_github(hass: HomeAssistant) -> str:
             "repair-stale-rflink-raw-entities.sh",
             "reset-rflink-raw-ui.sh",
             "fix-rflink-dashboard-mode.sh",
+            "fix-rflink-brand-assets.sh",
             "rebuild-rflink-dashboard-note.sh",
             "undo-rflink-raw-tools.sh",
         ):
@@ -73,10 +87,15 @@ def update_from_github(hass: HomeAssistant) -> str:
                 shutil.copy2(script, target)
                 target.chmod(0o755)
 
+    _progress(progress_callback, 100, "complete", "Update downloaded and installed. Restart Home Assistant Core.")
     return str(backup_dir)
 
 
-def restore_last_update(hass: HomeAssistant, backup_path: str) -> str:
+def restore_last_update(
+    hass: HomeAssistant,
+    backup_path: str,
+    progress_callback: ProgressCallback | None = None,
+) -> str:
     """Restore the last integration backup."""
     if not backup_path:
         raise HomeAssistantError("No update backup is stored.")
@@ -86,9 +105,11 @@ def restore_last_update(hass: HomeAssistant, backup_path: str) -> str:
     if not component_backup.exists():
         raise HomeAssistantError(f"Backup does not exist: {component_backup}")
 
+    _progress(progress_callback, 15, "restoring", "Restoring previous RFLink Raw Tools backup.")
     target_dir = Path(hass.config.path("custom_components/rflink_raw"))
     if target_dir.exists():
         shutil.rmtree(target_dir)
     shutil.copytree(component_backup, target_dir)
+    _progress(progress_callback, 100, "restore_complete", "Backup restored. Restart Home Assistant Core.")
 
     return str(backup_dir)

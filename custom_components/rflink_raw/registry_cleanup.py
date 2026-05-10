@@ -79,6 +79,12 @@ async def async_reset_ui_registry(hass: HomeAssistant) -> list[str]:
     current_identifiers = {
         ("rflink_raw", "rflink_raw_tools_admin"),
         ("rflink_raw", "rflink_raw_tools_command_center"),
+        "sensor.rflink_update_status",
+        "sensor.rflink_update_progress",
+        "sensor.rflink_update_message",
+        "sensor.rflink_update_error",
+        "sensor.rflink_last_update_started",
+        "sensor.rflink_last_update_finished",
     }
     entity_device_ids = {
         entry.device_id

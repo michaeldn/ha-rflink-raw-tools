@@ -4,7 +4,7 @@ DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 VERSION = "0.0.1"
 
-PLATFORMS = ["switch", "text", "number"]
+PLATFORMS = ["switch", "text", "number", "sensor"]
 
 STORAGE_VERSION = 1
 STORAGE_KEY = "rflink_raw_tools_state"
@@ -37,6 +37,12 @@ KEY_DASHBOARD_ENABLED = "dashboard_enabled"
 KEY_DASHBOARD_SHOW_IN_SIDEBAR = "dashboard_show_in_sidebar"
 
 KEY_LAST_UPDATE_BACKUP = "last_update_backup"
+KEY_UPDATE_STATUS = "update_status"
+KEY_UPDATE_PROGRESS = "update_progress"
+KEY_UPDATE_MESSAGE = "update_message"
+KEY_UPDATE_ERROR = "update_error"
+KEY_LAST_UPDATE_STARTED_AT = "last_update_started_at"
+KEY_LAST_UPDATE_FINISHED_AT = "last_update_finished_at"
 
 MANAGED_BLOCK_START = "# BEGIN RFLink Raw Tools managed RFLink prerequisite"
 MANAGED_BLOCK_END = "# END RFLink Raw Tools managed RFLink prerequisite"

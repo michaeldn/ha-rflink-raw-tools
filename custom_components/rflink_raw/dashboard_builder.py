@@ -244,7 +244,23 @@ views:
         content: |
           ## Update and reset
 
-          Use **Reset UI** after updates if controls look stale or duplicated.
+          Use **Download latest** to update from GitHub. Watch progress below. Restart Home Assistant Core after an update completes.
+
+      - type: entities
+        title: Update status
+        show_header_toggle: false
+        entities:
+{update_status_rows if update_status_rows else '          - type: section\\n            label: No update status entities found yet\\n'}
+      - type: gauge
+        name: Update progress
+        entity: {e.get('update_progress', 'sensor.rflink_update_progress')}
+        min: 0
+        max: 100
+        needle: true
+        severity:
+          green: 100
+          yellow: 25
+          red: 0
 
       - type: grid
         columns: 2

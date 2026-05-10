@@ -102,3 +102,5 @@ ping_gateway:
 version_gateway:
   name: RFLink gateway version
   description: Send a raw RFLink VERSION command with no device_id required.
+
+# Update progress is exposed through RFLink Update Status/Progress/Message sensors.
