@@ -17,7 +17,8 @@ fi
 if [ -f "$DASHBOARD_FILE" ]; then
   cp "$DASHBOARD_FILE" "$BACKUP_DIR/rflink_raw_dashboard.yaml"
 fi
-for script in /config/repair-stale-rflink-raw-entities.sh /config/reset-rflink-raw-ui.sh /config/undo-rflink-raw-tools.sh; do
+for script in   /config/repair-stale-rflink-raw-entities.sh   /config/reset-rflink-raw-ui.sh   /config/fix-rflink-dashboard-mode.sh   /config/undo-rflink-raw-tools.sh
+do
   if [ -f "$script" ]; then
     cp "$script" "$BACKUP_DIR/"
   fi
@@ -37,7 +38,8 @@ fi
 if [ -f "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" ]; then
   cp "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" "$DASHBOARD_FILE"
 fi
-for script_name in repair-stale-rflink-raw-entities.sh reset-rflink-raw-ui.sh undo-rflink-raw-tools.sh; do
+for script_name in   repair-stale-rflink-raw-entities.sh   reset-rflink-raw-ui.sh   fix-rflink-dashboard-mode.sh   undo-rflink-raw-tools.sh
+do
   if [ -f "$TMP_DIR/$script_name" ]; then
     cp "$TMP_DIR/$script_name" "/config/$script_name"
     chmod +x "/config/$script_name"

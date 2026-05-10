@@ -99,7 +99,7 @@ def install_dashboard(hass: HomeAssistant, show_in_sidebar: bool) -> Path:
     block = (
         f"{MANAGED_DASHBOARD_BLOCK_START}\n"
         "lovelace:\n"
-        "  resource_mode: storage\n"
+        "  mode: storage\n"
         "  dashboards:\n"
         f"    {DASHBOARD_KEY}:\n"
         "      mode: yaml\n"

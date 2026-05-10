@@ -10,7 +10,28 @@ mkdir -p "$BACKUP"
 cp .storage/core.entity_registry "$BACKUP/core.entity_registry" 2>/dev/null || true
 cp .storage/core.device_registry "$BACKUP/core.device_registry" 2>/dev/null || true
 
-python3 - <<'PY'
+PY_BIN=""
+if command -v python3 >/dev/null 2>&1; then
+  PY_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  PY_BIN="python"
+fi
+
+if [ -z "$PY_BIN" ]; then
+  echo "Python is not available in this Terminal add-on container."
+  echo ""
+  echo "Use the built-in Home Assistant reset service instead:"
+  echo "  Developer Tools -> Actions -> RFLink Raw Tools: Reset RFLink Raw Tools UI"
+  echo "  Service name: rflink_raw.reset_ui"
+  echo ""
+  echo "Then restart Home Assistant Core:"
+  echo "  ha core restart"
+  echo ""
+  echo "Backup saved to $BACKUP"
+  exit 2
+fi
+
+"$PY_BIN" - <<'PY'
 import json
 from pathlib import Path
 
