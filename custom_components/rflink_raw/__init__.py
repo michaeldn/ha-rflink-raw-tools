@@ -26,7 +26,13 @@ from .const import (
 )
 from .dashboard_builder import async_write_dashboard_file
 from .helpers import async_send_direct_command, async_send_protocol_command
-from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite, sync_prerequisite_state
+from .managed_config import (
+    install_dashboard,
+    install_prerequisite,
+    remove_dashboard,
+    remove_prerequisite,
+    sync_prerequisite_state,
+)
 from .registry_cleanup import async_reset_ui_registry
 from .store import async_initialize_store, get_state, update_state
 from .updater import restore_last_update, update_from_github
@@ -52,7 +58,7 @@ SEND_PROTOCOL_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up services."""
+    """Set up RFLink Raw Tools services."""
 
     async def send_raw(call: ServiceCall) -> None:
         await async_send_direct_command(
@@ -96,19 +102,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def do_version_gateway(call: ServiceCall) -> None:
         await async_send_direct_command(hass, "10;VERSION;", 1, 250)
 
+    async def do_update(call: ServiceCall) -> None:
+        backup_path = await hass.async_add_executor_job(update_from_github, hass)
+        update_state(hass, **{KEY_LAST_UPDATE_BACKUP: backup_path})
 
-async def do_update(call: ServiceCall) -> None:
-    backup_path = await hass.async_add_executor_job(update_from_github, hass)
-    update_state(hass, **{KEY_LAST_UPDATE_BACKUP: backup_path})
-
-
-
-async def do_restore(call: ServiceCall) -> None:
-    state = get_state(hass)
-    backup_path = state.get(KEY_LAST_UPDATE_BACKUP, "")
-    restored_path = await hass.async_add_executor_job(restore_last_update, hass, backup_path)
-    update_state(hass, **{KEY_LAST_UPDATE_BACKUP: restored_path})
-
+    async def do_restore(call: ServiceCall) -> None:
+        state = get_state(hass)
+        backup_path = state.get(KEY_LAST_UPDATE_BACKUP, "")
+        restored_path = await hass.async_add_executor_job(
+            restore_last_update,
+            hass,
+            backup_path,
+        )
+        update_state(hass, **{KEY_LAST_UPDATE_BACKUP: restored_path})
 
     async def do_install_prerequisite(call: ServiceCall) -> None:
         state = get_state(hass)
@@ -158,16 +164,19 @@ async def do_restore(call: ServiceCall) -> None:
             notification_id="rflink_raw_ui_reset",
         )
 
-    # Public services. Keep legacy service names for compatibility, but dashboard
-    # uses the unique *_gateway names to avoid stale schema/action confusion.
     hass.services.async_register(DOMAIN, "send_raw", send_raw, schema=SEND_RAW_SCHEMA)
     hass.services.async_register(DOMAIN, "send_protocol", send_protocol, schema=SEND_PROTOCOL_SCHEMA)
     hass.services.async_register(DOMAIN, "send_stored_raw", send_stored_raw)
     hass.services.async_register(DOMAIN, "send_stored_protocol", send_stored_protocol)
+
+    # Dashboard should use these no-argument gateway services.
     hass.services.async_register(DOMAIN, "ping_gateway", do_ping_gateway)
     hass.services.async_register(DOMAIN, "version_gateway", do_version_gateway)
+
+    # Legacy aliases retained, but dashboard does not depend on them.
     hass.services.async_register(DOMAIN, "ping", do_ping_gateway)
     hass.services.async_register(DOMAIN, "version", do_version_gateway)
+
     hass.services.async_register(DOMAIN, "update_from_github", do_update)
     hass.services.async_register(DOMAIN, "restore_last_update", do_restore)
     hass.services.async_register(DOMAIN, "install_prerequisite", do_install_prerequisite)
@@ -183,7 +192,7 @@ async def do_restore(call: ServiceCall) -> None:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
-    """Set up config entry."""
+    """Set up RFLink Raw Tools config entry."""
     await async_initialize_store(hass)
     sync_prerequisite_state(hass)
     await async_reset_ui_registry(hass)
@@ -193,5 +202,5 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
-    """Unload config entry."""
+    """Unload RFLink Raw Tools config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

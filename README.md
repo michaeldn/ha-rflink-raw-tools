@@ -459,3 +459,16 @@ calls hass.async_create_task from a thread other than the event loop
 ```
 
 Because the currently installed GUI updater may still be the broken one, install this package once with the terminal installer after pushing it to GitHub.
+
+
+## Setup boolean return fix
+
+This package fixes the Home Assistant setup error:
+
+```text
+Integration 'rflink_raw' did not return boolean if setup was successful.
+```
+
+Cause: a generated `__init__.py` had update/restore service handlers indented outside `async_setup`, so `async_setup` returned `None`.
+
+Fix: `async_setup` is now rewritten cleanly and always returns `True` after service registration.
