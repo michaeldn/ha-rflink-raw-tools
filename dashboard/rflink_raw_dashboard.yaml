@@ -8,4 +8,4 @@ views:
         content: |
           # RFLink Raw Tools
 
-          Dashboard placeholder. Use Developer Tools -> Actions -> rflink_raw.rebuild_dashboard after install.
+          Dashboard placeholder. The integration rebuilds this file from Home Assistant's actual entity registry on startup.

@@ -343,3 +343,31 @@ ha core restart
 ```
 
 This build also rebuilds the dashboard automatically from the actual Home Assistant entity registry during integration setup. It does not assume fixed entity IDs.
+
+
+## Dynamic dashboard optional-entity fix
+
+The dashboard builder now treats these as optional and will not show a missing-entity warning for them:
+
+```text
+prereq_port
+protocol_device_id
+send_raw_command
+send_protocol_command
+update_from_github
+restore_last_update
+```
+
+These are optional fields or service-call actions, not required dashboard entities.
+
+To rebuild the dashboard:
+
+```text
+Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
+```
+
+Then restart Home Assistant Core if the sidebar view does not refresh:
+
+```bash
+ha core restart
+```
