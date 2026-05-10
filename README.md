@@ -472,3 +472,43 @@ Integration 'rflink_raw' did not return boolean if setup was successful.
 Cause: a generated `__init__.py` had update/restore service handlers indented outside `async_setup`, so `async_setup` returned `None`.
 
 Fix: `async_setup` is now rewritten cleanly and always returns `True` after service registration.
+
+
+## Brand icon hardening
+
+This package does not generate or replace the approved RFLink Raw Tools artwork.
+
+Approved asset hashes included in this package:
+
+```text
+assets/logo.png md5: 16bad0221d68821784cd5d26a33f2d3c
+brand/icon.png md5: 07429242aaec19f7a5c2d031535255ff
+```
+
+Home Assistant local brand files included:
+
+```text
+custom_components/rflink_raw/brand/icon.png
+custom_components/rflink_raw/brand/dark_icon.png
+custom_components/rflink_raw/brand/icon@2x.png
+custom_components/rflink_raw/brand/dark_icon@2x.png
+custom_components/rflink_raw/brand/logo.png
+custom_components/rflink_raw/brand/dark_logo.png
+custom_components/rflink_raw/brand/logo@2x.png
+custom_components/rflink_raw/brand/dark_logo@2x.png
+```
+
+If the Add Integration screen still shows a blank icon after install/restart, run:
+
+```bash
+sh /config/fix-rflink-brand-assets.sh
+ha core restart
+```
+
+Then refresh Chrome on Mac with:
+
+```text
+Command + Shift + R
+```
+
+Home Assistant may cache brand assets, so the files can be correct while the browser still shows an old cached image until restart/refresh.
