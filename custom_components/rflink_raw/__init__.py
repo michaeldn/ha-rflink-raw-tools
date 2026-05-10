@@ -25,7 +25,7 @@ from .const import (
 )
 from .dashboard_builder import async_write_dashboard_file
 from .helpers import async_send_direct_command, async_send_protocol_command
-from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite
+from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite, sync_prerequisite_state
 from .registry_cleanup import async_reset_ui_registry
 from .store import async_initialize_store, get_state
 from .updater import restore_last_update, update_from_github
@@ -176,6 +176,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     """Set up config entry."""
     await async_initialize_store(hass)
+    sync_prerequisite_state(hass)
     await async_reset_ui_registry(hass)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     await async_write_dashboard_file(hass)

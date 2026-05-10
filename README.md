@@ -421,3 +421,24 @@ Because the currently installed updater is the broken one, install this fix once
 wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/install.sh | sh
 ha core restart
 ```
+
+
+## Install RFLink prerequisite detection
+
+`Install RFLink` now treats any existing top-level `rflink:` block in `configuration.yaml` as satisfying the prerequisite.
+
+That means:
+
+- If your normal Home Assistant RFLink integration is already configured, the switch turns ON.
+- RFLink Raw Tools does not write a duplicate `rflink:` block.
+- Turning the switch OFF does not remove your user-managed `rflink:` block.
+- The state is synced automatically during integration setup.
+
+Example existing config that satisfies the prerequisite:
+
+```yaml
+rflink:
+  port: /dev/ttyUSB0
+  wait_for_ack: false
+  reconnect_interval: 10
+```

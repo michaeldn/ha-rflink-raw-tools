@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-async-update-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-async-update-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-prereq-detect-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-prereq-detect-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
@@ -27,7 +27,7 @@ cp -R "$EXTRACT"/* .
 chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
 
 git add .
-git commit -m "Run RFLink updater outside the event loop" || true
+git commit -m "Mark existing RFLink config as prerequisite satisfied" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"

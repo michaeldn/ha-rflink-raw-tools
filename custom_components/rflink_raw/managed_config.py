@@ -43,46 +43,34 @@ def _strip_block(text: str, start: str, end: str) -> str:
     return re.sub(rf"{re.escape(start)}.*?{re.escape(end)}\n?", "", text, flags=re.S)
 
 
-def _top_level_block(text: str, key: str) -> str | None:
-    """Return a simple top-level YAML block by key."""
-    pattern = rf"(?ms)^{re.escape(key)}:\s*\n(?:^[ \t].*\n|^\s*$)*"
-    match = re.search(pattern, text)
-    if not match:
-        return None
-    return match.group(0)
+def _has_top_level(text: str, key: str) -> bool:
+    return re.search(rf"(?m)^{re.escape(key)}:\s*$", text) is not None
 
 
-def existing_rflink_block_matches(
-    text: str,
-    port: str,
-    wait_for_ack: bool,
-    reconnect_interval: int,
-) -> bool:
-    """Return true if an existing unmanaged rflink block already has the needed values."""
-    block = _top_level_block(_strip_block(text, MANAGED_BLOCK_START, MANAGED_BLOCK_END), "rflink")
-    if not block:
+def has_any_rflink_prerequisite(hass: HomeAssistant) -> bool:
+    """Return true when any top-level RFLink config exists.
+
+    The prerequisite is simply that the normal Home Assistant RFLink
+    integration is configured. It can be user-managed or RFLink Raw
+    Tools-managed.
+    """
+    config_path = Path(hass.config.path("configuration.yaml"))
+    if not config_path.exists():
         return False
+    text = config_path.read_text()
+    return MANAGED_BLOCK_START in text or _has_top_level(text, "rflink")
 
-    clean_port = (port or "").strip()
-    wanted_ack = "true" if wait_for_ack else "false"
-    wanted_reconnect = str(int(reconnect_interval))
 
-    def find_value(name: str) -> str | None:
-        found = re.search(rf"(?m)^\s+{re.escape(name)}:\s*([^#\n]+)", block)
-        if not found:
-            return None
-        return found.group(1).strip().strip('"').strip("'").lower()
-
-    return (
-        find_value("port") == clean_port.lower()
-        and find_value("wait_for_ack") == wanted_ack
-        and find_value("reconnect_interval") == wanted_reconnect
-    )
+def sync_prerequisite_state(hass: HomeAssistant) -> bool:
+    """Sync the switch state from configuration.yaml."""
+    satisfied = has_any_rflink_prerequisite(hass)
+    update_state(hass, **{KEY_PREREQ_INSTALLED: satisfied})
+    return satisfied
 
 
 def _has_unmanaged_top_level(text: str, key: str, start: str, end: str) -> bool:
     text_without_managed = _strip_block(text, start, end)
-    return re.search(rf"(?m)^{re.escape(key)}:\s*$", text_without_managed) is not None
+    return _has_top_level(text_without_managed, key)
 
 
 def install_prerequisite(
@@ -93,25 +81,22 @@ def install_prerequisite(
 ) -> Path | None:
     """Install/update the managed RFLink prerequisite block.
 
-    If the user's existing unmanaged RFLink block already matches the desired
-    prerequisite values, mark this as satisfied and do not write anything.
+    If configuration.yaml already has any top-level rflink: block, the
+    normal Home Assistant RFLink integration is already configured. In that
+    case RFLink Raw Tools marks the prerequisite switch ON and does not write
+    or duplicate YAML.
     """
     config_path = Path(hass.config.path("configuration.yaml"))
     text = config_path.read_text()
 
-    clean_port = (port or "").strip()
-    if not clean_port:
-        raise HomeAssistantError("RFLink port cannot be empty.")
-
-    if existing_rflink_block_matches(text, clean_port, wait_for_ack, reconnect_interval):
+    # Existing user-managed RFLink config satisfies the prerequisite.
+    if _has_unmanaged_top_level(text, "rflink", MANAGED_BLOCK_START, MANAGED_BLOCK_END):
         update_state(hass, **{KEY_PREREQ_INSTALLED: True})
         return None
 
-    if _has_unmanaged_top_level(text, "rflink", MANAGED_BLOCK_START, MANAGED_BLOCK_END):
-        raise HomeAssistantError(
-            "configuration.yaml already has a top-level rflink: block. "
-            "RFLink is already configured outside RFLink Raw Tools, so no install is needed."
-        )
+    clean_port = (port or "").strip()
+    if not clean_port:
+        raise HomeAssistantError("RFLink port cannot be empty.")
 
     block = (
         f"{MANAGED_BLOCK_START}\n"
@@ -134,20 +119,23 @@ def install_prerequisite(
 def remove_prerequisite(hass: HomeAssistant) -> Path | None:
     """Remove only the managed RFLink prerequisite block.
 
-    If the prerequisite was satisfied by an existing unmanaged rflink block,
-    turning off only clears RFLink Raw Tools state and does not edit the user's
-    manual RFLink config.
+    If RFLink is user-managed outside RFLink Raw Tools, turning this switch
+    off should not remove or falsify the prerequisite. It remains ON because
+    RFLink is still configured.
     """
     config_path = Path(hass.config.path("configuration.yaml"))
     text = config_path.read_text()
 
     if MANAGED_BLOCK_START not in text:
-        update_state(hass, **{KEY_PREREQ_INSTALLED: False})
+        # Nothing managed to undo. If the user has their own rflink block,
+        # keep the switch true because the prerequisite is still satisfied.
+        update_state(hass, **{KEY_PREREQ_INSTALLED: _has_top_level(text, "rflink")})
         return None
 
     backup = _backup_config(config_path, "remove_prerequisite")
-    config_path.write_text(_strip_block(text, MANAGED_BLOCK_START, MANAGED_BLOCK_END))
-    update_state(hass, **{KEY_PREREQ_INSTALLED: False})
+    updated = _strip_block(text, MANAGED_BLOCK_START, MANAGED_BLOCK_END)
+    config_path.write_text(updated)
+    update_state(hass, **{KEY_PREREQ_INSTALLED: _has_top_level(updated, "rflink")})
     return backup
 
 
