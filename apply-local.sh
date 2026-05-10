@@ -2,32 +2,50 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-unique-send-services-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-unique-send-services-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-app-baseline-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-app-baseline-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
-if [ ! -f "$ZIP" ]; then
-  echo "ERROR: missing $ZIP"
-  exit 1
-fi
 if [ ! -d "$REPO/.git" ]; then
-  echo "ERROR: Git repo not found at $REPO"
+  echo "Local repo not found: $REPO"
   exit 1
 fi
 
-cp -R "$REPO" "$BACKUP"
 rm -rf "$EXTRACT"
 mkdir -p "$EXTRACT"
 unzip -o "$ZIP" -d "$EXTRACT"
 
+mkdir -p "$BACKUP"
+cp -R "$REPO" "$BACKUP/repo"
+
 cd "$REPO"
-rm -rf custom_components README.md LICENSE install.sh assets dashboard apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
-cp -R "$EXTRACT"/* .
 
-chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
+# Clean old generated/stale package artifacts but keep git.
+find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 
+cp -R "$EXTRACT"/. "$REPO"/
+
+find "$REPO" -type d -name '__pycache__' -prune -exec rm -rf {} +
+find "$REPO" -type f -name '*.pyc' -delete
+find "$REPO" -type f -name '.DS_Store' -delete
+
+python3 - <<'PY'
+import py_compile
+from pathlib import Path
+errors = []
+for p in Path("custom_components/rflink_raw").glob("*.py"):
+    try:
+        py_compile.compile(str(p), doraise=True)
+    except Exception as e:
+        errors.append((str(p), str(e)))
+if errors:
+    raise SystemExit(errors)
+print("Python compile check passed.")
+PY
+
+git status --short
 git add .
-git commit -m "Use unique no-argument RFLink send services" || true
-git push --force-with-lease origin main
+git commit -m "Rebuild RFLink Raw Tools as app baseline" || true
+git push origin main
 
 echo "Done. Backup saved to $BACKUP"

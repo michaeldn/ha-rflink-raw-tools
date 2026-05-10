@@ -1,27 +1,32 @@
 send_raw:
   name: Send raw RFLink command
+  description: Send a full RFLink command string such as 10;NewKaku;01a2b3;1;ON;.
   fields:
     raw_command:
       required: true
       selector:
         text:
     repeat:
+      required: false
       default: 1
       selector:
         number:
           min: 1
-          max: 50
+          max: 20
           mode: box
     delay_ms:
+      required: false
       default: 250
       selector:
         number:
           min: 0
-          max: 10000
+          max: 5000
+          unit_of_measurement: ms
           mode: box
 
 send_protocol:
   name: Send RFLink protocol command
+  description: Send a device id and command through the RFLink gateway.
   fields:
     device_id:
       required: true
@@ -32,82 +37,43 @@ send_protocol:
       selector:
         text:
     repeat:
+      required: false
       default: 1
       selector:
         number:
           min: 1
-          max: 50
+          max: 20
           mode: box
     delay_ms:
+      required: false
       default: 250
       selector:
         number:
           min: 0
-          max: 10000
+          max: 5000
+          unit_of_measurement: ms
           mode: box
 
-send_stored_raw:
-  name: Send stored raw RFLink command
-
-send_stored_protocol:
-  name: Send stored RFLink protocol command
-
-ping:
-  name: RFLink ping
-
-version:
-  name: RFLink version
-
-update_from_github:
-  name: Update from GitHub
-  description: Download the latest version from GitHub after creating a backup.
-
-restore_last_update:
-  name: Restore last update backup
-  description: Restore the last backup created by the update service.
-
-install_prerequisite:
-  name: Install RFLink prerequisite
-
-remove_prerequisite:
-  name: Remove RFLink prerequisite
-
-add_dashboard:
-  name: Add RFLink Raw Tools dashboard
-
-remove_dashboard:
-  name: Remove RFLink Raw Tools dashboard
-
-add_sidebar:
-  name: Add RFLink Raw Tools to sidebar
-
-remove_sidebar:
-  name: Remove RFLink Raw Tools from sidebar
-
-
-reset_ui:
-  name: Reset RFLink Raw Tools UI
-  description: Remove stale RFLink Raw Tools registry entities left behind by older builds.
-
-
-rebuild_dashboard:
-  name: Rebuild RFLink Raw Tools dashboard
-  description: Rebuild the RFLink Raw Tools YAML dashboard using actual entity IDs from the Home Assistant entity registry.
-
-
 ping_gateway:
-  name: RFLink gateway ping
-  description: Send a raw RFLink PING command with no device_id required.
+  name: Ping RFLink gateway
+  description: Send a gateway ping/control command.
 
 version_gateway:
-  name: RFLink gateway version
-  description: Send a raw RFLink VERSION command with no device_id required.
+  name: Ask RFLink gateway version
+  description: Send a gateway version/control command.
 
-
-send_saved_raw:
-  name: Send saved raw RFLink command
-  description: Send the raw RFLink command currently stored in the RFLink Raw Command text field. No device_id is required.
-
-send_saved_protocol:
-  name: Send saved RFLink protocol command
-  description: Send the protocol command currently stored in the protocol fields.
+set_debug:
+  name: Set RFLink debug mode
+  description: Turn RFDEBUG or QRFDEBUG on/off.
+  fields:
+    debug_type:
+      required: true
+      selector:
+        select:
+          options:
+            - rfdebug
+            - qrfdebug
+    enabled:
+      required: true
+      selector:
+        boolean:
