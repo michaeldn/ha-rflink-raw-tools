@@ -99,7 +99,7 @@ def build_dashboard_yaml(hass: HomeAssistant) -> str:
         ("prereq_port", "Port"),
         ("prereq_reconnect_interval", "Reconnect interval"),
         ("prereq_wait_for_ack", "Wait for ACK"),
-        ("managed_prerequisite", "RFLink prerequisite"),
+        ("managed_prerequisite", "Install RFLink"),
     ]:
         if suffix in e:
             prereq_rows += _entity_line(e[suffix], label)
@@ -197,7 +197,7 @@ views:
           Turn a switch on to apply. Turn it off to undo.
 
       - type: entities
-        title: RFLink prerequisite
+        title: Install RFLink
         show_header_toggle: false
         entities:
 {prereq_rows if prereq_rows else '          - type: section\n            label: No prerequisite entities found yet\n'}
@@ -235,7 +235,7 @@ views:
         columns: 2
         square: false
         cards:
-{_button_card('Ping', 'mdi:access-point-check', 'rflink_raw.ping')}{_button_card('Version', 'mdi:information-outline', 'rflink_raw.version')}
+{_button_card('Ping', 'mdi:access-point-check', 'rflink_raw.ping_gateway')}{_button_card('Version', 'mdi:information-outline', 'rflink_raw.version_gateway')}
   - title: Update
     path: rflink-update
     icon: mdi:update

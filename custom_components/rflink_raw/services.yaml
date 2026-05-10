@@ -93,3 +93,12 @@ reset_ui:
 rebuild_dashboard:
   name: Rebuild RFLink Raw Tools dashboard
   description: Rebuild the RFLink Raw Tools YAML dashboard using actual entity IDs from the Home Assistant entity registry.
+
+
+ping_gateway:
+  name: RFLink gateway ping
+  description: Send a raw RFLink PING command with no device_id required.
+
+version_gateway:
+  name: RFLink gateway version
+  description: Send a raw RFLink VERSION command with no device_id required.

@@ -371,3 +371,29 @@ Then restart Home Assistant Core if the sidebar view does not refresh:
 ```bash
 ha core restart
 ```
+
+
+## Action and prerequisite fixes
+
+### Ping / Version
+
+The dashboard uses these services for gateway actions:
+
+```text
+rflink_raw.ping_gateway
+rflink_raw.version_gateway
+```
+
+They send raw RFLink gateway commands and do not require `device_id`.
+
+### Install RFLink prerequisite
+
+The setup control is labeled:
+
+```text
+Install RFLink
+```
+
+If `configuration.yaml` already has a matching unmanaged `rflink:` block, RFLink Raw Tools now marks the prerequisite as satisfied instead of trying to write a duplicate block.
+
+If `configuration.yaml` has a different unmanaged `rflink:` block, RFLink Raw Tools will not overwrite it.
