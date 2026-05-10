@@ -145,7 +145,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     KEY_LAST_UPDATE_BACKUP: backup_path,
                     KEY_UPDATE_STATUS: "complete",
                     KEY_UPDATE_PROGRESS: 100,
-                    KEY_UPDATE_MESSAGE: "Update installed. Restart Home Assistant Core.",
+                    KEY_UPDATE_MESSAGE: "Update installed. Restart Home Assistant Core. If entities/devices still look wrong after reset/rebuild, delete and re-add the RFLink Raw Tools integration once.",
                     KEY_UPDATE_ERROR: "",
                     KEY_LAST_UPDATE_FINISHED_AT: datetime.now().isoformat(timespec="seconds"),
                 },
@@ -248,7 +248,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await async_write_dashboard_file(hass)
         persistent_notification.async_create(
             hass,
-            "RFLink Raw Tools dashboard rebuilt from the current Home Assistant entity registry.",
+            "RFLink Raw Tools dashboard rebuilt from the current Home Assistant entity registry. If the dashboard still has missing entities, run reset_ui, restart Core, and delete/re-add the integration once if needed.",
             title="RFLink Raw Tools Dashboard Rebuilt",
             notification_id="rflink_raw_dashboard_rebuilt",
         )

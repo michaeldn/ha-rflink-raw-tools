@@ -24,7 +24,9 @@ for script in \
   /config/fix-rflink-dashboard-mode.sh \
   /config/fix-rflink-brand-assets.sh \
   /config/rebuild-rflink-dashboard-note.sh \
-  /config/undo-rflink-raw-tools.sh
+  /config/undo-rflink-raw-tools.sh \
+  post-update-rflink-cleanup-notes.sh \
+  /config/post-update-rflink-cleanup-notes.sh
 do
   if [ -f "$script" ]; then
     cp "$script" "$BACKUP_DIR/"
@@ -63,6 +65,11 @@ done
 # Verify/copy supported brand filenames.
 if [ -f /config/fix-rflink-brand-assets.sh ]; then
   sh /config/fix-rflink-brand-assets.sh || true
+fi
+
+if [ -f "$TMP_DIR/post-update-rflink-cleanup-notes.sh" ]; then
+  cp "$TMP_DIR/post-update-rflink-cleanup-notes.sh" /config/post-update-rflink-cleanup-notes.sh
+  chmod +x /config/post-update-rflink-cleanup-notes.sh
 fi
 
 echo "Installed RFLink Raw Tools."

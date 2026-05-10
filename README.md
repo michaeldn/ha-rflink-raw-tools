@@ -539,3 +539,47 @@ Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
 ```
 
 Then restart Core if the sidebar dashboard does not refresh.
+
+
+## Post-update cleanup: when delete/re-add is required
+
+Home Assistant can keep old config-entry, device, and entity-registry state after an integration changes platform structure, entity unique IDs, or device grouping.
+
+Use this normal post-update sequence first:
+
+```text
+Developer Tools -> Actions -> rflink_raw.reset_ui
+Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
+```
+
+Then restart Core:
+
+```bash
+ha core restart
+```
+
+If the integration still shows stale entities, missing entities, wrong device counts, or a broken dashboard, delete and re-add the integration once:
+
+```text
+Settings -> Devices & services -> RFLink Raw Tools -> three dots -> Delete
+Settings -> Devices & services -> Add integration -> RFLink Raw Tools
+```
+
+This should not remove your normal Home Assistant `rflink:` block in `configuration.yaml`. RFLink Raw Tools treats that as user-managed configuration.
+
+Expected clean state after re-adding:
+
+```text
+Integration entries:
+RFLink Raw Tools                         one entry only
+
+Devices:
+RFLink Raw Tools                         setup/admin device
+RFLink Raw Tools Command Center          command/debug device
+```
+
+A helper note is also installed at:
+
+```bash
+sh /config/post-update-rflink-cleanup-notes.sh
+```
