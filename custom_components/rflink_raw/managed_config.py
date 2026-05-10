@@ -24,6 +24,7 @@ from .const import (
     MANAGED_DASHBOARD_BLOCK_START,
 )
 from .store import update_state
+from .dashboard_builder import async_write_dashboard_file
 
 
 def _backup_config(config_path: Path, label: str) -> Path:
@@ -117,6 +118,7 @@ def install_dashboard(hass: HomeAssistant, show_in_sidebar: bool) -> Path:
         text += "\n"
     config_path.write_text(text + "\n" + block)
     update_state(hass, **{KEY_DASHBOARD_ENABLED: True, KEY_DASHBOARD_SHOW_IN_SIDEBAR: bool(show_in_sidebar)})
+    hass.async_create_task(async_write_dashboard_file(hass))
     return backup
 
 

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-dashboard-mode-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-dashboard-mode-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-dynamic-dashboard-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-dynamic-dashboard-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -f "$ZIP" ]; then
@@ -27,7 +27,7 @@ cp -R "$EXTRACT"/* .
 chmod +x install.sh apply-local.sh undo-rflink-raw-tools.sh repair-stale-rflink-raw-entities.sh
 
 git add .
-git commit -m "Fix RFLink dashboard sidebar registration mode" || true
+git commit -m "Rebuild RFLink dashboard from entity registry" || true
 git push --force-with-lease origin main
 
 echo "Done. Backup saved to $BACKUP"

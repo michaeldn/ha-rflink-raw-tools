@@ -24,6 +24,7 @@ from .const import (
     PLATFORMS,
 )
 from .helpers import async_send_direct_command, async_send_protocol_command
+from .dashboard_builder import async_write_dashboard_file
 from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite
 from .registry_cleanup import async_reset_ui_registry
 from .store import async_initialize_store, get_state
@@ -120,8 +121,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def do_remove_sidebar(call: ServiceCall) -> None:
         install_dashboard(hass, False)
 
+
+    async def do_rebuild_dashboard(call: ServiceCall) -> None:
+        await async_write_dashboard_file(hass)
+        persistent_notification.async_create(
+            hass,
+            "RFLink Raw Tools dashboard rebuilt from the current Home Assistant entity registry. Restart Core if the sidebar/dashboard does not update immediately.",
+            title="RFLink Raw Tools Dashboard Rebuilt",
+            notification_id="rflink_raw_dashboard_rebuilt",
+        )
+
     async def do_reset_ui(call: ServiceCall) -> None:
         removed = await async_reset_ui_registry(hass)
+        await async_write_dashboard_file(hass)
         persistent_notification.async_create(
             hass,
             (
@@ -148,6 +160,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.services.async_register(DOMAIN, "add_sidebar", do_add_sidebar)
     hass.services.async_register(DOMAIN, "remove_sidebar", do_remove_sidebar)
     hass.services.async_register(DOMAIN, "reset_ui", do_reset_ui)
+    hass.services.async_register(DOMAIN, "rebuild_dashboard", do_rebuild_dashboard)
 
     return True
 
@@ -160,6 +173,7 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     await async_reset_ui_registry(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await async_write_dashboard_file(hass)
     return True
 
 

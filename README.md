@@ -324,3 +324,22 @@ Settings -> Devices & services -> RFLink Raw Tools
 ```
 
 Two devices are expected. Two integration entries are not.
+
+
+## Dashboard entity-not-found fix
+
+If the sidebar dashboard opens but shows **Entity not found**, the dashboard YAML has stale entity IDs.
+
+Use:
+
+```text
+Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
+```
+
+Then restart Home Assistant Core:
+
+```bash
+ha core restart
+```
+
+This build also rebuilds the dashboard automatically from the actual Home Assistant entity registry during integration setup. It does not assume fixed entity IDs.

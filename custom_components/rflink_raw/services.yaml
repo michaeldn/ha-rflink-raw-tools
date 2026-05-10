@@ -88,3 +88,8 @@ remove_sidebar:
 reset_ui:
   name: Reset RFLink Raw Tools UI
   description: Remove stale RFLink Raw Tools registry entities left behind by older builds.
+
+
+rebuild_dashboard:
+  name: Rebuild RFLink Raw Tools dashboard
+  description: Rebuild the RFLink Raw Tools YAML dashboard using actual entity IDs from the Home Assistant entity registry.

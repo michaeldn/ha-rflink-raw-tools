@@ -46,6 +46,11 @@ do
   fi
 done
 
+if [ -f "$TMP_DIR/rebuild-rflink-dashboard-note.sh" ]; then
+  cp "$TMP_DIR/rebuild-rflink-dashboard-note.sh" /config/rebuild-rflink-dashboard-note.sh
+  chmod +x /config/rebuild-rflink-dashboard-note.sh
+fi
+
 echo "Installed RFLink Raw Tools."
 echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core: ha core restart"
