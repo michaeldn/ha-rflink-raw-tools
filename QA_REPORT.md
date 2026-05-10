@@ -20,3 +20,6 @@
 - [x] Approved icon hash preserved
 - [x] Status payload separates configured vs connected
 - [x] UI avoids scary RFLink not confirmed wording when config exists
+- [x] Status call has explicit status_error fallback
+- [x] Ping gateway no longer sends invalid device_id-less RFLink command
+- [x] Send raw uses Home Assistant rflink.send_command service

@@ -39,6 +39,13 @@ class RFLinkRawToolsPanel extends HTMLElement {
       this._state.message = status.last_result || "";
       this._update();
     } catch (err) {
+      this._state.status = {
+        readiness: "status_error",
+        readiness_label: "Status unavailable",
+        readiness_detail: this._formatError(err),
+        rflink_configured: false,
+        rflink_connected: false
+      };
       this._state.error = this._formatError(err);
       this._update();
     }
@@ -363,6 +370,8 @@ class RFLinkRawToolsPanel extends HTMLElement {
         connection.innerHTML = `<span class="warn">● RFLink configured — test with Ping</span>`;
       } else if (readiness === "not_configured") {
         connection.innerHTML = `<span class="bad">● RFLink config not found</span>`;
+      } else if (readiness === "status_error") {
+        connection.innerHTML = `<span class="bad">● Status unavailable</span>`;
       } else {
         connection.innerHTML = `<span class="warn">● Checking RFLink…</span>`;
       }
@@ -479,7 +488,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
       <div class="grid">
         <div class="card">
           <h2>Gateway checks</h2>
-          <p class="help">Use these first to confirm the RFLink gateway is responding.</p>
+          <p class="help">Use these first to confirm Home Assistant has loaded RFLink. Hardware command testing still needs a real learned RFLink device command.</p>
           <div class="actions">
             <button data-action="_ping" ${this._state.busy ? "disabled" : ""}>Ping gateway</button>
             <button data-action="_version" ${this._state.busy ? "disabled" : ""}>Ask version</button>
@@ -532,8 +541,8 @@ class RFLinkRawToolsPanel extends HTMLElement {
     `;
   }
 
-  _ping() { return this._callService("rflink_raw", "ping_gateway", {}, "Ping sent."); }
-  _version() { return this._callService("rflink_raw", "version_gateway", {}, "Version request sent."); }
+  _ping() { return this._callService("rflink_raw", "ping_gateway", {}, "RFLink status check complete."); }
+  _version() { return this._callService("rflink_raw", "version_gateway", {}, "RFLink version check complete."); }
   _rfdebugOn() { return this._setDebug("rfdebug", true); }
   _rfdebugOff() { return this._setDebug("rfdebug", false); }
   _qrfdebugOn() { return this._setDebug("qrfdebug", true); }

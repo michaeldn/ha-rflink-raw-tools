@@ -32,7 +32,7 @@ from .const import (
     STATIC_URL,
     VERSION,
 )
-from .helpers import async_send_protocol_command, async_send_raw_command, async_set_debug
+from .helpers import async_ping_gateway, async_send_protocol_command, async_send_raw_command, async_set_debug, async_version_gateway
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
 
@@ -65,7 +65,6 @@ def _rflink_connected() -> bool:
     """Return whether the HA RFLink bridge reports a live protocol."""
     try:
         from homeassistant.components.rflink.entity import RflinkCommand
-
         return bool(RflinkCommand.is_connected())
     except Exception:
         return False
@@ -91,20 +90,22 @@ def _rflink_config_source(hass: HomeAssistant) -> str:
     return "configuration.yaml" if _rflink_configured(hass) else ""
 
 
+
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
     data = hass.data.setdefault(DOMAIN, {})
     configured = _rflink_configured(hass)
+    loaded = "rflink" in hass.config.components
     connected = _rflink_connected()
 
     if connected:
         readiness = "ready"
         readiness_label = "RFLink ready"
         readiness_detail = "Home Assistant RFLink command bridge reports connected."
-    elif configured:
+    elif loaded or configured:
         readiness = "configured_unconfirmed"
         readiness_label = "RFLink configured"
-        readiness_detail = "RFLink is configured in configuration.yaml. Use Ping to test the gateway."
+        readiness_detail = "RFLink is configured. Use Debug -> Ping gateway to check that Home Assistant loaded the RFLink integration."
     else:
         readiness = "not_configured"
         readiness_label = "RFLink config not found"
@@ -114,6 +115,7 @@ def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
         "version": VERSION,
         "name": NAME,
         "rflink_configured": configured,
+        "rflink_loaded": loaded,
         "rflink_config_source": _rflink_config_source(hass),
         "rflink_connected": connected,
         "readiness": readiness,
@@ -188,11 +190,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             call.data["delay_ms"],
         )
 
-    async def ping_gateway(call: ServiceCall) -> None:
-        await async_send_protocol_command(hass, "PING", "", 1, 0)
 
-    async def version_gateway(call: ServiceCall) -> None:
-        await async_send_protocol_command(hass, "VERSION", "", 1, 0)
+async def ping_gateway(call: ServiceCall) -> None:
+    await async_ping_gateway(hass)
+
+async def version_gateway(call: ServiceCall) -> None:
+    await async_version_gateway(hass)
 
     async def set_debug(call: ServiceCall) -> None:
         await async_set_debug(hass, call.data["debug_type"], call.data["enabled"])

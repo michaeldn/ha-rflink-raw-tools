@@ -200,3 +200,19 @@ This replaces the confusing earlier wording:
 ```text
 RFLink not confirmed
 ```
+
+
+## Status and Ping behavior
+
+The app no longer keeps showing **Checking RFLink…** if the status call fails. It now shows a clear status/error.
+
+`Debug -> Ping gateway` is now an app-level RFLink status check. It verifies that Home Assistant has loaded the normal RFLink integration without trying to send an invalid gateway-only command through `rflink.send_command`.
+
+Why: Home Assistant's built-in `rflink.send_command` service expects a protocol device id. Calling it as a generic gateway ping can fail with errors like:
+
+```text
+'id'
+required key not provided @ data['device_id']
+```
+
+For real hardware testing, use the **Send** page with a learned RFLink device command.

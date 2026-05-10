@@ -47,34 +47,20 @@ def _set_status(
     data[DATA_LAST_UPDATED] = _now()
 
 
-def _get_rflink_command_class():
-    """Return Home Assistant's internal RFLink command bridge."""
-    try:
-        from homeassistant.components.rflink.entity import RflinkCommand
-    except Exception as err:  # pragma: no cover - depends on HA runtime
-        raise HomeAssistantError(
-            "Home Assistant RFLink integration is not loaded or command bridge is unavailable."
-        ) from err
-    return RflinkCommand
-
-
 def _parse_raw_command(raw_command: str) -> tuple[str, str]:
-    """Parse a full RFLink raw command into device_id/action for the RFLink bridge.
+    """Parse a full RFLink raw command into device_id/action for HA's RFLink service.
 
-    Examples:
-      10;NewKaku;01a2b3;1;ON; -> device_id='NewKaku;01a2b3;1', action='ON'
-      10;rfdebug;on;          -> device_id='rfdebug', action='on'
-      10;PING;                -> device_id='PING', action=''
+    10;NewKaku;01a2b3;1;ON; -> device_id='NewKaku;01a2b3;1', command='ON'
+    10;rfdebug;on;          -> device_id='rfdebug', command='on'
     """
     clean = (raw_command or "").strip()
     if not clean:
         raise HomeAssistantError("Raw command cannot be empty.")
 
-    clean = clean.strip()
     if clean.endswith(";"):
         clean = clean[:-1]
-    parts = [part.strip() for part in clean.split(";") if part.strip()]
 
+    parts = [part.strip() for part in clean.split(";") if part.strip()]
     if parts and parts[0] == "10":
         parts = parts[1:]
 
@@ -87,6 +73,27 @@ def _parse_raw_command(raw_command: str) -> tuple[str, str]:
     return ";".join(parts[:-1]), parts[-1]
 
 
+async def _call_rflink_send_command_service(
+    hass: HomeAssistant,
+    device_id: str,
+    command: str,
+) -> None:
+    """Call Home Assistant's built-in rflink.send_command service.
+
+    Using the HA service is more stable than importing internal RFLink classes.
+    """
+    payload = {"device_id": device_id}
+    if command:
+        payload["command"] = command
+
+    await hass.services.async_call(
+        "rflink",
+        "send_command",
+        payload,
+        blocking=True,
+    )
+
+
 async def async_send_protocol_command(
     hass: HomeAssistant,
     device_id: str,
@@ -94,29 +101,26 @@ async def async_send_protocol_command(
     repeat: int = 1,
     delay_ms: int = 250,
 ) -> dict:
-    """Send an RFLink protocol command through Home Assistant's RFLink bridge."""
+    """Send an RFLink protocol command through Home Assistant's RFLink service."""
     clean_device = (device_id or "").strip()
     clean_command = (command or "").strip()
+
     if not clean_device:
         raise HomeAssistantError("Device ID is required.")
-    if clean_command is None:
-        clean_command = ""
 
     repeat = max(1, int(repeat or 1))
     delay_ms = max(0, int(delay_ms or 0))
 
-    RflinkCommand = _get_rflink_command_class()
-    if not RflinkCommand.is_connected():
-        raise HomeAssistantError("RFLink is not connected in Home Assistant.")
-
     sent = []
-    for index in range(repeat):
-        ok = await RflinkCommand.send_command(clean_device, clean_command)
-        if not ok:
-            raise HomeAssistantError(f"RFLink did not acknowledge command: {clean_device} {clean_command}")
-        sent.append({"device_id": clean_device, "command": clean_command})
-        if index < repeat - 1 and delay_ms:
-            await asyncio.sleep(delay_ms / 1000)
+    try:
+        for index in range(repeat):
+            await _call_rflink_send_command_service(hass, clean_device, clean_command)
+            sent.append({"device_id": clean_device, "command": clean_command})
+            if index < repeat - 1 and delay_ms:
+                await asyncio.sleep(delay_ms / 1000)
+    except Exception as err:
+        _set_status(hass, error=str(err), command=f"{clean_device};{clean_command}".strip(";"))
+        raise
 
     result = {
         "ok": True,
@@ -127,7 +131,7 @@ async def async_send_protocol_command(
     _set_status(
         hass,
         result=f"Sent {repeat}x: {clean_device} {clean_command}".strip(),
-        command=f"{clean_device};{clean_command}",
+        command=f"{clean_device};{clean_command}".strip(";"),
     )
     _LOGGER.info("RFLink Raw Tools sent protocol command: %s", result)
     return result
@@ -139,19 +143,45 @@ async def async_send_raw_command(
     repeat: int = 1,
     delay_ms: int = 250,
 ) -> dict:
-    """Send a raw-ish RFLink command string via the RFLink command bridge."""
+    """Send a raw-ish RFLink command string via HA's RFLink send_command service."""
     device_id, command = _parse_raw_command(raw_command)
-    try:
-        result = await async_send_protocol_command(hass, device_id, command, repeat, delay_ms)
-        _set_status(hass, result=f"Sent raw: {raw_command}", command=raw_command)
-        return result
-    except Exception as err:
-        _set_status(hass, error=str(err), command=raw_command)
-        raise
+    result = await async_send_protocol_command(hass, device_id, command, repeat, delay_ms)
+    _set_status(hass, result=f"Sent raw: {raw_command}", command=raw_command)
+    return result
+
+
+async def async_ping_gateway(hass: HomeAssistant) -> dict:
+    """Ping/test RFLink without requiring an RFLink protocol device id.
+
+    Home Assistant's rflink.send_command service requires device_id, so true
+    gateway-only commands can fail depending on RFLink/HA support. This app-level
+    ping first verifies that the rflink integration exists, then records a clear
+    status instead of failing with a cryptic KeyError such as 'id'.
+    """
+    if "rflink" not in hass.config.components:
+        message = "Home Assistant RFLink integration is not loaded."
+        _set_status(hass, error=message, command="PING")
+        raise HomeAssistantError(message)
+
+    message = "RFLink integration is loaded. For hardware response, send a learned RFLink device command."
+    _set_status(hass, result=message, command="PING")
+    return {"ok": True, "message": message}
+
+
+async def async_version_gateway(hass: HomeAssistant) -> dict:
+    """Record a version check without requiring an RFLink device id."""
+    if "rflink" not in hass.config.components:
+        message = "Home Assistant RFLink integration is not loaded."
+        _set_status(hass, error=message, command="VERSION")
+        raise HomeAssistantError(message)
+
+    message = "RFLink integration is loaded. Gateway version query is not exposed by HA's rflink.send_command service on all versions."
+    _set_status(hass, result=message, command="VERSION")
+    return {"ok": True, "message": message}
 
 
 async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -> dict:
-    """Set RFDEBUG or QRFDEBUG."""
+    """Set RFDEBUG or QRFDEBUG through RFLink send_command."""
     kind = (debug_type or "").strip().lower()
     if kind not in {"rfdebug", "qrfdebug"}:
         raise HomeAssistantError("debug_type must be rfdebug or qrfdebug.")
