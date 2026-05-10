@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import voluptuous as vol
 
+from homeassistant.components import persistent_notification
 from homeassistant.const import CONF_COMMAND, CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
@@ -24,7 +25,8 @@ from .const import (
 )
 from .helpers import async_send_direct_command, async_send_protocol_command
 from .managed_config import install_dashboard, install_prerequisite, remove_dashboard, remove_prerequisite
-from .store import get_state, async_initialize_store
+from .registry_cleanup import async_reset_ui_registry
+from .store import async_initialize_store, get_state
 from .updater import restore_last_update, update_from_github
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
@@ -69,12 +71,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def send_stored_raw(call: ServiceCall) -> None:
         state = get_state(hass)
-        await async_send_direct_command(
-            hass,
-            state[KEY_RAW_COMMAND],
-            state[KEY_REPEAT],
-            state[KEY_DELAY_MS],
-        )
+        await async_send_direct_command(hass, state[KEY_RAW_COMMAND], state[KEY_REPEAT], state[KEY_DELAY_MS])
 
     async def send_stored_protocol(call: ServiceCall) -> None:
         state = get_state(hass)
@@ -123,6 +120,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def do_remove_sidebar(call: ServiceCall) -> None:
         install_dashboard(hass, False)
 
+    async def do_reset_ui(call: ServiceCall) -> None:
+        removed = await async_reset_ui_registry(hass)
+        persistent_notification.async_create(
+            hass,
+            (
+                "RFLink Raw Tools UI reset complete. "
+                f"Removed {len(removed)} stale entities. "
+                "Restart Home Assistant if the device page does not update immediately."
+            ),
+            title="RFLink Raw Tools UI Reset",
+            notification_id="rflink_raw_ui_reset",
+        )
+
     hass.services.async_register(DOMAIN, "send_raw", send_raw, schema=SEND_RAW_SCHEMA)
     hass.services.async_register(DOMAIN, "send_protocol", send_protocol, schema=SEND_PROTOCOL_SCHEMA)
     hass.services.async_register(DOMAIN, "send_stored_raw", send_stored_raw)
@@ -137,6 +147,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.services.async_register(DOMAIN, "remove_dashboard", do_remove_dashboard)
     hass.services.async_register(DOMAIN, "add_sidebar", do_add_sidebar)
     hass.services.async_register(DOMAIN, "remove_sidebar", do_remove_sidebar)
+    hass.services.async_register(DOMAIN, "reset_ui", do_reset_ui)
 
     return True
 
@@ -144,6 +155,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     """Set up config entry."""
     await async_initialize_store(hass)
+
+    # Automatic stale-entity cleanup prevents UI drift after updates.
+    await async_reset_ui_registry(hass)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

@@ -83,3 +83,8 @@ add_sidebar:
 
 remove_sidebar:
   name: Remove RFLink Raw Tools from sidebar
+
+
+reset_ui:
+  name: Reset RFLink Raw Tools UI
+  description: Remove stale RFLink Raw Tools registry entities left behind by older builds.

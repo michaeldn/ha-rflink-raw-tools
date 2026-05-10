@@ -17,12 +17,11 @@ fi
 if [ -f "$DASHBOARD_FILE" ]; then
   cp "$DASHBOARD_FILE" "$BACKUP_DIR/rflink_raw_dashboard.yaml"
 fi
-if [ -f /config/repair-stale-rflink-raw-entities.sh ]; then
-  cp /config/repair-stale-rflink-raw-entities.sh "$BACKUP_DIR/repair-stale-rflink-raw-entities.sh"
-fi
-if [ -f /config/undo-rflink-raw-tools.sh ]; then
-  cp /config/undo-rflink-raw-tools.sh "$BACKUP_DIR/undo-rflink-raw-tools.sh"
-fi
+for script in /config/repair-stale-rflink-raw-entities.sh /config/reset-rflink-raw-ui.sh /config/undo-rflink-raw-tools.sh; do
+  if [ -f "$script" ]; then
+    cp "$script" "$BACKUP_DIR/"
+  fi
+done
 
 rm -f "$TMP_ZIP"
 rm -rf "$TMP_DIR" "$TARGET_DIR"
@@ -38,14 +37,12 @@ fi
 if [ -f "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" ]; then
   cp "$TMP_DIR/dashboard/rflink_raw_dashboard.yaml" "$DASHBOARD_FILE"
 fi
-if [ -f "$TMP_DIR/repair-stale-rflink-raw-entities.sh" ]; then
-  cp "$TMP_DIR/repair-stale-rflink-raw-entities.sh" /config/repair-stale-rflink-raw-entities.sh
-  chmod +x /config/repair-stale-rflink-raw-entities.sh
-fi
-if [ -f "$TMP_DIR/undo-rflink-raw-tools.sh" ]; then
-  cp "$TMP_DIR/undo-rflink-raw-tools.sh" /config/undo-rflink-raw-tools.sh
-  chmod +x /config/undo-rflink-raw-tools.sh
-fi
+for script_name in repair-stale-rflink-raw-entities.sh reset-rflink-raw-ui.sh undo-rflink-raw-tools.sh; do
+  if [ -f "$TMP_DIR/$script_name" ]; then
+    cp "$TMP_DIR/$script_name" "/config/$script_name"
+    chmod +x "/config/$script_name"
+  fi
+done
 
 echo "Installed RFLink Raw Tools."
 echo "Backup saved to $BACKUP_DIR"

@@ -4,16 +4,34 @@
 
 Version: **0.0.1**
 
-## No-Press UI build
+## UI reset program
 
-Home Assistant's native `ButtonEntity` renders with a **Press** CTA on the device page. This build removes the ButtonEntity platform entirely.
+This build prevents the update problem where old Home Assistant entities stay behind after the integration changes.
 
-- Setup/undo controls are on/off switches.
-- Turning `RFLink Prerequisite` on installs the managed RFLink block.
-- Turning `RFLink Prerequisite` off removes only that managed block.
-- Turning `RFLink Dashboard` on adds the dashboard.
-- Turning `RFLink Dashboard` off removes the managed dashboard.
-- Dashboard one-time actions call services directly, so the dashboard can show clear CTAs like `Send raw`, `Ping`, and `Download latest`.
+It includes three reset paths:
+
+1. Automatic cleanup on integration setup.
+2. A Home Assistant service:
+
+   ```text
+   rflink_raw.reset_ui
+   ```
+
+3. A terminal script copied to `/config` by `install.sh`:
+
+   ```bash
+   sh /config/reset-rflink-raw-ui.sh
+   ha core restart
+   ```
+
+The reset removes stale RFLink Raw Tools entities from old builds, especially old `button.*` entities that showed the unwanted native **Press** CTA.
+
+## No-Press UI
+
+Home Assistant's native `ButtonEntity` renders as **Press** on the device page. This build has no `button.py` platform.
+
+- Setup/undo controls are switches.
+- Dashboard one-time actions call services directly.
 - Version remains `0.0.1`.
 
 ## Install
@@ -23,11 +41,9 @@ wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/i
 ha core restart
 ```
 
-## Remove stale old button entities
-
-Prior builds created RFLink Raw Tools button entities. This build has no button platform, so after installing run:
+## Manual UI reset after update
 
 ```bash
-sh /config/repair-stale-rflink-raw-entities.sh
+sh /config/reset-rflink-raw-ui.sh
 ha core restart
 ```
