@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import PERCENTAGE
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -34,7 +34,6 @@ class RFLinkRawSensorDescription(EntityDescription):
 
     state_key: str
     native_unit_of_measurement: str | None = None
-    device_class: SensorDeviceClass | None = None
     state_class: SensorStateClass | None = None
 
 
@@ -103,7 +102,6 @@ class RFLinkRawSensor(SensorEntity):
         self._attr_unique_id = f"{entry_id}_{description.key}"
         self._attr_entity_category = description.entity_category
         self._attr_native_unit_of_measurement = description.native_unit_of_measurement
-        self._attr_device_class = description.device_class
         self._attr_state_class = description.state_class
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, ADMIN_DEVICE_IDENTIFIER)},

@@ -514,9 +514,13 @@ Command + Shift + R
 Home Assistant may cache brand assets, so the files can be correct while the browser still shows an old cached image until restart/refresh.
 
 
-## Update status and progress UI
+## Reset UI and update progress fix
 
-The GUI updater now exposes update status entities:
+This package fixes the failed `rflink_raw.reset_ui` action from the prior update-status build.
+
+Root cause: the reset cleanup still treated some current status sensors as stale/invalid. The cleanup keep-list now includes the update status sensors, and the old blanket `sensor.*` removal rule is gone.
+
+The Update tab now shows:
 
 ```text
 sensor.rflink_update_status
@@ -527,16 +531,11 @@ sensor.rflink_last_update_started
 sensor.rflink_last_update_finished
 ```
 
-The RFLink Raw Tools dashboard Update tab shows:
+After installing, run:
 
-- current update status
-- progress gauge
-- status message
-- last error
-- start/finish timestamps
-
-After **Download latest** reaches 100%, restart Home Assistant Core:
-
-```bash
-ha core restart
+```text
+Developer Tools -> Actions -> rflink_raw.reset_ui
+Developer Tools -> Actions -> rflink_raw.rebuild_dashboard
 ```
+
+Then restart Core if the sidebar dashboard does not refresh.

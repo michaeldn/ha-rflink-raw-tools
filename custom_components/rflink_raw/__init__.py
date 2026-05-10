@@ -19,10 +19,6 @@ from .const import (
     KEY_LAST_UPDATE_BACKUP,
     KEY_LAST_UPDATE_FINISHED_AT,
     KEY_LAST_UPDATE_STARTED_AT,
-    KEY_UPDATE_ERROR,
-    KEY_UPDATE_MESSAGE,
-    KEY_UPDATE_PROGRESS,
-    KEY_UPDATE_STATUS,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
     KEY_PREREQ_WAIT_FOR_ACK,
@@ -30,6 +26,10 @@ from .const import (
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
     KEY_REPEAT,
+    KEY_UPDATE_ERROR,
+    KEY_UPDATE_MESSAGE,
+    KEY_UPDATE_PROGRESS,
+    KEY_UPDATE_STATUS,
     PLATFORMS,
 )
 from .dashboard_builder import async_write_dashboard_file
@@ -111,24 +111,113 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await async_send_direct_command(hass, "10;VERSION;", 1, 250)
 
     async def do_update(call: ServiceCall) -> None:
-        backup_path = await hass.async_add_executor_job(update_from_github, hass)
-        update_state(hass, **{KEY_LAST_UPDATE_BACKUP: backup_path})
+        update_state(
+            hass,
+            **{
+                KEY_UPDATE_STATUS: "starting",
+                KEY_UPDATE_PROGRESS: 1,
+                KEY_UPDATE_MESSAGE: "Starting RFLink Raw Tools update.",
+                KEY_UPDATE_ERROR: "",
+                KEY_LAST_UPDATE_STARTED_AT: datetime.now().isoformat(timespec="seconds"),
+            },
+        )
+
+        def progress_callback(progress: int, status: str, message: str) -> None:
+            update_state(
+                hass,
+                **{
+                    KEY_UPDATE_STATUS: status,
+                    KEY_UPDATE_PROGRESS: int(progress),
+                    KEY_UPDATE_MESSAGE: message,
+                    KEY_UPDATE_ERROR: "",
+                },
+            )
+
+        try:
+            backup_path = await hass.async_add_executor_job(
+                update_from_github,
+                hass,
+                progress_callback,
+            )
+            update_state(
+                hass,
+                **{
+                    KEY_LAST_UPDATE_BACKUP: backup_path,
+                    KEY_UPDATE_STATUS: "complete",
+                    KEY_UPDATE_PROGRESS: 100,
+                    KEY_UPDATE_MESSAGE: "Update installed. Restart Home Assistant Core.",
+                    KEY_UPDATE_ERROR: "",
+                    KEY_LAST_UPDATE_FINISHED_AT: datetime.now().isoformat(timespec="seconds"),
+                },
+            )
+        except Exception as err:
+            update_state(
+                hass,
+                **{
+                    KEY_UPDATE_STATUS: "error",
+                    KEY_UPDATE_PROGRESS: 0,
+                    KEY_UPDATE_MESSAGE: "Update failed.",
+                    KEY_UPDATE_ERROR: str(err),
+                    KEY_LAST_UPDATE_FINISHED_AT: datetime.now().isoformat(timespec="seconds"),
+                },
+            )
+            raise
 
     async def do_restore(call: ServiceCall) -> None:
         state = get_state(hass)
-        backup_path = state.get(KEY_LAST_UPDATE_BACKUP,
-    KEY_LAST_UPDATE_FINISHED_AT,
-    KEY_LAST_UPDATE_STARTED_AT,
-    KEY_UPDATE_ERROR,
-    KEY_UPDATE_MESSAGE,
-    KEY_UPDATE_PROGRESS,
-    KEY_UPDATE_STATUS, "")
-        restored_path = await hass.async_add_executor_job(
-            restore_last_update,
+        backup_path = state.get(KEY_LAST_UPDATE_BACKUP, "")
+        update_state(
             hass,
-            backup_path,
+            **{
+                KEY_UPDATE_STATUS: "restore_starting",
+                KEY_UPDATE_PROGRESS: 1,
+                KEY_UPDATE_MESSAGE: "Starting RFLink Raw Tools restore.",
+                KEY_UPDATE_ERROR: "",
+                KEY_LAST_UPDATE_STARTED_AT: datetime.now().isoformat(timespec="seconds"),
+            },
         )
-        update_state(hass, **{KEY_LAST_UPDATE_BACKUP: restored_path})
+
+        def progress_callback(progress: int, status: str, message: str) -> None:
+            update_state(
+                hass,
+                **{
+                    KEY_UPDATE_STATUS: status,
+                    KEY_UPDATE_PROGRESS: int(progress),
+                    KEY_UPDATE_MESSAGE: message,
+                    KEY_UPDATE_ERROR: "",
+                },
+            )
+
+        try:
+            restored_path = await hass.async_add_executor_job(
+                restore_last_update,
+                hass,
+                backup_path,
+                progress_callback,
+            )
+            update_state(
+                hass,
+                **{
+                    KEY_LAST_UPDATE_BACKUP: restored_path,
+                    KEY_UPDATE_STATUS: "restore_complete",
+                    KEY_UPDATE_PROGRESS: 100,
+                    KEY_UPDATE_MESSAGE: "Backup restored. Restart Home Assistant Core.",
+                    KEY_UPDATE_ERROR: "",
+                    KEY_LAST_UPDATE_FINISHED_AT: datetime.now().isoformat(timespec="seconds"),
+                },
+            )
+        except Exception as err:
+            update_state(
+                hass,
+                **{
+                    KEY_UPDATE_STATUS: "restore_error",
+                    KEY_UPDATE_PROGRESS: 0,
+                    KEY_UPDATE_MESSAGE: "Restore failed.",
+                    KEY_UPDATE_ERROR: str(err),
+                    KEY_LAST_UPDATE_FINISHED_AT: datetime.now().isoformat(timespec="seconds"),
+                },
+            )
+            raise
 
     async def do_install_prerequisite(call: ServiceCall) -> None:
         state = get_state(hass)
@@ -182,15 +271,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.services.async_register(DOMAIN, "send_protocol", send_protocol, schema=SEND_PROTOCOL_SCHEMA)
     hass.services.async_register(DOMAIN, "send_stored_raw", send_stored_raw)
     hass.services.async_register(DOMAIN, "send_stored_protocol", send_stored_protocol)
-
-    # Dashboard should use these no-argument gateway services.
     hass.services.async_register(DOMAIN, "ping_gateway", do_ping_gateway)
     hass.services.async_register(DOMAIN, "version_gateway", do_version_gateway)
-
-    # Legacy aliases retained, but dashboard does not depend on them.
     hass.services.async_register(DOMAIN, "ping", do_ping_gateway)
     hass.services.async_register(DOMAIN, "version", do_version_gateway)
-
     hass.services.async_register(DOMAIN, "update_from_github", do_update)
     hass.services.async_register(DOMAIN, "restore_last_update", do_restore)
     hass.services.async_register(DOMAIN, "install_prerequisite", do_install_prerequisite)

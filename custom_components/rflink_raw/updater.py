@@ -1,8 +1,4 @@
-"""Updater helpers for RFLink Raw Tools.
-
-These functions are synchronous because they perform network and filesystem
-I/O. Call them with hass.async_add_executor_job(...).
-"""
+"""Updater helpers for RFLink Raw Tools."""
 
 from __future__ import annotations
 
@@ -87,7 +83,7 @@ def update_from_github(hass: HomeAssistant, progress_callback: ProgressCallback 
                 shutil.copy2(script, target)
                 target.chmod(0o755)
 
-    _progress(progress_callback, 100, "complete", "Update downloaded and installed. Restart Home Assistant Core.")
+    _progress(progress_callback, 100, "complete", "Update installed. Restart Home Assistant Core.")
     return str(backup_dir)
 
 

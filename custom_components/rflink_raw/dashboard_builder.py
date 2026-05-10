@@ -17,7 +17,6 @@ ENTITY_SUFFIXES = {
     "managed_prerequisite": "switch.rflink_prerequisite",
     "managed_dashboard": "switch.rflink_dashboard",
     "managed_sidebar": "switch.rflink_sidebar",
-
     "raw_command": "text.rflink_raw_command",
     "protocol_device_id": "text.rflink_protocol_device_id",
     "protocol_command": "text.rflink_protocol_command",
@@ -25,14 +24,14 @@ ENTITY_SUFFIXES = {
     "repeat_delay": "number.rflink_repeat_delay",
     "qrfdebug": "switch.rflink_qrfdebug",
     "rfdebug": "switch.rflink_rfdebug",
-
-    # Optional/advanced current entities. These may be disabled or absent.
-    "send_raw_command": "switch.send_rflink_raw_command",
-    "send_protocol_command": "switch.send_rflink_protocol_command",
     "ping": "switch.rflink_ping",
     "version": "switch.rflink_version",
-    "update_from_github": "switch.update_download_latest_from_github",
-    "restore_last_update": "switch.undo_last_github_update",
+    "update_status": "sensor.rflink_update_status",
+    "update_progress": "sensor.rflink_update_progress",
+    "update_message": "sensor.rflink_update_message",
+    "update_error": "sensor.rflink_update_error",
+    "last_update_started_at": "sensor.rflink_last_update_started",
+    "last_update_finished_at": "sensor.rflink_last_update_finished",
 }
 
 REQUIRED_SUFFIXES = {
@@ -131,6 +130,18 @@ def build_dashboard_yaml(hass: HomeAssistant) -> str:
         if suffix in e:
             capture_rows += _entity_line(e[suffix], label)
 
+    update_status_rows = ""
+    for suffix, label in [
+        ("update_status", "Status"),
+        ("update_progress", "Progress"),
+        ("update_message", "Message"),
+        ("update_error", "Last error"),
+        ("last_update_started_at", "Started"),
+        ("last_update_finished_at", "Finished"),
+    ]:
+        if suffix in e:
+            update_status_rows += _entity_line(e[suffix], label)
+
     missing_block = ""
     if missing_required:
         missing_list = "\n".join(f"              - `{item}`" for item in missing_required)
@@ -142,6 +153,8 @@ def build_dashboard_yaml(hass: HomeAssistant) -> str:
             f"{missing_list}\n\n"
             "              Run **Developer Tools → Actions → rflink_raw.reset_ui**, restart Home Assistant Core, then run **rflink_raw.rebuild_dashboard**.\n\n"
         )
+
+    progress_entity = e.get("update_progress", "sensor.rflink_update_progress")
 
     return f"""title: RFLink Raw Tools
 views:
@@ -197,7 +210,7 @@ views:
           Turn a switch on to apply. Turn it off to undo.
 
       - type: entities
-        title: Install RFLink
+        title: RFLink prerequisite
         show_header_toggle: false
         entities:
 {prereq_rows if prereq_rows else '          - type: section\n            label: No prerequisite entities found yet\n'}
@@ -250,10 +263,10 @@ views:
         title: Update status
         show_header_toggle: false
         entities:
-{update_status_rows if update_status_rows else '          - type: section\\n            label: No update status entities found yet\\n'}
+{update_status_rows if update_status_rows else '          - type: section\n            label: No update status entities found yet\n'}
       - type: gauge
         name: Update progress
-        entity: {e.get('update_progress', 'sensor.rflink_update_progress')}
+        entity: {progress_entity}
         min: 0
         max: 100
         needle: true

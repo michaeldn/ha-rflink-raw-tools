@@ -18,10 +18,6 @@ from .const import (
     KEY_LAST_UPDATE_BACKUP,
     KEY_LAST_UPDATE_FINISHED_AT,
     KEY_LAST_UPDATE_STARTED_AT,
-    KEY_UPDATE_ERROR,
-    KEY_UPDATE_MESSAGE,
-    KEY_UPDATE_PROGRESS,
-    KEY_UPDATE_STATUS,
     KEY_PREREQ_INSTALLED,
     KEY_PREREQ_PORT,
     KEY_PREREQ_RECONNECT_INTERVAL,
@@ -30,6 +26,10 @@ from .const import (
     KEY_PROTOCOL_DEVICE_ID,
     KEY_RAW_COMMAND,
     KEY_REPEAT,
+    KEY_UPDATE_ERROR,
+    KEY_UPDATE_MESSAGE,
+    KEY_UPDATE_PROGRESS,
+    KEY_UPDATE_STATUS,
     SIGNAL_STATE_UPDATED,
     STORAGE_KEY,
     STORAGE_VERSION,
@@ -48,12 +48,12 @@ DEFAULT_STATE = {
     KEY_REPEAT: 1,
     KEY_DELAY_MS: 250,
     KEY_LAST_UPDATE_BACKUP: "",
-    KEY_LAST_UPDATE_FINISHED_AT: "",
-    KEY_LAST_UPDATE_STARTED_AT: "",
-    KEY_UPDATE_ERROR: "",
-    KEY_UPDATE_MESSAGE: "",
-    KEY_UPDATE_PROGRESS: 0,
     KEY_UPDATE_STATUS: "idle",
+    KEY_UPDATE_PROGRESS: 0,
+    KEY_UPDATE_MESSAGE: "",
+    KEY_UPDATE_ERROR: "",
+    KEY_LAST_UPDATE_STARTED_AT: "",
+    KEY_LAST_UPDATE_FINISHED_AT: "",
 }
 
 
@@ -87,11 +87,7 @@ def _update_state_in_loop(hass: HomeAssistant, changes: dict) -> None:
 
 
 def update_state(hass: HomeAssistant, **changes) -> None:
-    """Update state and persist it.
-
-    Safe if called from a worker thread: state mutation and Store.async_save
-    are marshalled back onto Home Assistant's event loop.
-    """
+    """Update state and persist it from event loop or worker thread."""
     try:
         running_in_loop = threading.get_ident() == hass.loop._thread_id
     except AttributeError:

@@ -15,21 +15,25 @@ CURRENT_ENTITY_IDS = {
     "switch.rflink_dashboard",
     "switch.rflink_sidebar",
     "switch.rflink_prerequisite_wait_for_ack",
-    "text.rflink_prerequisite_port",
-    "number.rflink_prerequisite_reconnect_interval",
     "switch.send_rflink_raw_command",
     "switch.send_rflink_protocol_command",
     "switch.rflink_qrfdebug",
     "switch.rflink_rfdebug",
     "switch.rflink_ping",
     "switch.rflink_version",
+    "text.rflink_prerequisite_port",
     "text.rflink_raw_command",
     "text.rflink_protocol_device_id",
     "text.rflink_protocol_command",
+    "number.rflink_prerequisite_reconnect_interval",
     "number.rflink_repeat_count",
     "number.rflink_repeat_delay",
-    "switch.update_download_latest_from_github",
-    "switch.undo_last_github_update",
+    "sensor.rflink_update_status",
+    "sensor.rflink_update_progress",
+    "sensor.rflink_update_message",
+    "sensor.rflink_update_error",
+    "sensor.rflink_last_update_started",
+    "sensor.rflink_last_update_finished",
 }
 
 
@@ -56,7 +60,6 @@ def _is_stale_rflink_raw_entity(entity_entry: er.RegistryEntry) -> bool:
         "text.setup_",
         "number.control_",
         "number.setup_",
-        "sensor.",
     )
     if entity_id.startswith(stale_prefixes):
         return True
@@ -65,7 +68,7 @@ def _is_stale_rflink_raw_entity(entity_entry: er.RegistryEntry) -> bool:
 
 
 async def async_reset_ui_registry(hass: HomeAssistant) -> list[str]:
-    """Remove stale RFLink Raw Tools registry entities and old orphan devices."""
+    """Remove stale RFLink Raw Tools registry entities and orphan old devices."""
     entity_registry = er.async_get(hass)
     device_registry = dr.async_get(hass)
 
@@ -79,13 +82,8 @@ async def async_reset_ui_registry(hass: HomeAssistant) -> list[str]:
     current_identifiers = {
         ("rflink_raw", "rflink_raw_tools_admin"),
         ("rflink_raw", "rflink_raw_tools_command_center"),
-        "sensor.rflink_update_status",
-        "sensor.rflink_update_progress",
-        "sensor.rflink_update_message",
-        "sensor.rflink_update_error",
-        "sensor.rflink_last_update_started",
-        "sensor.rflink_last_update_finished",
     }
+
     entity_device_ids = {
         entry.device_id
         for entry in entity_registry.entities.values()
