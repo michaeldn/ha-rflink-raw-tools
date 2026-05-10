@@ -30,3 +30,7 @@
 - [x] Websocket status command registered idempotently
 - [x] Debug UI uses RFDEBUG/QRFDEBUG switches
 - [x] Send page no longer defaults to 10;PING;
+- [x] Send tab detects 10;PING; and routes to ping_gateway
+- [x] Send tab detects 10;VERSION; and routes to version_gateway
+- [x] App clears stale PING/VERSION rawCommand from localStorage
+- [x] Send tab has clear command action

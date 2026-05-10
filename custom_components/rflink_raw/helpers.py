@@ -136,6 +136,8 @@ async def async_send_protocol_command(
                 await asyncio.sleep(delay_ms / 1000)
     except Exception as err:
         message = str(err) or repr(err)
+        if message.strip() in {"Unknown command.", "Unknown command"}:
+            message = "RFLink reported Unknown command. Use a learned device command on Send, or use Debug for Ping/Version."
         _set_status(hass, error=message, command=f"{clean_device};{clean_command}".strip(";"))
         raise HomeAssistantError(message) from err
 

@@ -4,7 +4,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
     if (!this._rendered) {
       this._state = {
         tab: "send",
-        rawCommand: localStorage.getItem("rflink_raw_tools.rawCommand") || "",
+        rawCommand: this._migrateOldSavedCommand(),
         deviceId: localStorage.getItem("rflink_raw_tools.deviceId") || "",
         protocolCommand: localStorage.getItem("rflink_raw_tools.protocolCommand") || "on",
         repeat: Number(localStorage.getItem("rflink_raw_tools.repeat") || "1"),
@@ -57,6 +57,27 @@ class RFLinkRawToolsPanel extends HTMLElement {
     return err.message || err.error || JSON.stringify(err);
   }
 
+  _normalizeRawCommand(raw) {
+    return String(raw || "").trim().replace(/;+$/g, "").toUpperCase();
+  }
+
+  _rawCommandKind(raw) {
+    const normalized = this._normalizeRawCommand(raw);
+    if (normalized === "10;PING" || normalized === "PING") return "ping";
+    if (normalized === "10;VERSION" || normalized === "VERSION") return "version";
+    return "device";
+  }
+
+  _migrateOldSavedCommand() {
+    const saved = localStorage.getItem("rflink_raw_tools.rawCommand");
+    const kind = this._rawCommandKind(saved);
+    if (kind === "ping" || kind === "version") {
+      localStorage.removeItem("rflink_raw_tools.rawCommand");
+      return "";
+    }
+    return saved || "";
+  }
+
   _saveInputs() {
     localStorage.setItem("rflink_raw_tools.rawCommand", this._state.rawCommand);
     localStorage.setItem("rflink_raw_tools.deviceId", this._state.deviceId);
@@ -84,9 +105,27 @@ class RFLinkRawToolsPanel extends HTMLElement {
   }
 
   async _sendRaw() {
+    const raw = String(this._state.rawCommand || "").trim();
+    if (!raw) {
+      this._state.error = "Paste a learned RFLink device command first. Use Debug for Ping or Version.";
+      this._state.message = "";
+      this._update();
+      return;
+    }
+
+    const kind = this._rawCommandKind(raw);
+    if (kind === "ping") {
+      await this._callService("rflink_raw", "ping_gateway", {}, "RFLink status check complete.");
+      return;
+    }
+    if (kind === "version") {
+      await this._callService("rflink_raw", "version_gateway", {}, "RFLink version check complete.");
+      return;
+    }
+
     this._saveInputs();
     await this._callService("rflink_raw", "send_raw", {
-      raw_command: this._state.rawCommand,
+      raw_command: raw,
       repeat: this._state.repeat,
       delay_ms: this._state.delayMs
     }, "Raw command sent.");
@@ -474,6 +513,14 @@ class RFLinkRawToolsPanel extends HTMLElement {
     });
   }
 
+  _sendWarning() {
+    const kind = this._rawCommandKind(this._state.rawCommand);
+    if (kind === "ping" || kind === "version") {
+      return `<div class="message">This is a status check. The app will run it through the Debug action instead of sending it as a device command.</div>`;
+    }
+    return "";
+  }
+
   _feedback() {
     return `
       ${this._state.message ? `<div class="message">${this._state.message}</div>` : ""}
@@ -504,10 +551,10 @@ class RFLinkRawToolsPanel extends HTMLElement {
 
           <div class="actions">
             <button data-action="_sendRaw" ${this._state.busy ? "disabled" : ""}>Send raw command</button>
-            <button class="secondary" data-tablink="debug">Open debug tools</button>
+            <button class="secondary" data-action="_clearRawCommand">Clear command</button>\n            <button class="secondary" data-tablink="debug">Open debug tools</button>
           </div>
 
-          ${this._feedback()}
+          ${this._sendWarning()}\n          ${this._feedback()}
         </div>
 
         <div class="card">
@@ -516,7 +563,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <div class="example" data-example="10;NewKaku;01a2b3;1;ON;">10;NewKaku;01a2b3;1;ON;</div>
           <div class="example" data-example="10;NewKaku;01a2b3;1;OFF;">10;NewKaku;01a2b3;1;OFF;</div>
           <div class="example" data-example="10;Chuango;example;ON;">10;Chuango;example;ON;</div>
-          <p class="help">Use Ping and Version from the Debug tab. For outlet commands, use the full command you learned from RFLink/HA logs.</p>
+          <p class="help">Use Ping and Version from the Debug tab. Do not use 10;PING; here. Use Debug → Ping gateway. For outlets, use the full command you learned from RFLink/Home Assistant logs.</p>
         </div>
       </div>
     `;
@@ -624,6 +671,13 @@ class RFLinkRawToolsPanel extends HTMLElement {
 
   _ping() { return this._callService("rflink_raw", "ping_gateway", {}, "RFLink status check complete."); }
   _version() { return this._callService("rflink_raw", "version_gateway", {}, "RFLink version check complete."); }
+  _clearRawCommand() {
+    this._state.rawCommand = "";
+    localStorage.removeItem("rflink_raw_tools.rawCommand");
+    this._state.message = "Raw command cleared.";
+    this._state.error = "";
+    this._update();
+  }
   _rfdebugOn() { return this._setDebug("rfdebug", true); }
   _rfdebugOff() { return this._setDebug("rfdebug", false); }
   _qrfdebugOn() { return this._setDebug("qrfdebug", true); }

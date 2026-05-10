@@ -251,3 +251,26 @@ QRFDEBUG  on/off switch
 ```
 
 The Send page no longer defaults to `10;PING;`. Ping and Version live on the Debug page as app status checks.
+
+
+## Send tab guard for Ping/Version and stale saved values
+
+The Send tab now guards against the confusing `Unknown command` loop:
+
+```text
+10;PING;
+10;VERSION;
+PING
+VERSION
+```
+
+Those are handled as app-level Debug/status actions instead of being sent to Home Assistant's `rflink.send_command` service as device commands.
+
+The app also clears old saved `10;PING;` or `10;VERSION;` values from browser localStorage on load.
+
+Use the Send tab only for learned RFLink device commands, for example:
+
+```text
+10;NewKaku;01a2b3;1;ON;
+10;NewKaku;01a2b3;1;OFF;
+```
