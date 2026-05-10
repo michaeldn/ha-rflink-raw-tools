@@ -278,11 +278,11 @@ class RFLinkRawSwitch(SwitchEntity):
             return
 
         if switch_type == "momentary_update":
-            await self._run_momentary(lambda: update_from_github(self.hass))
+            await self._run_momentary(lambda: self.hass.async_add_executor_job(update_from_github, self.hass))
             return
 
         if switch_type == "momentary_restore":
-            await self._run_momentary(lambda: restore_last_update(self.hass))
+            await self._run_momentary(lambda: self.hass.async_add_executor_job(restore_last_update, self.hass))
             return
 
     async def async_turn_off(self, **kwargs) -> None:

@@ -397,3 +397,27 @@ Install RFLink
 If `configuration.yaml` already has a matching unmanaged `rflink:` block, RFLink Raw Tools now marks the prerequisite as satisfied instead of trying to write a duplicate block.
 
 If `configuration.yaml` has a different unmanaged `rflink:` block, RFLink Raw Tools will not overwrite it.
+
+
+## GUI update blocking-I/O fix
+
+Older builds called `urllib.request.urlretrieve(...)` directly from an async Home Assistant action. Home Assistant blocks that because network I/O cannot run in the event loop.
+
+This build keeps the version at `0.0.1` but changes update/restore actions to run through:
+
+```text
+hass.async_add_executor_job(...)
+```
+
+That means future GUI updates can use:
+
+```text
+RFLink Raw Tools sidebar -> Update -> Download latest
+```
+
+Because the currently installed updater is the broken one, install this fix once with the terminal installer after pushing it to GitHub:
+
+```bash
+wget -O - https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/install.sh | sh
+ha core restart
+```

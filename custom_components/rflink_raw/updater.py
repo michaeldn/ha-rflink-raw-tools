@@ -1,4 +1,9 @@
-"""Updater helpers for RFLink Raw Tools."""
+"""Updater helpers for RFLink Raw Tools.
+
+These functions are intentionally synchronous because they perform network and
+filesystem I/O. Call them with hass.async_add_executor_job(...), never
+directly inside the Home Assistant event loop.
+"""
 
 from __future__ import annotations
 
@@ -37,6 +42,7 @@ def update_from_github(hass: HomeAssistant) -> None:
         extract_path = tmp_path / "extract"
 
         urllib.request.urlretrieve(REPO_ZIP_URL, zip_path)
+
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_path)
 
@@ -57,6 +63,19 @@ def update_from_github(hass: HomeAssistant) -> None:
         dashboard = repo_root / "dashboard" / "rflink_raw_dashboard.yaml"
         if dashboard.exists():
             shutil.copy2(dashboard, config_dir / "rflink_raw_dashboard.yaml")
+
+        for script_name in (
+            "repair-stale-rflink-raw-entities.sh",
+            "reset-rflink-raw-ui.sh",
+            "fix-rflink-dashboard-mode.sh",
+            "rebuild-rflink-dashboard-note.sh",
+            "undo-rflink-raw-tools.sh",
+        ):
+            script = repo_root / script_name
+            if script.exists():
+                target = config_dir / script_name
+                shutil.copy2(script, target)
+                target.chmod(0o755)
 
     update_state(hass, **{KEY_LAST_UPDATE_BACKUP: str(backup_dir)})
 

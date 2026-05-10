@@ -96,10 +96,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await async_send_direct_command(hass, "10;VERSION;", 1, 250)
 
     async def do_update(call: ServiceCall) -> None:
-        update_from_github(hass)
+        await hass.async_add_executor_job(update_from_github, hass)
 
     async def do_restore(call: ServiceCall) -> None:
-        restore_last_update(hass)
+        await hass.async_add_executor_job(restore_last_update, hass)
 
     async def do_install_prerequisite(call: ServiceCall) -> None:
         state = get_state(hass)
