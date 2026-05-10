@@ -78,10 +78,7 @@ def _rflink_connected() -> bool:
 
 
 def _rflink_configured(hass: HomeAssistant) -> bool:
-    """Return whether configuration.yaml appears to define RFLink.
-
-    This is a configuration check, not a live serial connection test.
-    """
+    """Return whether configuration.yaml appears to define RFLink."""
     try:
         config_path = Path(hass.config.path("configuration.yaml"))
         text = config_path.read_text()
@@ -145,13 +142,7 @@ def _websocket_status(hass: HomeAssistant, connection, msg) -> None:
 
 
 async def _async_register_panel(hass: HomeAssistant) -> None:
-    """Register static app files and the sidebar panel.
-
-    Home Assistant raises ValueError if a panel with the same URL path is
-    already registered. That can happen after reloads, failed setup attempts, or
-    duplicate config entries. Remove the existing panel first so setup is
-    idempotent.
-    """
+    """Register static app files and the sidebar panel."""
     app_dir = Path(__file__).parent / "www"
 
     await hass.http.async_register_static_paths(
@@ -177,9 +168,16 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
     )
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up RFLink Raw Tools services and websocket API."""
-    hass.data.setdefault(DOMAIN, {})
+async def _async_register_backend(hass: HomeAssistant) -> None:
+    """Register services and websocket command once.
+
+    This is called from both async_setup and async_setup_entry because some HA
+    loading paths can set up config entries without the frontend having the
+    websocket command available yet.
+    """
+    data = hass.data.setdefault(DOMAIN, {})
+    if data.get("_backend_registered"):
+        return
 
     async def send_raw(call: ServiceCall) -> None:
         await async_send_raw_command(
@@ -221,11 +219,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         ),
     )
 
+    data["_backend_registered"] = True
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up RFLink Raw Tools services and websocket API."""
+    await _async_register_backend(hass)
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     """Set up RFLink Raw Tools from config entry."""
+    await _async_register_backend(hass)
     await _async_register_panel(hass)
     return True
 

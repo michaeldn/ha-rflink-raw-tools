@@ -26,3 +26,7 @@
 - [x] async_setup returns True
 - [x] ping_gateway/version_gateway/set_debug are nested inside async_setup
 - [x] Static AST test added for async_setup structure
+- [x] Backend registration called from async_setup and async_setup_entry
+- [x] Websocket status command registered idempotently
+- [x] Debug UI uses RFDEBUG/QRFDEBUG switches
+- [x] Send page no longer defaults to 10;PING;

@@ -48,11 +48,7 @@ def _set_status(
 
 
 def _parse_raw_command(raw_command: str) -> tuple[str, str]:
-    """Parse a full RFLink raw command into device_id/action for HA's RFLink service.
-
-    10;NewKaku;01a2b3;1;ON; -> device_id='NewKaku;01a2b3;1', command='ON'
-    10;rfdebug;on;          -> device_id='rfdebug', command='on'
-    """
+    """Parse a full RFLink raw command into device_id/action for HA's RFLink service."""
     clean = (raw_command or "").strip()
     if not clean:
         raise HomeAssistantError("Raw command cannot be empty.")
@@ -73,15 +69,24 @@ def _parse_raw_command(raw_command: str) -> tuple[str, str]:
     return ";".join(parts[:-1]), parts[-1]
 
 
+def _is_gateway_status_command(device_id: str, command: str) -> str | None:
+    """Return ping/version command type when the raw command is an app status command."""
+    device = (device_id or "").strip().lower()
+    action = (command or "").strip().lower()
+
+    if device == "ping" and not action:
+        return "ping"
+    if device == "version" and not action:
+        return "version"
+    return None
+
+
 async def _call_rflink_send_command_service(
     hass: HomeAssistant,
     device_id: str,
     command: str,
 ) -> None:
-    """Call Home Assistant's built-in rflink.send_command service.
-
-    Using the HA service is more stable than importing internal RFLink classes.
-    """
+    """Call Home Assistant's built-in rflink.send_command service."""
     payload = {"device_id": device_id}
     if command:
         payload["command"] = command
@@ -108,6 +113,17 @@ async def async_send_protocol_command(
     if not clean_device:
         raise HomeAssistantError("Device ID is required.")
 
+    gateway_command = _is_gateway_status_command(clean_device, clean_command)
+    if gateway_command == "ping":
+        return await async_ping_gateway(hass)
+    if gateway_command == "version":
+        return await async_version_gateway(hass)
+
+    if "rflink" not in hass.config.components:
+        message = "Home Assistant RFLink integration is not loaded. Check configuration.yaml and restart Home Assistant."
+        _set_status(hass, error=message, command=f"{clean_device};{clean_command}".strip(";"))
+        raise HomeAssistantError(message)
+
     repeat = max(1, int(repeat or 1))
     delay_ms = max(0, int(delay_ms or 0))
 
@@ -119,8 +135,9 @@ async def async_send_protocol_command(
             if index < repeat - 1 and delay_ms:
                 await asyncio.sleep(delay_ms / 1000)
     except Exception as err:
-        _set_status(hass, error=str(err), command=f"{clean_device};{clean_command}".strip(";"))
-        raise
+        message = str(err) or repr(err)
+        _set_status(hass, error=message, command=f"{clean_device};{clean_command}".strip(";"))
+        raise HomeAssistantError(message) from err
 
     result = {
         "ok": True,
@@ -146,36 +163,31 @@ async def async_send_raw_command(
     """Send a raw-ish RFLink command string via HA's RFLink send_command service."""
     device_id, command = _parse_raw_command(raw_command)
     result = await async_send_protocol_command(hass, device_id, command, repeat, delay_ms)
-    _set_status(hass, result=f"Sent raw: {raw_command}", command=raw_command)
+    if _is_gateway_status_command(device_id, command) is None:
+        _set_status(hass, result=f"Sent raw: {raw_command}", command=raw_command)
     return result
 
 
 async def async_ping_gateway(hass: HomeAssistant) -> dict:
-    """Ping/test RFLink without requiring an RFLink protocol device id.
-
-    Home Assistant's rflink.send_command service requires device_id, so true
-    gateway-only commands can fail depending on RFLink/HA support. This app-level
-    ping first verifies that the rflink integration exists, then records a clear
-    status instead of failing with a cryptic KeyError such as 'id'.
-    """
+    """App-level RFLink status check that never calls RFLink without device_id."""
     if "rflink" not in hass.config.components:
-        message = "Home Assistant RFLink integration is not loaded."
+        message = "Home Assistant RFLink integration is not loaded. Check configuration.yaml and restart Home Assistant."
         _set_status(hass, error=message, command="PING")
         raise HomeAssistantError(message)
 
-    message = "RFLink integration is loaded. For hardware response, send a learned RFLink device command."
+    message = "RFLink integration is loaded. Use a learned device command for hardware send testing."
     _set_status(hass, result=message, command="PING")
     return {"ok": True, "message": message}
 
 
 async def async_version_gateway(hass: HomeAssistant) -> dict:
-    """Record a version check without requiring an RFLink device id."""
+    """App-level version/status check that never calls RFLink without device_id."""
     if "rflink" not in hass.config.components:
-        message = "Home Assistant RFLink integration is not loaded."
+        message = "Home Assistant RFLink integration is not loaded. Check configuration.yaml and restart Home Assistant."
         _set_status(hass, error=message, command="VERSION")
         raise HomeAssistantError(message)
 
-    message = "RFLink integration is loaded. Gateway version query is not exposed by HA's rflink.send_command service on all versions."
+    message = "RFLink integration is loaded. Gateway VERSION is not exposed by HA's rflink.send_command service on all versions."
     _set_status(hass, result=message, command="VERSION")
     return {"ok": True, "message": message}
 

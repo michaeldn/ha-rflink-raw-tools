@@ -229,3 +229,25 @@ Integration 'rflink_raw' did not return boolean if setup was successful.
 Cause: the previous generated `__init__.py` compiled, but `ping_gateway` and `version_gateway` were accidentally dedented to module scope. That ended `async_setup` early, so Home Assistant received `None`.
 
 The fix rewrites `__init__.py` cleanly and adds a static AST test that catches leaked service handlers.
+
+
+## Websocket/status and debug switch UX fix
+
+This package fixes three app issues:
+
+```text
+1. Status unavailable / Unknown command from missing websocket registration.
+2. 10;PING; showing Unknown command from the raw Send page.
+3. RFDEBUG/QRFDEBUG shown as on/off buttons instead of switches.
+```
+
+Backend registration is now idempotent and called from both `async_setup` and `async_setup_entry`.
+
+The Debug page now uses switch-style toggles:
+
+```text
+RFDEBUG   on/off switch
+QRFDEBUG  on/off switch
+```
+
+The Send page no longer defaults to `10;PING;`. Ping and Version live on the Debug page as app status checks.

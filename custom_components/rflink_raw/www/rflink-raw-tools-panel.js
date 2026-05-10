@@ -4,7 +4,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
     if (!this._rendered) {
       this._state = {
         tab: "send",
-        rawCommand: localStorage.getItem("rflink_raw_tools.rawCommand") || "10;PING;",
+        rawCommand: localStorage.getItem("rflink_raw_tools.rawCommand") || "",
         deviceId: localStorage.getItem("rflink_raw_tools.deviceId") || "",
         protocolCommand: localStorage.getItem("rflink_raw_tools.protocolCommand") || "on",
         repeat: Number(localStorage.getItem("rflink_raw_tools.repeat") || "1"),
@@ -304,6 +304,66 @@ class RFLinkRawToolsPanel extends HTMLElement {
           background: var(--primary-color);
           flex: 0 0 auto;
         }
+        
+        .toggle-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          border: 1px solid var(--divider-color);
+          background: var(--secondary-background-color);
+          border-radius: 14px;
+          padding: 14px;
+          margin: 10px 0;
+        }
+        .toggle-text {
+          display: grid;
+          gap: 3px;
+        }
+        .toggle-title {
+          font-weight: 800;
+        }
+        .toggle-help {
+          color: var(--secondary-text-color);
+          font-size: 13px;
+        }
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 54px;
+          height: 30px;
+          flex: 0 0 auto;
+        }
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          inset: 0;
+          background: var(--divider-color);
+          transition: .2s;
+          border-radius: 999px;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 22px;
+          width: 22px;
+          left: 4px;
+          bottom: 4px;
+          background: white;
+          transition: .2s;
+          border-radius: 50%;
+        }
+        .switch input:checked + .slider {
+          background: var(--primary-color);
+        }
+        .switch input:checked + .slider:before {
+          transform: translateX(24px);
+        }
         @media (max-width: 860px) {
           .wrap { padding: 16px; }
           .hero { grid-template-columns: 56px 1fr; }
@@ -406,6 +466,12 @@ class RFLinkRawToolsPanel extends HTMLElement {
         this._input(field, value);
       });
     });
+
+    body.querySelectorAll("[data-toggle-debug]").forEach(el => {
+      el.addEventListener("change", event => {
+        this._setDebug(el.dataset.toggleDebug, Boolean(event.target.checked));
+      });
+    });
   }
 
   _feedback() {
@@ -423,7 +489,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <p class="help">Paste a full RFLink command. This app converts it for Home Assistant's RFLink command bridge. If the header says “configured — test with Ping,” go to Debug and click Ping first.</p>
 
           <label>Raw command</label>
-          <textarea data-field="rawCommand">${this._state.rawCommand}</textarea>
+          <textarea data-field="rawCommand" placeholder="Paste learned command, for example: 10;NewKaku;01a2b3;1;ON;">${this._state.rawCommand}</textarea>
 
           <div class="row">
             <div>
@@ -447,11 +513,10 @@ class RFLinkRawToolsPanel extends HTMLElement {
         <div class="card">
           <h2>Examples</h2>
           <p class="help">Click an example to copy it into the raw command box.</p>
-          <div class="example" data-example="10;PING;">10;PING;</div>
-          <div class="example" data-example="10;VERSION;">10;VERSION;</div>
-          <div class="example" data-example="10;rfdebug;on;">10;rfdebug;on;</div>
-          <div class="example" data-example="10;qrfdebug;on;">10;qrfdebug;on;</div>
-          <p class="help">For outlet commands, use the full command you learned from RFLink/HA logs.</p>
+          <div class="example" data-example="10;NewKaku;01a2b3;1;ON;">10;NewKaku;01a2b3;1;ON;</div>
+          <div class="example" data-example="10;NewKaku;01a2b3;1;OFF;">10;NewKaku;01a2b3;1;OFF;</div>
+          <div class="example" data-example="10;Chuango;example;ON;">10;Chuango;example;ON;</div>
+          <p class="help">Use Ping and Version from the Debug tab. For outlet commands, use the full command you learned from RFLink/HA logs.</p>
         </div>
       </div>
     `;
@@ -500,11 +565,27 @@ class RFLinkRawToolsPanel extends HTMLElement {
         <div class="card">
           <h2>Debug capture</h2>
           <p class="help">Turn on one debug mode, press a remote button, then check Home Assistant logs.</p>
-          <div class="actions">
-            <button class="secondary" data-action="_rfdebugOn">RFDEBUG on</button>
-            <button class="secondary" data-action="_rfdebugOff">RFDEBUG off</button>
-            <button class="secondary" data-action="_qrfdebugOn">QRFDEBUG on</button>
-            <button class="secondary" data-action="_qrfdebugOff">QRFDEBUG off</button>
+
+          <div class="toggle-row">
+            <div class="toggle-text">
+              <div class="toggle-title">RFDEBUG</div>
+              <div class="toggle-help">Detailed RFLink debug output.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-toggle-debug="rfdebug" ${this._state.status && this._state.status.rfdebug ? "checked" : ""}>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-text">
+              <div class="toggle-title">QRFDEBUG</div>
+              <div class="toggle-help">Raw RF capture/debug output.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-toggle-debug="qrfdebug" ${this._state.status && this._state.status.qrfdebug ? "checked" : ""}>
+              <span class="slider"></span>
+            </label>
           </div>
         </div>
       </div>
