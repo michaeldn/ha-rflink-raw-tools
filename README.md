@@ -176,3 +176,27 @@ icon.png md5: 07429242aaec19f7a5c2d031535255ff
 ```
 
 If HACS itself shows a blank icon for a custom repository, that can be separate from the Home Assistant integration/app icon. The app header and Home Assistant integration brand files are local assets in this package.
+
+
+## RFLink status wording
+
+The app now separates two different checks:
+
+```text
+RFLink configured = configuration.yaml has a top-level rflink: block.
+RFLink ready      = Home Assistant's RFLink command bridge reports connected.
+```
+
+If the first thing you see is:
+
+```text
+RFLink configured — test with Ping
+```
+
+that is not a setup failure. It means the app found the normal Home Assistant RFLink config and wants you to click **Debug -> Ping gateway** to confirm the live bridge responds.
+
+This replaces the confusing earlier wording:
+
+```text
+RFLink not confirmed
+```

@@ -18,3 +18,5 @@
 - [x] App static icon exists at custom_components/rflink_raw/www/icon.png
 - [x] Approved logo hash preserved
 - [x] Approved icon hash preserved
+- [x] Status payload separates configured vs connected
+- [x] UI avoids scary RFLink not confirmed wording when config exists

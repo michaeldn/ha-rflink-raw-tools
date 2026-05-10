@@ -311,7 +311,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <img class="logo" src="/api/rflink_raw/static/logo.png" alt="RFLink Raw Tools" data-logo-fallback="brand">
           <div>
             <h1>RFLink Raw Tools</h1>
-            <div class="sub">Simple RFLink command sender for Home Assistant. No YAML editing required for normal use.</div>
+            <div class="sub">Simple RFLink command sender for Home Assistant. Start with Ping, then send raw commands.</div>
           </div>
           <div id="connection" class="status-pill">Checking RFLink…</div>
         </div>
@@ -356,10 +356,16 @@ class RFLinkRawToolsPanel extends HTMLElement {
     const status = this._state.status;
     const connection = this.querySelector("#connection");
     if (connection) {
-      const connected = Boolean(status && status.rflink_connected);
-      connection.innerHTML = connected
-        ? `<span class="ok">● RFLink connected</span>`
-        : `<span class="bad">● RFLink not confirmed</span>`;
+      const readiness = status && status.readiness ? status.readiness : "checking";
+      if (readiness === "ready") {
+        connection.innerHTML = `<span class="ok">● RFLink ready</span>`;
+      } else if (readiness === "configured_unconfirmed") {
+        connection.innerHTML = `<span class="warn">● RFLink configured — test with Ping</span>`;
+      } else if (readiness === "not_configured") {
+        connection.innerHTML = `<span class="bad">● RFLink config not found</span>`;
+      } else {
+        connection.innerHTML = `<span class="warn">● Checking RFLink…</span>`;
+      }
     }
 
     const body = this.querySelector("#body");
@@ -405,7 +411,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
       <div class="grid">
         <div class="card">
           <h2>Send raw RFLink command</h2>
-          <p class="help">Paste a full RFLink command. This app converts it for Home Assistant's RFLink command bridge.</p>
+          <p class="help">Paste a full RFLink command. This app converts it for Home Assistant's RFLink command bridge. If the header says “configured — test with Ping,” go to Debug and click Ping first.</p>
 
           <label>Raw command</label>
           <textarea data-field="rawCommand">${this._state.rawCommand}</textarea>
@@ -503,7 +509,9 @@ class RFLinkRawToolsPanel extends HTMLElement {
         <div class="card">
           <h2>Status</h2>
           <p><b>Integration version:</b> ${status.version || "0.0.1"}</p>
-          <p><b>RFLink connection:</b> ${status.rflink_connected ? "Connected" : "Not confirmed"}</p>
+          <p><b>RFLink configuration:</b> ${status.rflink_configured ? "Found" : "Not found"} ${status.rflink_config_source ? `(${status.rflink_config_source})` : ""}</p>
+          <p><b>RFLink live bridge:</b> ${status.rflink_connected ? "Connected" : "Not confirmed yet"}</p>
+          <p class="help">${status.readiness_detail || "Use Ping on the Debug page to test the gateway."}</p>
           <p><b>Last command:</b> ${status.last_command || "None yet"}</p>
           <p><b>Last result:</b> ${status.last_result || "None yet"}</p>
           <p><b>Last error:</b> ${status.last_error || "None"}</p>

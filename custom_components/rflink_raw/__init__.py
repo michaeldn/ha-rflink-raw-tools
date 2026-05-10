@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Any
 
 import voluptuous as vol
@@ -70,13 +71,54 @@ def _rflink_connected() -> bool:
         return False
 
 
+
+def _rflink_configured(hass: HomeAssistant) -> bool:
+    """Return whether configuration.yaml appears to define RFLink.
+
+    This is a configuration check, not a live serial connection test.
+    """
+    try:
+        config_path = Path(hass.config.path("configuration.yaml"))
+        text = config_path.read_text()
+    except Exception:
+        return False
+
+    return bool(re.search(r"(?m)^rflink:\s*$", text))
+
+
+def _rflink_config_source(hass: HomeAssistant) -> str:
+    """Return a short source label for RFLink configuration."""
+    return "configuration.yaml" if _rflink_configured(hass) else ""
+
+
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
     data = hass.data.setdefault(DOMAIN, {})
+    configured = _rflink_configured(hass)
+    connected = _rflink_connected()
+
+    if connected:
+        readiness = "ready"
+        readiness_label = "RFLink ready"
+        readiness_detail = "Home Assistant RFLink command bridge reports connected."
+    elif configured:
+        readiness = "configured_unconfirmed"
+        readiness_label = "RFLink configured"
+        readiness_detail = "RFLink is configured in configuration.yaml. Use Ping to test the gateway."
+    else:
+        readiness = "not_configured"
+        readiness_label = "RFLink config not found"
+        readiness_detail = "Add the normal Home Assistant rflink: configuration first."
+
     return {
         "version": VERSION,
         "name": NAME,
-        "rflink_connected": _rflink_connected(),
+        "rflink_configured": configured,
+        "rflink_config_source": _rflink_config_source(hass),
+        "rflink_connected": connected,
+        "readiness": readiness,
+        "readiness_label": readiness_label,
+        "readiness_detail": readiness_detail,
         "last_result": data.get(DATA_LAST_RESULT, ""),
         "last_error": data.get(DATA_LAST_ERROR, ""),
         "last_command": data.get(DATA_LAST_COMMAND, ""),
