@@ -308,7 +308,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
       </style>
       <div class="wrap">
         <div class="hero">
-          <img class="logo" src="/api/rflink_raw/static/logo.png" alt="RFLink Raw Tools">
+          <img class="logo" src="/api/rflink_raw/static/logo.png" alt="RFLink Raw Tools" data-logo-fallback="brand">
           <div>
             <h1>RFLink Raw Tools</h1>
             <div class="sub">Simple RFLink command sender for Home Assistant. No YAML editing required for normal use.</div>
@@ -329,7 +329,21 @@ class RFLinkRawToolsPanel extends HTMLElement {
     this.querySelectorAll(".tab").forEach(btn => {
       btn.addEventListener("click", () => this._switchTab(btn.dataset.tab));
     });
+    this._wireLogoFallback();
     this._update();
+  }
+
+  _wireLogoFallback() {
+    const logo = this.querySelector('.logo');
+    if (!logo) return;
+    logo.addEventListener('error', () => {
+      if (logo.dataset.logoFallback === 'brand') {
+        logo.dataset.logoFallback = 'none';
+        logo.src = '/api/brands/integration/rflink_raw/logo.png';
+      } else {
+        logo.style.display = 'none';
+      }
+    });
   }
 
   _update() {

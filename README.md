@@ -103,3 +103,76 @@ Run static checks locally:
 python3 -m py_compile custom_components/rflink_raw/*.py
 python3 -m pytest tests
 ```
+
+
+## HACS install
+
+This repository is HACS-ready. HACS is the intended install/update channel for the app baseline.
+
+To install with HACS:
+
+```text
+HACS -> Integrations -> three dots -> Custom repositories
+Repository: https://github.com/michaeldn/ha-rflink-raw-tools
+Category: Integration
+Add
+```
+
+Then install **RFLink Raw Tools**, restart Home Assistant, and add the integration:
+
+```text
+Settings -> Devices & services -> Add integration -> RFLink Raw Tools
+```
+
+The terminal `install.sh` remains as a recovery/manual install path.
+
+## Panel overwrite fix
+
+If setup fails with:
+
+```text
+ValueError: Overwriting panel rflink-raw-tools
+```
+
+Home Assistant already has the RFLink Raw Tools sidebar panel registered from a prior setup attempt or duplicate entry.
+
+This build makes panel setup idempotent by removing the existing `rflink-raw-tools` panel before registering it again.
+
+Also keep only one integration entry:
+
+```text
+Settings -> Devices & services -> RFLink Raw Tools
+```
+
+
+## App logo/static asset fix
+
+The app panel displays the header logo from:
+
+```text
+/api/rflink_raw/static/logo.png
+```
+
+That path maps to:
+
+```text
+custom_components/rflink_raw/www/logo.png
+```
+
+This package places the approved logo and icon in both locations:
+
+```text
+custom_components/rflink_raw/www/logo.png
+custom_components/rflink_raw/www/icon.png
+custom_components/rflink_raw/brand/logo.png
+custom_components/rflink_raw/brand/icon.png
+```
+
+Approved hashes:
+
+```text
+logo.png md5: 16bad0221d68821784cd5d26a33f2d3c
+icon.png md5: 07429242aaec19f7a5c2d031535255ff
+```
+
+If HACS itself shows a blank icon for a custom repository, that can be separate from the Home Assistant integration/app icon. The app header and Home Assistant integration brand files are local assets in this package.

@@ -25,6 +25,11 @@ cp -R "$TMP_DIR/custom_components/rflink_raw" "$TARGET_DIR"
 find "$TARGET_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$TARGET_DIR" -type f -name '*.pyc' -delete
 
+if [ -f "$TMP_DIR/post-install-app-baseline-notes.sh" ]; then
+  cp "$TMP_DIR/post-install-app-baseline-notes.sh" /config/post-install-app-baseline-notes.sh
+  chmod +x /config/post-install-app-baseline-notes.sh
+fi
+
 echo "Installed RFLink Raw Tools app baseline."
 echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core: ha core restart"

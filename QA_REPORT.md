@@ -12,3 +12,9 @@
 - [x] Approved icon hash
 - [x] No self-updater file
 - [x] No registry cleanup surgery
+- [x] Panel overwrite guard: async_remove_panel before async_register_built_in_panel
+- [x] HACS metadata present
+- [x] App static logo exists at custom_components/rflink_raw/www/logo.png
+- [x] App static icon exists at custom_components/rflink_raw/www/icon.png
+- [x] Approved logo hash preserved
+- [x] Approved icon hash preserved

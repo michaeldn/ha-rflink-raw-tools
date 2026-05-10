@@ -93,12 +93,20 @@ def _websocket_status(hass: HomeAssistant, connection, msg) -> None:
 
 
 async def _async_register_panel(hass: HomeAssistant) -> None:
-    """Register static app files and the sidebar panel."""
+    """Register static app files and the sidebar panel.
+
+    Home Assistant raises ValueError if a panel with the same URL path is
+    already registered. That can happen after reloads, failed setup attempts, or
+    duplicate config entries. Remove the existing panel first so setup is
+    idempotent.
+    """
     app_dir = Path(__file__).parent / "www"
 
     await hass.http.async_register_static_paths(
         [StaticPathConfig(STATIC_URL, str(app_dir), False)]
     )
+
+    async_remove_panel(hass, PANEL_URL_PATH)
 
     async_register_built_in_panel(
         hass,
