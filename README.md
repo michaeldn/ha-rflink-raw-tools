@@ -216,3 +216,16 @@ required key not provided @ data['device_id']
 ```
 
 For real hardware testing, use the **Send** page with a learned RFLink device command.
+
+
+## Setup return fix
+
+This package fixes:
+
+```text
+Integration 'rflink_raw' did not return boolean if setup was successful.
+```
+
+Cause: the previous generated `__init__.py` compiled, but `ping_gateway` and `version_gateway` were accidentally dedented to module scope. That ended `async_setup` early, so Home Assistant received `None`.
+
+The fix rewrites `__init__.py` cleanly and adds a static AST test that catches leaked service handlers.

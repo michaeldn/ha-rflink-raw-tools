@@ -32,7 +32,13 @@ from .const import (
     STATIC_URL,
     VERSION,
 )
-from .helpers import async_ping_gateway, async_send_protocol_command, async_send_raw_command, async_set_debug, async_version_gateway
+from .helpers import (
+    async_ping_gateway,
+    async_send_protocol_command,
+    async_send_raw_command,
+    async_set_debug,
+    async_version_gateway,
+)
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
 
@@ -65,10 +71,10 @@ def _rflink_connected() -> bool:
     """Return whether the HA RFLink bridge reports a live protocol."""
     try:
         from homeassistant.components.rflink.entity import RflinkCommand
+
         return bool(RflinkCommand.is_connected())
     except Exception:
         return False
-
 
 
 def _rflink_configured(hass: HomeAssistant) -> bool:
@@ -90,7 +96,6 @@ def _rflink_config_source(hass: HomeAssistant) -> str:
     return "configuration.yaml" if _rflink_configured(hass) else ""
 
 
-
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
     data = hass.data.setdefault(DOMAIN, {})
@@ -105,7 +110,10 @@ def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     elif loaded or configured:
         readiness = "configured_unconfirmed"
         readiness_label = "RFLink configured"
-        readiness_detail = "RFLink is configured. Use Debug -> Ping gateway to check that Home Assistant loaded the RFLink integration."
+        readiness_detail = (
+            "RFLink is configured. Use Debug -> Ping gateway to check that Home Assistant "
+            "loaded the RFLink integration."
+        )
     else:
         readiness = "not_configured"
         readiness_label = "RFLink config not found"
@@ -190,12 +198,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             call.data["delay_ms"],
         )
 
+    async def ping_gateway(call: ServiceCall) -> None:
+        await async_ping_gateway(hass)
 
-async def ping_gateway(call: ServiceCall) -> None:
-    await async_ping_gateway(hass)
-
-async def version_gateway(call: ServiceCall) -> None:
-    await async_version_gateway(hass)
+    async def version_gateway(call: ServiceCall) -> None:
+        await async_version_gateway(hass)
 
     async def set_debug(call: ServiceCall) -> None:
         await async_set_debug(hass, call.data["debug_type"], call.data["enabled"])

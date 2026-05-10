@@ -23,3 +23,6 @@
 - [x] Status call has explicit status_error fallback
 - [x] Ping gateway no longer sends invalid device_id-less RFLink command
 - [x] Send raw uses Home Assistant rflink.send_command service
+- [x] async_setup returns True
+- [x] ping_gateway/version_gateway/set_debug are nested inside async_setup
+- [x] Static AST test added for async_setup structure
