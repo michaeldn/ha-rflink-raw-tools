@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-error-state-ux-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-error-state-ux-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ux-state-cleanup-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ux-state-cleanup-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -57,7 +57,7 @@ PY
 
 git status --short
 git add -A
-git commit -m "Fix RFLink stale error state UX" || true
+git commit -m "Clean RFLink app stale state and debug UX" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"

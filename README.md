@@ -454,3 +454,24 @@ rflink_raw.clear_status
 ```
 
 and clears the app's last result, last error, last command, and active UI banner.
+
+
+
+## UX state cleanup
+
+This package fixes three user-facing problems:
+
+```text
+1. Old "Unknown command" messages no longer reappear as red banners after refresh.
+2. RFDEBUG/QRFDEBUG are relabeled as human-readable logging switches.
+3. The confusing Learn page is renamed Capture and explains its purpose.
+```
+
+Debug labels are now:
+
+```text
+Decoded RFLink logging
+Raw RF capture logging
+```
+
+The switches update immediately and also persist locally in the browser so they do not visually flip off when you change tabs.

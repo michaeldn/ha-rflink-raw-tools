@@ -1,4 +1,4 @@
-const APP_BUILD_ID = "error-state-ux-fix-20260510";
+const APP_BUILD_ID = "ux-state-cleanup-fix-20260510";
 class RFLinkRawToolsPanel extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
@@ -34,7 +34,9 @@ class RFLinkRawToolsPanel extends HTMLElement {
   async _loadStatus() {
     if (!this._hass) return;
     try {
-      const status = await this._hass.callWS({ type: "rflink_raw/status" });
+      const rawStatus = await this._hass.callWS({ type: "rflink_raw/status" });
+      await this._autoClearStaleUnknown(rawStatus);
+      const status = this._sanitizeStatus(rawStatus);
       this._state.status = status;
       // Status load should not replay old backend errors as active red banners.
       // Active red errors are only for the action the user just clicked.
@@ -59,6 +61,30 @@ class RFLinkRawToolsPanel extends HTMLElement {
     if (!err) return "Unknown error";
     if (typeof err === "string") return err;
     return err.message || err.error || JSON.stringify(err);
+  }
+
+  _isUnknownCommandText(value) {
+    return String(value || "").trim() === "Unknown command." || String(value || "").trim() === "Unknown command";
+  }
+
+  _sanitizeStatus(status) {
+    if (!status) return status;
+    const clean = { ...status };
+    if (this._isUnknownCommandText(clean.last_error)) clean.last_error = "";
+    if (this._isUnknownCommandText(clean.last_result)) clean.last_result = "";
+    return clean;
+  }
+
+  async _autoClearStaleUnknown(status) {
+    if (!status || this._autoClearedUnknown) return;
+    if (this._isUnknownCommandText(status.last_error) || this._isUnknownCommandText(status.last_result)) {
+      this._autoClearedUnknown = true;
+      try {
+        await this._hass.callService("rflink_raw", "clear_status", {});
+      } catch (err) {
+        // Do not show a red error for cleanup.
+      }
+    }
   }
 
   _normalizeRawCommand(raw) {
@@ -145,18 +171,32 @@ class RFLinkRawToolsPanel extends HTMLElement {
     }, "Protocol command sent.");
   }
 
+  _debugLocalKey(debugType) {
+    return `rflink_raw_tools.${debugType}`;
+  }
+
+  _debugEnabled(debugType) {
+    const local = localStorage.getItem(this._debugLocalKey(debugType));
+    if (local === "true") return true;
+    if (local === "false") return false;
+    return Boolean(this._state.status && this._state.status[debugType]);
+  }
+
   async _setDebug(debugType, enabled) {
     this._state.status = this._state.status || {};
     if (debugType === "rfdebug") this._state.status.rfdebug = Boolean(enabled);
     if (debugType === "qrfdebug") this._state.status.qrfdebug = Boolean(enabled);
-    this._state.message = `${debugType.toUpperCase()} ${enabled ? "enabled" : "disabled"}.`;
+    localStorage.setItem(this._debugLocalKey(debugType), String(Boolean(enabled)));
+
+    const label = debugType === "rfdebug" ? "Decoded RFLink logging" : "Raw RF capture logging";
+    this._state.message = `${label} ${enabled ? "enabled" : "disabled"}.`;
     this._state.error = "";
     this._update();
 
     await this._callService("rflink_raw", "set_debug", {
       debug_type: debugType,
       enabled
-    }, `${debugType.toUpperCase()} ${enabled ? "enabled" : "disabled"}.`);
+    }, `${label} ${enabled ? "enabled" : "disabled"}.`);
   }
 
   _switchTab(tab) {
@@ -435,7 +475,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
 
         <div class="tabs">
           <button class="tab" data-tab="send">Send</button>
-          <button class="tab" data-tab="learn">Learn</button>
+          <button class="tab" data-tab="capture">Capture</button>
           <button class="tab" data-tab="debug">Debug</button>
           <button class="tab" data-tab="setup">Setup</button>
         </div>
@@ -579,27 +619,28 @@ class RFLinkRawToolsPanel extends HTMLElement {
     `;
   }
 
-  _learnView() {
+  _captureView() {
     return `
       <div class="grid">
         <div class="card">
-          <h2>Learn an RF command</h2>
+          <h2>Capture a remote command</h2>
+          <p class="help">Purpose: this page tells you how to discover the real RFLink command from your physical remote. It does not send commands.</p>
           <div class="checklist">
-            <div class="check"><span class="dot"></span><div>Open <b>Debug</b> and turn on RFDEBUG or QRFDEBUG.</div></div>
-            <div class="check"><span class="dot"></span><div>Press the physical remote button you want to learn.</div></div>
-            <div class="check"><span class="dot"></span><div>Open Home Assistant logs and look for the RFLink line/device id.</div></div>
-            <div class="check"><span class="dot"></span><div>Paste the learned command into <b>Send</b> and test it.</div></div>
-            <div class="check"><span class="dot"></span><div>Save working ON/OFF commands in a Home Assistant script or automation.</div></div>
+            <div class="check"><span class="dot"></span><div>Go to <b>Debug</b> and turn on <b>Raw RF capture logging</b> first.</div></div>
+            <div class="check"><span class="dot"></span><div>Press one physical remote button once, for example the outlet ON button.</div></div>
+            <div class="check"><span class="dot"></span><div>Open Home Assistant logs and copy the RFLink command/device line.</div></div>
+            <div class="check"><span class="dot"></span><div>Go to <b>Send</b>, paste the learned command, and test it.</div></div>
+            <div class="check"><span class="dot"></span><div>Repeat for OFF. For your AC/heater outlet flow, capture ON and OFF separately.</div></div>
           </div>
         </div>
         <div class="card">
-          <h2>What to capture</h2>
-          <p class="help">For each device, capture:</p>
-          <div class="example">Device name / room</div>
-          <div class="example">ON command</div>
-          <div class="example">OFF command</div>
-          <div class="example">How long to run it, for example 3 seconds</div>
-          <p class="help">The next version can add a saved-device library after sending is stable.</p>
+          <h2>Capture sheet</h2>
+          <p class="help">Write these down for each outlet:</p>
+          <div class="example">Room/device name</div>
+          <div class="example">Learned ON command</div>
+          <div class="example">Learned OFF command</div>
+          <div class="example">Run duration, for example 3 seconds</div>
+          <p class="help">Once one real command works on Send, the next useful feature is a saved-device library.</p>
         </div>
       </div>
     `;
@@ -625,22 +666,22 @@ class RFLinkRawToolsPanel extends HTMLElement {
 
           <div class="toggle-row">
             <div class="toggle-text">
-              <div class="toggle-title">RFDEBUG</div>
-              <div class="toggle-help">${this._state.status && this._state.status.rfdebug ? "Enabled" : "Disabled"} — detailed RFLink debug output.</div>
+              <div class="toggle-title">Decoded RFLink logging</div>
+              <div class="toggle-help">${this._debugEnabled("rfdebug") ? "Enabled" : "Disabled"} — decoded RFLink protocol messages in Home Assistant logs.</div>
             </div>
             <label class="switch">
-              <input type="checkbox" data-toggle-debug="rfdebug" ${this._state.status && this._state.status.rfdebug ? "checked" : ""}>
+              <input type="checkbox" data-toggle-debug="rfdebug" ${this._debugEnabled("rfdebug") ? "checked" : ""}>
               <span class="slider"></span>
             </label>
           </div>
 
           <div class="toggle-row">
             <div class="toggle-text">
-              <div class="toggle-title">QRFDEBUG</div>
-              <div class="toggle-help">${this._state.status && this._state.status.qrfdebug ? "Enabled" : "Disabled"} — raw RF capture/debug output.</div>
+              <div class="toggle-title">Raw RF capture logging</div>
+              <div class="toggle-help">${this._debugEnabled("qrfdebug") ? "Enabled" : "Disabled"} — raw 433 MHz capture output used to learn remotes.</div>
             </div>
             <label class="switch">
-              <input type="checkbox" data-toggle-debug="qrfdebug" ${this._state.status && this._state.status.qrfdebug ? "checked" : ""}>
+              <input type="checkbox" data-toggle-debug="qrfdebug" ${this._debugEnabled("qrfdebug") ? "checked" : ""}>
               <span class="slider"></span>
             </label>
           </div>

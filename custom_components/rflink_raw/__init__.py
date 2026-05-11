@@ -94,6 +94,22 @@ def _rflink_config_source(hass: HomeAssistant) -> str:
 
 
 
+
+def _is_unknown_command_text(value: Any) -> bool:
+    """Return whether a stored message is the stale generic RFLink unknown-command error."""
+    return str(value or "").strip() in {"Unknown command.", "Unknown command"}
+
+
+def _sanitize_status_data(hass: HomeAssistant) -> None:
+    """Remove stale generic unknown-command text from backend status on every status read."""
+    data = hass.data.setdefault(DOMAIN, {})
+    if _is_unknown_command_text(data.get(DATA_LAST_ERROR)):
+        data[DATA_LAST_ERROR] = ""
+    if _is_unknown_command_text(data.get(DATA_LAST_RESULT)):
+        data[DATA_LAST_RESULT] = ""
+
+
+
 def _clear_status_data(hass: HomeAssistant) -> None:
     """Clear transient app status shown in the UI."""
     data = hass.data.setdefault(DOMAIN, {})
@@ -105,13 +121,12 @@ def _clear_status_data(hass: HomeAssistant) -> None:
 
 def _clear_stale_unknown_command(hass: HomeAssistant) -> None:
     """Clear old Unknown command errors from previous UI attempts."""
-    data = hass.data.setdefault(DOMAIN, {})
-    if str(data.get(DATA_LAST_ERROR, "")).strip() in {"Unknown command.", "Unknown command"}:
-        data[DATA_LAST_ERROR] = ""
+    _sanitize_status_data(hass)
 
 
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
+    _sanitize_status_data(hass)
     data = hass.data.setdefault(DOMAIN, {})
     configured = _rflink_configured(hass)
     loaded = "rflink" in hass.config.components

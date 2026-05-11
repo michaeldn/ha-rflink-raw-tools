@@ -61,3 +61,8 @@
 - [x] clear_status service added
 - [x] Setup page has Clear status action
 - [x] Old Unknown command errors are scrubbed on setup
+- [x] Backend sanitizes stale Unknown command on every status payload
+- [x] Frontend auto-clears stale Unknown command backend state once
+- [x] Debug switches have human-readable labels
+- [x] Debug switch visual state persists across page tabs
+- [x] Learn page renamed to Capture with clear purpose
