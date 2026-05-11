@@ -6,5 +6,8 @@ echo "=== RFLink Raw Tools frontend build ==="
 grep -n "APP_BUILD_ID" "$APP" || true
 grep -n "PANEL_BUILD\|PANEL_MODULE" "$CONST" || true
 echo ""
-echo "If the app screen does not show a Clear command button or Setup -> App build,"
-echo "Chrome is still using an old cached module. Use Command + Shift + R."
+echo "=== Cache artifacts check ==="
+find /config/custom_components/rflink_raw -type d -name '__pycache__' -print
+find /config/custom_components/rflink_raw -type f -name '*.pyc' -print
+echo ""
+echo "Nothing should print under Cache artifacts check."

@@ -38,3 +38,7 @@
 - [x] Send tab has Clear command button
 - [x] Setup tab exposes app build id
 - [x] Example Chuango fake command removed
+- [x] ping_gateway never raises for diagnostic status check
+- [x] version_gateway never raises for diagnostic status check
+- [x] install.sh removes __pycache__ and *.pyc before and after install
+- [x] package contains no __pycache__ and no *.pyc

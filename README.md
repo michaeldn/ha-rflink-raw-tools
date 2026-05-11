@@ -302,3 +302,30 @@ Terminal verification:
 ```bash
 sh /config/check-rflink-app-build.sh
 ```
+
+
+## Ping button and cache cleanup
+
+The Debug -> Ping gateway button is now a non-throwing app-level status check.
+
+It does not call Home Assistant's `rflink.send_command` with a missing or fake device id, so it should not throw red UI errors. It records one of these messages:
+
+```text
+RFLink integration is loaded. Use a learned device command for hardware send testing.
+RFLink integration is not loaded yet. Check configuration.yaml and restart Home Assistant.
+```
+
+This package also removes Python cache artifacts from the repository and installer output:
+
+```text
+__pycache__/
+*.pyc
+```
+
+Verify on Home Assistant:
+
+```bash
+sh /config/check-rflink-app-build.sh
+```
+
+Nothing should print under **Cache artifacts check**.

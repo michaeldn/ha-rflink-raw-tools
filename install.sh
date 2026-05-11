@@ -1,40 +1,25 @@
 #!/bin/sh
 set -eu
-
 REPO_ZIP_URL="https://github.com/michaeldn/ha-rflink-raw-tools/archive/refs/heads/main.zip"
 TMP_ZIP="/tmp/ha-rflink-raw-tools.zip"
-TMP_DIR="/tmp/ha-rflink-raw-tools-main"
+TMP_ROOT="/tmp/ha-rflink-raw-tools-install"
+TMP_DIR="$TMP_ROOT/ha-rflink-raw-tools-main"
 TARGET_DIR="/config/custom_components/rflink_raw"
 BACKUP_DIR="/config/.rflink_raw_installer_backups/install_$(date +%Y%m%d_%H%M%S)"
-
 mkdir -p /config/custom_components "$BACKUP_DIR"
-
-if [ -d "$TARGET_DIR" ]; then
-  cp -R "$TARGET_DIR" "$BACKUP_DIR/rflink_raw"
-fi
-
-rm -f "$TMP_ZIP"
-rm -rf "$TMP_DIR" "$TARGET_DIR"
-
+if [ -d "$TARGET_DIR" ]; then cp -R "$TARGET_DIR" "$BACKUP_DIR/rflink_raw"; fi
+rm -f "$TMP_ZIP"; rm -rf "$TMP_ROOT"; mkdir -p "$TMP_ROOT"
 wget -O "$TMP_ZIP" "$REPO_ZIP_URL"
-unzip -o "$TMP_ZIP" -d /tmp
-
+unzip -o "$TMP_ZIP" -d "$TMP_ROOT"
+find "$TMP_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
+find "$TMP_DIR" -type f -name '*.pyc' -delete
+find "$TMP_DIR" -type f -name '.DS_Store' -delete
+rm -rf "$TARGET_DIR"
 cp -R "$TMP_DIR/custom_components/rflink_raw" "$TARGET_DIR"
-
-# Never leave compiled/cache artifacts behind.
 find "$TARGET_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$TARGET_DIR" -type f -name '*.pyc' -delete
-
-if [ -f "$TMP_DIR/post-install-app-baseline-notes.sh" ]; then
-  cp "$TMP_DIR/post-install-app-baseline-notes.sh" /config/post-install-app-baseline-notes.sh
-  chmod +x /config/post-install-app-baseline-notes.sh
-fi
-
-if [ -f "$TMP_DIR/check-rflink-app-build.sh" ]; then
-  cp "$TMP_DIR/check-rflink-app-build.sh" /config/check-rflink-app-build.sh
-  chmod +x /config/check-rflink-app-build.sh
-fi
-
+find "$TARGET_DIR" -type f -name '.DS_Store' -delete
+if [ -f "$TMP_DIR/check-rflink-app-build.sh" ]; then cp "$TMP_DIR/check-rflink-app-build.sh" /config/check-rflink-app-build.sh; chmod +x /config/check-rflink-app-build.sh; fi
 echo "Installed RFLink Raw Tools app baseline."
 echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core: ha core restart"
