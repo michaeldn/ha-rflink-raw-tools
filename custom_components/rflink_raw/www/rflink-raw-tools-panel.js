@@ -1,3 +1,4 @@
+const APP_BUILD_ID = "app-cachebust-send-fix-20260510";
 class RFLinkRawToolsPanel extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
@@ -533,7 +534,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
       <div class="grid">
         <div class="card">
           <h2>Send raw RFLink command</h2>
-          <p class="help">Paste a full RFLink command. This app converts it for Home Assistant's RFLink command bridge. If the header says “configured — test with Ping,” go to Debug and click Ping first.</p>
+          <p class="help">Paste a learned RFLink device command. Ping and Version are status checks on the Debug tab, not device commands.</p>
 
           <label>Raw command</label>
           <textarea data-field="rawCommand" placeholder="Paste learned command, for example: 10;NewKaku;01a2b3;1;ON;">${this._state.rawCommand}</textarea>
@@ -560,10 +561,9 @@ class RFLinkRawToolsPanel extends HTMLElement {
         <div class="card">
           <h2>Examples</h2>
           <p class="help">Click an example to copy it into the raw command box.</p>
-          <div class="example" data-example="10;NewKaku;01a2b3;1;ON;">10;NewKaku;01a2b3;1;ON;</div>
-          <div class="example" data-example="10;NewKaku;01a2b3;1;OFF;">10;NewKaku;01a2b3;1;OFF;</div>
-          <div class="example" data-example="10;Chuango;example;ON;">10;Chuango;example;ON;</div>
-          <p class="help">Use Ping and Version from the Debug tab. Do not use 10;PING; here. Use Debug → Ping gateway. For outlets, use the full command you learned from RFLink/Home Assistant logs.</p>
+          <div class="example" data-example="10;NewKaku;01a2b3;1;ON;">Example format: 10;NewKaku;01a2b3;1;ON;</div>
+          <div class="example" data-example="10;NewKaku;01a2b3;1;OFF;">Example format: 10;NewKaku;01a2b3;1;OFF;</div>
+          <p class="help"><b>These examples are format examples only.</b> They will not control your outlets until you replace the device id with one learned from your RFLink logs. Do not use 10;PING; here; use Debug → Ping gateway.</p>
         </div>
       </div>
     `;
@@ -646,6 +646,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
         <div class="card">
           <h2>Status</h2>
           <p><b>Integration version:</b> ${status.version || "0.0.1"}</p>
+          <p><b>App build:</b> ${typeof APP_BUILD_ID !== "undefined" ? APP_BUILD_ID : "unknown"}</p>
           <p><b>RFLink configuration:</b> ${status.rflink_configured ? "Found" : "Not found"} ${status.rflink_config_source ? `(${status.rflink_config_source})` : ""}</p>
           <p><b>RFLink live bridge:</b> ${status.rflink_connected ? "Connected" : "Not confirmed yet"}</p>
           <p class="help">${status.readiness_detail || "Use Ping on the Debug page to test the gateway."}</p>

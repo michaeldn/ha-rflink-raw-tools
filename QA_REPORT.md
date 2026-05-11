@@ -34,3 +34,7 @@
 - [x] Send tab detects 10;VERSION; and routes to version_gateway
 - [x] App clears stale PING/VERSION rawCommand from localStorage
 - [x] Send tab has clear command action
+- [x] Frontend module URL includes cache-busting build id
+- [x] Send tab has Clear command button
+- [x] Setup tab exposes app build id
+- [x] Example Chuango fake command removed

@@ -30,6 +30,11 @@ if [ -f "$TMP_DIR/post-install-app-baseline-notes.sh" ]; then
   chmod +x /config/post-install-app-baseline-notes.sh
 fi
 
+if [ -f "$TMP_DIR/check-rflink-app-build.sh" ]; then
+  cp "$TMP_DIR/check-rflink-app-build.sh" /config/check-rflink-app-build.sh
+  chmod +x /config/check-rflink-app-build.sh
+fi
+
 echo "Installed RFLink Raw Tools app baseline."
 echo "Backup saved to $BACKUP_DIR"
 echo "Restart Home Assistant Core: ha core restart"

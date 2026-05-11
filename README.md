@@ -274,3 +274,31 @@ Use the Send tab only for learned RFLink device commands, for example:
 10;NewKaku;01a2b3;1;ON;
 10;NewKaku;01a2b3;1;OFF;
 ```
+
+
+## Frontend cache-bust and Send guard verification
+
+This package changes the panel module URL to include a build query string:
+
+```text
+rflink-raw-tools-panel.js?v=app-cachebust-send-fix-20260510
+```
+
+Visual checks after install:
+
+```text
+Send tab has a Clear command button.
+Setup tab shows App build: app-cachebust-send-fix-20260510.
+```
+
+If those are not visible, the browser is still showing old JavaScript. Use Chrome hard refresh on Mac:
+
+```text
+Command + Shift + R
+```
+
+Terminal verification:
+
+```bash
+sh /config/check-rflink-app-build.sh
+```
