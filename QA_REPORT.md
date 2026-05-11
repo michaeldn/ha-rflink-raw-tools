@@ -66,3 +66,12 @@
 - [x] Debug switches have human-readable labels
 - [x] Debug switch visual state persists across page tabs
 - [x] Learn page renamed to Capture with clear purpose
+- [x] REST status API view registered at /api/rflink_raw/status
+- [x] Frontend status load uses callApi instead of websocket callWS
+- [x] Status API failures are non-red fallback states
+- [x] Backend sanitizes generic Unknown command on every status read
+- [x] Send page limited to learned device commands
+- [x] Capture page replaces confusing Learn page
+- [x] Debug switches have human labels and persistent visual state
+- [x] Status uses REST API and does not replay stale Unknown command as red banner
+- [x] No button.py, no updater.py, no generated dashboard

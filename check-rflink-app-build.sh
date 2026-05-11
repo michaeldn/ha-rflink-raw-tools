@@ -10,7 +10,7 @@ grep -n "APP_BUILD_ID" "$APP" || true
 grep -n "PANEL_BUILD\|PANEL_MODULE" "$CONST" || true
 
 echo ""
-echo "Expected app build: install-gate-restart-fix-20260510"
+echo "Expected app build: software-cleanup-final-20260511
 
 echo ""
 echo "Runtime Python cache note:"

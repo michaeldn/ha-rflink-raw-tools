@@ -34,22 +34,28 @@ def _set_status(
     command: str = "",
 ) -> None:
     data = hass.data.setdefault(DOMAIN, {})
-    data[DATA_LAST_RESULT] = result or ""
-    data[DATA_LAST_ERROR] = error or ""
+    data[DATA_LAST_RESULT] = "" if _is_unknown_command_text(result) else (result or "")
+    data[DATA_LAST_ERROR] = "" if _is_unknown_command_text(error) else (error or "")
     if command:
         data[DATA_LAST_COMMAND] = command
     data[DATA_LAST_UPDATED] = _now()
 
 
+def _is_unknown_command_text(value: object) -> bool:
+    return str(value or "").strip() in {"Unknown command.", "Unknown command"}
+
+
 def _parse_raw_command(raw_command: str) -> tuple[str, str]:
     clean = (raw_command or "").strip()
     if not clean:
-        raise HomeAssistantError("Raw command cannot be empty.")
+        raise HomeAssistantError("Paste a learned RFLink command first.")
     if clean.endswith(";"):
         clean = clean[:-1]
+
     parts = [part.strip() for part in clean.split(";") if part.strip()]
     if parts and parts[0] == "10":
         parts = parts[1:]
+
     if not parts:
         raise HomeAssistantError("Raw command does not contain a command body.")
     if len(parts) == 1:
@@ -61,7 +67,7 @@ def _is_gateway_status_command(device_id: str, command: str) -> str | None:
     device = (device_id or "").strip().lower()
     action = (command or "").strip().lower()
     if device == "ping" and not action:
-        return "ping"
+        return "status"
     if device == "version" and not action:
         return "version"
     return None
@@ -92,20 +98,20 @@ async def async_send_protocol_command(
         raise HomeAssistantError("Device ID is required.")
 
     gateway_command = _is_gateway_status_command(clean_device, clean_command)
-    if gateway_command == "ping":
+    if gateway_command == "status":
         return await async_ping_gateway(hass)
     if gateway_command == "version":
         return await async_version_gateway(hass)
 
     if "rflink" not in hass.config.components:
-        message = "Home Assistant RFLink integration is not loaded. Check configuration.yaml and restart Home Assistant."
+        message = "Home Assistant RFLink is not loaded. Check configuration.yaml and restart Home Assistant."
         _set_status(hass, error=message, command=f"{clean_device};{clean_command}".strip(";"))
         raise HomeAssistantError(message)
 
     repeat = max(1, int(repeat or 1))
     delay_ms = max(0, int(delay_ms or 0))
-
     sent = []
+
     try:
         for index in range(repeat):
             await _call_rflink_send_command_service(hass, clean_device, clean_command)
@@ -114,8 +120,11 @@ async def async_send_protocol_command(
                 await asyncio.sleep(delay_ms / 1000)
     except Exception as err:
         message = str(err) or repr(err)
-        if message.strip() in {"Unknown command.", "Unknown command"}:
-            message = "RFLink reported Unknown command. Use a learned RFLink device command on Send, or use Debug for Ping/Version."
+        if _is_unknown_command_text(message):
+            message = (
+                "RFLink rejected that command. Use a real learned device command on Send, "
+                "not a placeholder/example."
+            )
         _set_status(hass, error=message, command=f"{clean_device};{clean_command}".strip(";"))
         raise HomeAssistantError(message) from err
 
@@ -145,19 +154,19 @@ async def async_send_raw_command(
 async def async_ping_gateway(hass: HomeAssistant) -> dict:
     loaded = "rflink" in hass.config.components
     if loaded:
-        message = "RFLink integration is loaded. Use a learned device command for hardware send testing."
+        message = "Home Assistant RFLink is loaded. Use Send with a learned device command for hardware testing."
     else:
-        message = "RFLink integration is not loaded yet. Check configuration.yaml and restart Home Assistant."
-    _set_status(hass, result=message, command="PING")
+        message = "Home Assistant RFLink is not loaded yet. Check configuration.yaml and restart Home Assistant."
+    _set_status(hass, result=message, command="STATUS")
     return {"ok": bool(loaded), "message": message, "loaded": loaded}
 
 
 async def async_version_gateway(hass: HomeAssistant) -> dict:
     loaded = "rflink" in hass.config.components
     if loaded:
-        message = "RFLink integration is loaded. Gateway VERSION is not exposed by HA's RFLink service on all versions."
+        message = "Home Assistant RFLink is loaded. Generic gateway version is not exposed on all HA RFLink versions."
     else:
-        message = "RFLink integration is not loaded yet. Check configuration.yaml and restart Home Assistant."
+        message = "Home Assistant RFLink is not loaded yet. Check configuration.yaml and restart Home Assistant."
     _set_status(hass, result=message, command="VERSION")
     return {"ok": bool(loaded), "message": message, "loaded": loaded}
 
@@ -165,21 +174,22 @@ async def async_version_gateway(hass: HomeAssistant) -> dict:
 async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -> dict:
     kind = (debug_type or "").strip().lower()
     if kind not in {"rfdebug", "qrfdebug"}:
-        message = "debug_type must be rfdebug or qrfdebug."
+        message = "Debug type must be rfdebug or qrfdebug."
         _set_status(hass, result=message, command="DEBUG")
         return {"ok": False, "local_state": False, "message": message}
 
     data = hass.data.setdefault(DOMAIN, {})
     if kind == "rfdebug":
         data[DATA_DEBUG_RF] = bool(enabled)
+        label = "Decoded RFLink logging"
     else:
         data[DATA_DEBUG_QRF] = bool(enabled)
+        label = "Raw RF capture logging"
 
-    label = kind.upper()
     command = "on" if enabled else "off"
 
     if "rflink" not in hass.config.components:
-        message = f"{label} switch set {command} locally. RFLink is not loaded, so no gateway command was sent."
+        message = f"{label} set {command} locally. Home Assistant RFLink is not loaded, so no gateway command was sent."
         _set_status(hass, result=message, command=f"{kind};{command}")
         return {"ok": False, "local_state": bool(enabled), "message": message}
 
@@ -190,6 +200,8 @@ async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -
         return {"ok": True, "local_state": bool(enabled), "message": message}
     except Exception as err:
         warning = str(err) or repr(err)
-        message = f"{label} switch set {command} locally, but RFLink rejected the debug command: {warning}"
+        if _is_unknown_command_text(warning):
+            warning = "RFLink/HA did not accept the debug command."
+        message = f"{label} set {command} locally. Gateway response: {warning}"
         _set_status(hass, result=message, command=f"{kind};{command}")
         return {"ok": False, "local_state": bool(enabled), "message": message}

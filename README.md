@@ -475,3 +475,39 @@ Raw RF capture logging
 ```
 
 The switches update immediately and also persist locally in the browser so they do not visually flip off when you change tabs.
+
+
+## Status API fix
+
+The red persistent `Unknown command` was coming from the frontend status check path, not necessarily from the Send action.
+
+The app no longer depends on the websocket command for status. It now registers:
+
+```text
+GET /api/rflink_raw/status
+```
+
+The frontend calls that endpoint with Home Assistant's `callApi`, sanitizes old generic RFLink command errors, and never displays backend history as an active red banner on refresh.
+
+If the status API is unavailable, the app shows a non-red status fallback instead of `Unknown command`.
+
+
+
+## Software cleanup final
+
+This package separates the app from the old Lovelace dashboard cleanup and fixes the remaining app UX issues:
+
+```text
+Send    = real learned device commands only.
+Capture = explains how to learn/capture commands from a physical remote.
+Debug   = human-readable logging switches with persistent visual state.
+Setup   = build/status/history without replaying stale errors as red banners.
+```
+
+The app now uses:
+
+```text
+GET /api/rflink_raw/status
+```
+
+for status instead of the older websocket status path. Generic stale `Unknown command` history is sanitized in both backend and frontend status.

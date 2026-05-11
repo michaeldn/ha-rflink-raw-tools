@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.components.frontend import async_register_built_in_panel, async_remove_panel
-from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.http import HomeAssistantView, StaticPathConfig
 from homeassistant.const import CONF_COMMAND, CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
@@ -123,7 +123,6 @@ def _clear_stale_unknown_command(hass: HomeAssistant) -> None:
     """Clear old Unknown command errors from previous UI attempts."""
     _sanitize_status_data(hass)
 
-
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
     _sanitize_status_data(hass)
@@ -173,6 +172,19 @@ def _websocket_status(hass: HomeAssistant, connection, msg) -> None:
     connection.send_result(msg["id"], _status_payload(hass))
 
 
+class RFLinkRawStatusView(HomeAssistantView):
+    """HTTP API status endpoint for the RFLink Raw Tools app."""
+
+    url = "/api/rflink_raw/status"
+    name = "api:rflink_raw:status"
+    requires_auth = True
+
+    async def get(self, request):
+        """Return status payload."""
+        hass: HomeAssistant = request.app["hass"]
+        return self.json(_status_payload(hass))
+
+
 async def _async_register_panel(hass: HomeAssistant) -> None:
     """Register static app files and the sidebar panel."""
     app_dir = Path(__file__).parent / "www"
@@ -208,6 +220,11 @@ async def _async_register_backend(hass: HomeAssistant) -> None:
     websocket command available yet.
     """
     data = hass.data.setdefault(DOMAIN, {})
+
+    if not data.get("_status_view_registered"):
+        hass.http.register_view(RFLinkRawStatusView)
+        data["_status_view_registered"] = True
+
     if data.get("_backend_registered"):
         return
 
