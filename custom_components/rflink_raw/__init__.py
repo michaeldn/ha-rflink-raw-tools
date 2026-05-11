@@ -93,6 +93,23 @@ def _rflink_config_source(hass: HomeAssistant) -> str:
     return "configuration.yaml" if _rflink_configured(hass) else ""
 
 
+
+def _clear_status_data(hass: HomeAssistant) -> None:
+    """Clear transient app status shown in the UI."""
+    data = hass.data.setdefault(DOMAIN, {})
+    data[DATA_LAST_RESULT] = ""
+    data[DATA_LAST_ERROR] = ""
+    data[DATA_LAST_COMMAND] = ""
+    data[DATA_LAST_UPDATED] = ""
+
+
+def _clear_stale_unknown_command(hass: HomeAssistant) -> None:
+    """Clear old Unknown command errors from previous UI attempts."""
+    data = hass.data.setdefault(DOMAIN, {})
+    if str(data.get(DATA_LAST_ERROR, "")).strip() in {"Unknown command.", "Unknown command"}:
+        data[DATA_LAST_ERROR] = ""
+
+
 def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Return app status payload."""
     data = hass.data.setdefault(DOMAIN, {})
@@ -205,11 +222,17 @@ async def _async_register_backend(hass: HomeAssistant) -> None:
     async def set_debug(call: ServiceCall) -> None:
         await async_set_debug(hass, call.data["debug_type"], call.data["enabled"])
 
+    async def clear_status(call: ServiceCall) -> None:
+        _clear_status_data(hass)
+
+    _clear_stale_unknown_command(hass)
+
     hass.services.async_register(DOMAIN, "send_raw", send_raw, schema=SEND_RAW_SCHEMA)
     hass.services.async_register(DOMAIN, "send_protocol", send_protocol, schema=SEND_PROTOCOL_SCHEMA)
     hass.services.async_register(DOMAIN, "ping_gateway", ping_gateway)
     hass.services.async_register(DOMAIN, "version_gateway", version_gateway)
     hass.services.async_register(DOMAIN, "set_debug", set_debug, schema=SET_DEBUG_SCHEMA)
+    hass.services.async_register(DOMAIN, "clear_status", clear_status)
 
     websocket_api.async_register_command(
         hass,

@@ -10,7 +10,7 @@ grep -n "APP_BUILD_ID" "$APP" || true
 grep -n "PANEL_BUILD\|PANEL_MODULE" "$CONST" || true
 
 echo ""
-echo "Expected app build: pre-restart-check-fix-20260510"
+echo "Expected app build: install-gate-restart-fix-20260510"
 
 echo ""
 echo "Runtime Python cache note:"
@@ -23,5 +23,5 @@ find "$COMP" -type d -name '__pycache__' -print
 find "$COMP" -type f -name '*.pyc' -print
 
 echo ""
-echo "To verify install cleanliness before restart, run this immediately after install and before ha core restart:"
+echo "To verify install cleanliness before restart, run immediately after install and before ha core restart:"
 echo "sh /config/check-rflink-before-restart.sh"

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-pre-restart-check-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-pre-restart-check-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-error-state-ux-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-error-state-ux-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -52,12 +52,12 @@ if errors:
     raise SystemExit(errors)
 if list(Path(".").rglob("__pycache__")) or list(Path(".").rglob("*.pyc")):
     raise SystemExit("Cache artifacts still present")
-print("Python compile and pre-commit no-cache checks passed.")
+print("Python compile and no-cache checks passed.")
 PY
 
 git status --short
 git add -A
-git commit -m "Add RFLink pre-restart install cleanliness check" || true
+git commit -m "Fix RFLink stale error state UX" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"

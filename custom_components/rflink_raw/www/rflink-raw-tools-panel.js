@@ -1,4 +1,4 @@
-const APP_BUILD_ID = "pre-restart-check-fix-20260510";
+const APP_BUILD_ID = "error-state-ux-fix-20260510";
 class RFLinkRawToolsPanel extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
@@ -36,8 +36,11 @@ class RFLinkRawToolsPanel extends HTMLElement {
     try {
       const status = await this._hass.callWS({ type: "rflink_raw/status" });
       this._state.status = status;
-      this._state.error = status.last_error || "";
-      this._state.message = status.last_result || "";
+      // Status load should not replay old backend errors as active red banners.
+      // Active red errors are only for the action the user just clicked.
+      if (!this._state.busy) {
+        this._state.error = "";
+      }
       this._update();
     } catch (err) {
       this._state.status = {
@@ -659,10 +662,11 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <p class="help">${status.readiness_detail || "Use Ping on the Debug page to test the gateway."}</p>\n          <p class="help">If your RFLink block exists but this says Not found, use Debug → Ping gateway. The app can still work if Home Assistant has loaded RFLink.</p>
           <p><b>Last command:</b> ${status.last_command || "None yet"}</p>
           <p><b>Last result:</b> ${status.last_result || "None yet"}</p>
-          <p><b>Last error:</b> ${status.last_error || "None"}</p>
+          <p><b>Last backend error:</b> ${status.last_error || "None"}</p>
           <p><b>Last updated:</b> ${status.last_updated || "Never"}</p>
           <div class="actions">
             <button data-action="_loadStatus">Refresh status</button>
+            <button class="secondary" data-action="_clearStatus">Clear status</button>
           </div>
         </div>
         <div class="card">
@@ -685,6 +689,12 @@ class RFLinkRawToolsPanel extends HTMLElement {
     this._state.message = "Raw command cleared.";
     this._state.error = "";
     this._update();
+  }
+
+  async _clearStatus() {
+    this._state.message = "";
+    this._state.error = "";
+    await this._callService("rflink_raw", "clear_status", {}, "Status cleared.");
   }
   _rfdebugOn() { return this._setDebug("rfdebug", true); }
   _rfdebugOff() { return this._setDebug("rfdebug", false); }

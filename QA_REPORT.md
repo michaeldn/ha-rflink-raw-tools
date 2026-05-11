@@ -53,3 +53,11 @@
 - [x] Installer checks package cache after cleanup
 - [x] Installer runs installed target pre-restart cache check
 - [x] /config/check-rflink-before-restart.sh included
+- [x] install.sh gates ha core restart behind pre-restart checks
+- [x] install.sh uses grep-based cache artifact checks
+- [x] install.sh throws error and does not restart if checks fail
+- [x] /config/check-rflink-before-restart.sh exits nonzero on cache artifacts
+- [x] Status load no longer replays old backend errors as active red banners
+- [x] clear_status service added
+- [x] Setup page has Clear status action
+- [x] Old Unknown command errors are scrubbed on setup

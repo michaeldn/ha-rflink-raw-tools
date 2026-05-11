@@ -8,6 +8,29 @@ TMP_DIR="$TMP_ROOT/ha-rflink-raw-tools-main"
 TARGET_DIR="/config/custom_components/rflink_raw"
 BACKUP_DIR="/config/.rflink_raw_installer_backups/install_$(date +%Y%m%d_%H%M%S)"
 
+fail() {
+  echo ""
+  echo "ERROR: $*" >&2
+  echo "Home Assistant Core was NOT restarted." >&2
+  exit 1
+}
+
+has_cache_artifacts() {
+  DIR="$1"
+  {
+    find "$DIR" -type d -name '__pycache__' -print
+    find "$DIR" -type f -name '*.pyc' -print
+  } | grep -q .
+}
+
+print_cache_artifacts() {
+  DIR="$1"
+  {
+    find "$DIR" -type d -name '__pycache__' -print
+    find "$DIR" -type f -name '*.pyc' -print
+  } || true
+}
+
 mkdir -p /config/custom_components "$BACKUP_DIR"
 
 if [ -d "$TARGET_DIR" ]; then
@@ -23,8 +46,7 @@ unzip -o "$TMP_ZIP" -d "$TMP_ROOT"
 
 echo ""
 echo "=== Package cache check before cleanup ==="
-find "$TMP_DIR" -type d -name '__pycache__' -print || true
-find "$TMP_DIR" -type f -name '*.pyc' -print || true
+print_cache_artifacts "$TMP_DIR"
 
 find "$TMP_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$TMP_DIR" -type f -name '*.pyc' -delete
@@ -32,13 +54,9 @@ find "$TMP_DIR" -type f -name '.DS_Store' -delete
 
 echo ""
 echo "=== Package cache check after cleanup ==="
-if find "$TMP_DIR" -type d -name '__pycache__' -print | grep -q .; then
-  echo "FAIL: package still has __pycache__ after cleanup"
-  exit 2
-fi
-if find "$TMP_DIR" -type f -name '*.pyc' -print | grep -q .; then
-  echo "FAIL: package still has *.pyc after cleanup"
-  exit 2
+if has_cache_artifacts "$TMP_DIR"; then
+  print_cache_artifacts "$TMP_DIR"
+  fail "Package still has __pycache__ or *.pyc after cleanup."
 fi
 echo "PASS: package source is clean before install copy."
 
@@ -58,9 +76,12 @@ done
 
 echo ""
 echo "=== Installed target pre-restart check ==="
-sh /config/check-rflink-before-restart.sh
+if ! sh /config/check-rflink-before-restart.sh; then
+  fail "Installed target failed pre-restart check."
+fi
 
 echo ""
-echo "Installed RFLink Raw Tools app baseline."
+echo "All pre-restart checks passed."
 echo "Backup saved to $BACKUP_DIR"
-echo "Restart Home Assistant Core: ha core restart"
+echo "Restarting Home Assistant Core now..."
+ha core restart

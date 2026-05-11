@@ -401,3 +401,56 @@ PASS: no __pycache__ or *.pyc in installed target before restart.
 ```
 
 After restart, Home Assistant/Python may recreate `__pycache__/*.pyc`. That is normal runtime bytecode.
+
+
+
+## Installer gated restart
+
+The installer now uses explicit shell checks before restarting Home Assistant Core.
+
+It checks with `find ... | grep -q .` logic:
+
+```text
+1. Check downloaded package before cleanup.
+2. Remove __pycache__ and *.pyc.
+3. Check downloaded package after cleanup.
+4. Copy integration into /config/custom_components/rflink_raw.
+5. Remove cache artifacts from installed target.
+6. Run /config/check-rflink-before-restart.sh.
+7. Restart Core only if all checks pass.
+```
+
+If a check fails, the installer exits with an error and does **not** run:
+
+```bash
+ha core restart
+```
+
+
+
+## Error-state UX fix
+
+A hard browser refresh reloads JavaScript, but it does not necessarily clear backend app state stored in Home Assistant memory.
+
+The UI now separates:
+
+```text
+Active error = only the action the user just clicked.
+Backend history = last result/error shown on Setup.
+```
+
+The Send tab no longer replays an old backend `Unknown command` as a red banner on page load or refresh.
+
+The Setup page now has:
+
+```text
+Clear status
+```
+
+which calls:
+
+```text
+rflink_raw.clear_status
+```
+
+and clears the app's last result, last error, last command, and active UI banner.

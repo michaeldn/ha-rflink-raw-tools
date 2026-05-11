@@ -14,22 +14,22 @@ grep -n "APP_BUILD_ID" "$APP" || true
 grep -n "PANEL_BUILD\|PANEL_MODULE" "$CONST" || true
 
 echo ""
-echo "Package/install cache artifacts before restart:"
-CACHE_FOUND=0
-if find "$TARGET" -type d -name '__pycache__' -print | grep -q .; then
-  CACHE_FOUND=1
-fi
-if find "$TARGET" -type f -name '*.pyc' -print | grep -q .; then
-  CACHE_FOUND=1
-fi
+echo "Installed target cache artifacts before restart:"
+CACHE_OUTPUT="$(
+  {
+    find "$TARGET" -type d -name '__pycache__' -print
+    find "$TARGET" -type f -name '*.pyc' -print
+  } || true
+)"
 
-if [ "$CACHE_FOUND" -eq 0 ]; then
-  echo "PASS: no __pycache__ or *.pyc in installed target before restart."
-else
+if echo "$CACHE_OUTPUT" | grep -q .; then
+  echo "$CACHE_OUTPUT"
+  echo ""
   echo "FAIL: cache artifacts exist before restart."
-  echo "Run: sh /config/clean-rflink-runtime-cache.sh"
   exit 2
 fi
+
+echo "PASS: no __pycache__ or *.pyc in installed target before restart."
 
 echo ""
 echo "Important:"

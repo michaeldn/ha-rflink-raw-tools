@@ -77,3 +77,8 @@ set_debug:
       required: true
       selector:
         boolean:
+
+
+clear_status:
+  name: Clear RFLink Raw Tools status
+  description: Clear the app's last result, last error, and last command display.
