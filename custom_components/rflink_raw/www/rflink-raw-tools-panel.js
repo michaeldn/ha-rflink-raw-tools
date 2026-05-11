@@ -1,4 +1,4 @@
-const APP_BUILD_ID = "debug-status-ux-fix-20260510";
+const APP_BUILD_ID = "runtime-cache-check-fix-20260510";
 class RFLinkRawToolsPanel extends HTMLElement {
   set hass(hass) {
     this._hass = hass;

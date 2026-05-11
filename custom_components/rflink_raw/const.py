@@ -8,7 +8,7 @@ PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
 STATIC_URL = "/api/rflink_raw/static"
-PANEL_BUILD = "debug-status-ux-fix-20260510"
+PANEL_BUILD = "runtime-cache-check-fix-20260510"
 PANEL_MODULE = f"{STATIC_URL}/rflink-raw-tools-panel.js?v={PANEL_BUILD}"
 
 DATA_LAST_RESULT = "last_result"

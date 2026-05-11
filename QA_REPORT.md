@@ -46,3 +46,6 @@
 - [x] Debug command rejection is shown as informational result, not persistent error
 - [x] Ping/Version clear stale Unknown command messages
 - [x] Setup copy distinguishes RFLink configuration scan from runtime loaded status
+- [x] Check script correctly explains runtime __pycache__ behavior
+- [x] Runtime cache cleanup script included
+- [x] Package zip contains no __pycache__ and no *.pyc

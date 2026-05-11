@@ -339,3 +339,37 @@ RFDEBUG/QRFDEBUG switches now update visually immediately, and the labels show E
 If RFLink rejects a debug command, the app keeps the local switch state and shows an informational result instead of leaving a persistent red error. Ping/Version also overwrite stale "Unknown command" messages with clean status results.
 
 The Setup page now says **RFLink configuration scan** because it is only a text scan of configuration.yaml, not proof that the app is broken.
+
+
+
+## Runtime Python cache check fix
+
+The previous check script said nothing should print under cache artifacts. That was wrong after a Home Assistant restart.
+
+Home Assistant/Python may create runtime bytecode files here:
+
+```text
+/config/custom_components/rflink_raw/__pycache__/*.pyc
+```
+
+That is normal after Core imports the integration. The real packaging rule is:
+
+```text
+The repo/zip should not ship __pycache__ or *.pyc.
+The installer should remove any shipped/stale cache files before install.
+Runtime cache may appear again after restart.
+```
+
+Use:
+
+```bash
+sh /config/check-rflink-app-build.sh
+```
+
+To remove runtime cache manually:
+
+```bash
+sh /config/clean-rflink-runtime-cache.sh
+```
+
+It may return after another restart, which is expected.
