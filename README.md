@@ -373,3 +373,31 @@ sh /config/clean-rflink-runtime-cache.sh
 ```
 
 It may return after another restart, which is expected.
+
+
+
+## Pre-restart install cleanliness check
+
+The installer now checks cache artifacts before Home Assistant restarts.
+
+During install it prints:
+
+```text
+Package cache check before cleanup
+Package cache check after cleanup
+Installed target pre-restart check
+```
+
+You can also run this immediately after install and **before** `ha core restart`:
+
+```bash
+sh /config/check-rflink-before-restart.sh
+```
+
+Expected before restart:
+
+```text
+PASS: no __pycache__ or *.pyc in installed target before restart.
+```
+
+After restart, Home Assistant/Python may recreate `__pycache__/*.pyc`. That is normal runtime bytecode.

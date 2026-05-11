@@ -49,3 +49,7 @@
 - [x] Check script correctly explains runtime __pycache__ behavior
 - [x] Runtime cache cleanup script included
 - [x] Package zip contains no __pycache__ and no *.pyc
+- [x] Installer checks package cache before cleanup
+- [x] Installer checks package cache after cleanup
+- [x] Installer runs installed target pre-restart cache check
+- [x] /config/check-rflink-before-restart.sh included
