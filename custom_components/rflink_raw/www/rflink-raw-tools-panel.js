@@ -1,4 +1,4 @@
-const APP_BUILD_ID = "app-cachebust-send-fix-20260510";
+const APP_BUILD_ID = "debug-status-ux-fix-20260510";
 class RFLinkRawToolsPanel extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
@@ -143,6 +143,13 @@ class RFLinkRawToolsPanel extends HTMLElement {
   }
 
   async _setDebug(debugType, enabled) {
+    this._state.status = this._state.status || {};
+    if (debugType === "rfdebug") this._state.status.rfdebug = Boolean(enabled);
+    if (debugType === "qrfdebug") this._state.status.qrfdebug = Boolean(enabled);
+    this._state.message = `${debugType.toUpperCase()} ${enabled ? "enabled" : "disabled"}.`;
+    this._state.error = "";
+    this._update();
+
     await this._callService("rflink_raw", "set_debug", {
       debug_type: debugType,
       enabled
@@ -616,7 +623,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <div class="toggle-row">
             <div class="toggle-text">
               <div class="toggle-title">RFDEBUG</div>
-              <div class="toggle-help">Detailed RFLink debug output.</div>
+              <div class="toggle-help">${this._state.status && this._state.status.rfdebug ? "Enabled" : "Disabled"} — detailed RFLink debug output.</div>
             </div>
             <label class="switch">
               <input type="checkbox" data-toggle-debug="rfdebug" ${this._state.status && this._state.status.rfdebug ? "checked" : ""}>
@@ -627,7 +634,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <div class="toggle-row">
             <div class="toggle-text">
               <div class="toggle-title">QRFDEBUG</div>
-              <div class="toggle-help">Raw RF capture/debug output.</div>
+              <div class="toggle-help">${this._state.status && this._state.status.qrfdebug ? "Enabled" : "Disabled"} — raw RF capture/debug output.</div>
             </div>
             <label class="switch">
               <input type="checkbox" data-toggle-debug="qrfdebug" ${this._state.status && this._state.status.qrfdebug ? "checked" : ""}>
@@ -647,9 +654,9 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <h2>Status</h2>
           <p><b>Integration version:</b> ${status.version || "0.0.1"}</p>
           <p><b>App build:</b> ${typeof APP_BUILD_ID !== "undefined" ? APP_BUILD_ID : "unknown"}</p>
-          <p><b>RFLink configuration:</b> ${status.rflink_configured ? "Found" : "Not found"} ${status.rflink_config_source ? `(${status.rflink_config_source})` : ""}</p>
+          <p><b>RFLink configuration scan:</b> ${status.rflink_configured ? "Found" : "Not found"} ${status.rflink_config_source ? `(${status.rflink_config_source})` : ""}</p>
           <p><b>RFLink live bridge:</b> ${status.rflink_connected ? "Connected" : "Not confirmed yet"}</p>
-          <p class="help">${status.readiness_detail || "Use Ping on the Debug page to test the gateway."}</p>
+          <p class="help">${status.readiness_detail || "Use Ping on the Debug page to test the gateway."}</p>\n          <p class="help">If your RFLink block exists but this says Not found, use Debug → Ping gateway. The app can still work if Home Assistant has loaded RFLink.</p>
           <p><b>Last command:</b> ${status.last_command || "None yet"}</p>
           <p><b>Last result:</b> ${status.last_result || "None yet"}</p>
           <p><b>Last error:</b> ${status.last_error || "None"}</p>

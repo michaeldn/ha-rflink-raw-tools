@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ping-clean-final-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-ping-clean-final-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-debug-status-ux-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-debug-status-ux-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 if [ ! -d "$REPO/.git" ]; then echo "Local repo not found: $REPO"; exit 1; fi
 rm -rf "$EXTRACT"; mkdir -p "$EXTRACT"; unzip -o "$ZIP" -d "$EXTRACT"
@@ -32,6 +32,6 @@ print("Python compile and no-cache checks passed.")
 PY
 git status --short
 git add -A
-git commit -m "Fix RFLink ping behavior and remove cache artifacts" || true
+git commit -m "Improve RFLink debug switch and status UX" || true
 git push origin main
 echo "Done. Backup saved to $BACKUP"

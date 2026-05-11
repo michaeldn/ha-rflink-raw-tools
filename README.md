@@ -329,3 +329,13 @@ sh /config/check-rflink-app-build.sh
 ```
 
 Nothing should print under **Cache artifacts check**.
+
+
+
+## Debug switch/status UX fix
+
+RFDEBUG/QRFDEBUG switches now update visually immediately, and the labels show Enabled/Disabled.
+
+If RFLink rejects a debug command, the app keeps the local switch state and shows an informational result instead of leaving a persistent red error. Ping/Version also overwrite stale "Unknown command" messages with clean status results.
+
+The Setup page now says **RFLink configuration scan** because it is only a text scan of configuration.yaml, not proof that the app is broken.

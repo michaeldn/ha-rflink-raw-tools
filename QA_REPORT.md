@@ -42,3 +42,7 @@
 - [x] version_gateway never raises for diagnostic status check
 - [x] install.sh removes __pycache__ and *.pyc before and after install
 - [x] package contains no __pycache__ and no *.pyc
+- [x] RFDEBUG/QRFDEBUG switch state updates immediately in UI
+- [x] Debug command rejection is shown as informational result, not persistent error
+- [x] Ping/Version clear stale Unknown command messages
+- [x] Setup copy distinguishes RFLink configuration scan from runtime loaded status

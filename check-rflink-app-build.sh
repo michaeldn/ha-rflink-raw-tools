@@ -11,3 +11,5 @@ find /config/custom_components/rflink_raw -type d -name '__pycache__' -print
 find /config/custom_components/rflink_raw -type f -name '*.pyc' -print
 echo ""
 echo "Nothing should print under Cache artifacts check."
+
+echo "Expected app build: debug-status-ux-fix-20260510"
