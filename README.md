@@ -511,3 +511,7 @@ GET /api/rflink_raw/status
 ```
 
 for status instead of the older websocket status path. Generic stale `Unknown command` history is sanitized in both backend and frontend status.
+
+## Helpful tool rebuild
+
+Pages: Send, Captured, Debug, Setup. Captured shows RFLink entity registry entries and recent RFLink log lines. Setup can add a conservative top-level `rflink:` YAML block if missing. Version remains 0.0.1.

@@ -1,8 +1,5 @@
 __pycache__/
 *.py[cod]
-*$py.class
-.pytest_cache/
 .DS_Store
+.pytest_cache/
 _patch_backups/
-*.bak
-*.tmp

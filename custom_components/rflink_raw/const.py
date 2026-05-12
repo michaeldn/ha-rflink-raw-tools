@@ -3,14 +3,12 @@
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 VERSION = "0.0.1"
-
+PANEL_BUILD = "helpful-tool-rebuild-20260511"
 PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
 STATIC_URL = "/api/rflink_raw/static"
-PANEL_BUILD = "software-cleanup-final-20260511"
 PANEL_MODULE = f"{STATIC_URL}/rflink-raw-tools-panel.js?v={PANEL_BUILD}"
-
 DATA_LAST_RESULT = "last_result"
 DATA_LAST_ERROR = "last_error"
 DATA_LAST_COMMAND = "last_command"

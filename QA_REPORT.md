@@ -1,77 +1,11 @@
-# RFLink Raw Tools 0.0.1 App Baseline QA Report
+# RFLink Raw Tools 0.0.1 Helpful Tool Rebuild QA
 
-- [x] Version is 0.0.1
-- [x] No button.py
-- [x] No __pycache__
-- [x] No *.pyc
-- [x] Python compile
-- [x] Custom app JS exists
-- [x] No generated dashboard
-- [x] HACS metadata exists
-- [x] Approved logo hash
-- [x] Approved icon hash
-- [x] No self-updater file
-- [x] No registry cleanup surgery
-- [x] Panel overwrite guard: async_remove_panel before async_register_built_in_panel
-- [x] HACS metadata present
-- [x] App static logo exists at custom_components/rflink_raw/www/logo.png
-- [x] App static icon exists at custom_components/rflink_raw/www/icon.png
-- [x] Approved logo hash preserved
-- [x] Approved icon hash preserved
-- [x] Status payload separates configured vs connected
-- [x] UI avoids scary RFLink not confirmed wording when config exists
-- [x] Status call has explicit status_error fallback
-- [x] Ping gateway no longer sends invalid device_id-less RFLink command
-- [x] Send raw uses Home Assistant rflink.send_command service
-- [x] async_setup returns True
-- [x] ping_gateway/version_gateway/set_debug are nested inside async_setup
-- [x] Static AST test added for async_setup structure
-- [x] Backend registration called from async_setup and async_setup_entry
-- [x] Websocket status command registered idempotently
-- [x] Debug UI uses RFDEBUG/QRFDEBUG switches
-- [x] Send page no longer defaults to 10;PING;
-- [x] Send tab detects 10;PING; and routes to ping_gateway
-- [x] Send tab detects 10;VERSION; and routes to version_gateway
-- [x] App clears stale PING/VERSION rawCommand from localStorage
-- [x] Send tab has clear command action
-- [x] Frontend module URL includes cache-busting build id
-- [x] Send tab has Clear command button
-- [x] Setup tab exposes app build id
-- [x] Example Chuango fake command removed
-- [x] ping_gateway never raises for diagnostic status check
-- [x] version_gateway never raises for diagnostic status check
-- [x] install.sh removes __pycache__ and *.pyc before and after install
-- [x] package contains no __pycache__ and no *.pyc
-- [x] RFDEBUG/QRFDEBUG switch state updates immediately in UI
-- [x] Debug command rejection is shown as informational result, not persistent error
-- [x] Ping/Version clear stale Unknown command messages
-- [x] Setup copy distinguishes RFLink configuration scan from runtime loaded status
-- [x] Check script correctly explains runtime __pycache__ behavior
-- [x] Runtime cache cleanup script included
-- [x] Package zip contains no __pycache__ and no *.pyc
-- [x] Installer checks package cache before cleanup
-- [x] Installer checks package cache after cleanup
-- [x] Installer runs installed target pre-restart cache check
-- [x] /config/check-rflink-before-restart.sh included
-- [x] install.sh gates ha core restart behind pre-restart checks
-- [x] install.sh uses grep-based cache artifact checks
-- [x] install.sh throws error and does not restart if checks fail
-- [x] /config/check-rflink-before-restart.sh exits nonzero on cache artifacts
-- [x] Status load no longer replays old backend errors as active red banners
-- [x] clear_status service added
-- [x] Setup page has Clear status action
-- [x] Old Unknown command errors are scrubbed on setup
-- [x] Backend sanitizes stale Unknown command on every status payload
-- [x] Frontend auto-clears stale Unknown command backend state once
-- [x] Debug switches have human-readable labels
-- [x] Debug switch visual state persists across page tabs
-- [x] Learn page renamed to Capture with clear purpose
-- [x] REST status API view registered at /api/rflink_raw/status
-- [x] Frontend status load uses callApi instead of websocket callWS
-- [x] Status API failures are non-red fallback states
-- [x] Backend sanitizes generic Unknown command on every status read
-- [x] Send page limited to learned device commands
-- [x] Capture page replaces confusing Learn page
-- [x] Debug switches have human labels and persistent visual state
-- [x] Status uses REST API and does not replay stale Unknown command as red banner
+- [x] Version remains 0.0.1
+- [x] Send page does not use Ping/Version as device commands
+- [x] Captured page shows RFLink entity registry entries
+- [x] Captured page shows recent RFLink log lines
+- [x] Setup can install conservative rflink YAML if missing
+- [x] Diagnostics do not throw red Unknown command errors
+- [x] REST APIs registered for status/entities/logs
 - [x] No button.py, no updater.py, no generated dashboard
+- [x] Package zip contains no __pycache__ and no *.pyc

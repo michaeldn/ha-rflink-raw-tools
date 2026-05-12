@@ -1,6 +1,6 @@
 send_raw:
   name: Send raw RFLink command
-  description: Send a full RFLink command string such as 10;NewKaku;01a2b3;1;ON;.
+  description: Send a full learned RFLink command string.
   fields:
     raw_command:
       required: true
@@ -23,10 +23,9 @@ send_raw:
           max: 5000
           unit_of_measurement: ms
           mode: box
-
 send_protocol:
   name: Send RFLink protocol command
-  description: Send a device id and command through the RFLink gateway.
+  description: Send a device id and command through RFLink.
   fields:
     device_id:
       required: true
@@ -36,35 +35,15 @@ send_protocol:
       required: true
       selector:
         text:
-    repeat:
-      required: false
-      default: 1
-      selector:
-        number:
-          min: 1
-          max: 20
-          mode: box
-    delay_ms:
-      required: false
-      default: 250
-      selector:
-        number:
-          min: 0
-          max: 5000
-          unit_of_measurement: ms
-          mode: box
-
 ping_gateway:
-  name: Ping RFLink gateway
-  description: Send a gateway ping/control command.
-
+  name: Check RFLink setup
+  description: Non-throwing app diagnostic.
 version_gateway:
-  name: Ask RFLink gateway version
-  description: Send a gateway version/control command.
-
+  name: Check RFLink version support
+  description: Non-throwing app diagnostic.
 set_debug:
-  name: Set RFLink debug mode
-  description: Turn RFDEBUG or QRFDEBUG on/off.
+  name: Set RFLink logging mode
+  description: Turn decoded or raw RF capture logging on/off.
   fields:
     debug_type:
       required: true
@@ -77,8 +56,15 @@ set_debug:
       required: true
       selector:
         boolean:
-
-
 clear_status:
   name: Clear RFLink Raw Tools status
-  description: Clear the app's last result, last error, and last command display.
+  description: Clear the app status display.
+install_rflink_yaml:
+  name: Install RFLink YAML
+  description: Add a conservative rflink block to configuration.yaml if missing.
+  fields:
+    port:
+      required: false
+      default: /dev/ttyUSB0
+      selector:
+        text:
