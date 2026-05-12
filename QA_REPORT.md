@@ -48,3 +48,8 @@
 - [x] Blue active tab moves when changing tabs
 - [x] Send is not stuck blue unless Send is the current tab
 - [x] Setup is blue only when Setup is the current tab
+- [x] Captured page clearly separates discovered entities from raw packets
+- [x] Captured entity table shows RFLink device key
+- [x] Captured entity table shows candidate ON/OFF raw commands for light/switch entities
+- [x] Raw packet panel reads recent 10;/20; RFLink packets from home-assistant.log
+- [x] Raw packet panel explains how to populate raw captures

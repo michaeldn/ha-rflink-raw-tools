@@ -656,3 +656,21 @@ The body changed on tab click, but the tab button classes did not update.
 ```
 
 The app now updates the active class for Send / Captured / Debug / Setup every time `_state.tab` changes.
+
+
+## Captured raw fix
+
+The Captured page now separates two different concepts:
+
+```text
+Discovered RFLink entities = Home Assistant entity registry records
+Raw RFLink packets = recent 10;/20; packet lines from home-assistant.log
+```
+
+The entity table now includes RFLink device keys and candidate ON/OFF raw commands where possible.
+
+The raw packet panel explains exactly how to populate it:
+
+```text
+Debug → Raw RF capture logging → press physical remote → Captured → Refresh
+```

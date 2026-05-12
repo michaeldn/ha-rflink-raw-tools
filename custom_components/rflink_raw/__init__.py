@@ -59,24 +59,102 @@ def _status_payload(hass: HomeAssistant) -> dict[str, Any]:
         readiness, detail = 'not_configured', 'Use Setup -> Install RFLink YAML, then restart Home Assistant Core.'
     return {'version': VERSION, 'name': NAME, 'rflink_configured': configured, 'rflink_loaded': loaded, 'rflink_connected': connected, 'readiness': readiness, 'readiness_detail': detail, 'last_result': data.get(DATA_LAST_RESULT,''), 'last_error': data.get(DATA_LAST_ERROR,''), 'last_command': data.get(DATA_LAST_COMMAND,''), 'last_updated': data.get(DATA_LAST_UPDATED,''), 'rfdebug': bool(data.get(DATA_DEBUG_RF, False)), 'qrfdebug': bool(data.get(DATA_DEBUG_QRF, False))}
 
+
+def _split_entity_device_key(entity_id: str) -> dict[str, Any]:
+    suffix = entity_id.split('.', 1)[-1]
+    parts = suffix.split('_')
+    protocol = parts[0] if parts else suffix
+    address = parts[1] if len(parts) >= 2 else ''
+    switch = ''
+    sensor_suffixes = {'current','update','time','volt','voltage','watt','temperature','humidity','battery','status'}
+    if len(parts) >= 3 and parts[-1].lower() not in sensor_suffixes:
+        switch = parts[-1]
+    return {'device_key': suffix, 'protocol': protocol, 'address': address, 'switch': switch}
+
+def _entity_candidates(entity_id: str, domain: str) -> dict[str, str]:
+    parsed = _split_entity_device_key(entity_id)
+    protocol = parsed['protocol']; address = parsed['address']; switch = parsed['switch']
+    if domain not in {'light', 'switch'} or not protocol or not address:
+        return {}
+    if switch:
+        return {'on': f'10;{protocol};{address};{switch};ON;', 'off': f'10;{protocol};{address};{switch};OFF;'}
+    return {'on': f'10;{protocol};{address};ON;', 'off': f'10;{protocol};{address};OFF;'}
+
+def _parse_rflink_packet(line: str) -> dict[str, str]:
+    match = re.search(r'\b((?:10|20);[^\r\n]+)', line)
+    raw_packet = ''
+    send_candidate = ''
+    protocol = ''
+    command = ''
+    if match:
+        raw_packet = match.group(1).strip().strip(' "\'')
+        raw_packet = raw_packet.rstrip(' "\'')
+        parts = [p for p in raw_packet.split(';') if p != '']
+        if len(parts) >= 3 and parts[0] == '20':
+            protocol = parts[2]
+            values = {}
+            for token in parts[3:]:
+                if '=' in token:
+                    k, v = token.split('=', 1)
+                    values[k.strip().upper()] = v.strip()
+            rf_id = values.get('ID') or values.get('UNIT') or values.get('ADDRESS') or values.get('CODE') or ''
+            switch = values.get('SWITCH') or values.get('CHANNEL') or ''
+            command = values.get('CMD') or values.get('COMMAND') or ''
+            if protocol and rf_id and command:
+                send_candidate = f'10;{protocol};{rf_id};{switch + ";" if switch else ""}{command};'
+        elif len(parts) >= 2 and parts[0] == '10':
+            protocol = parts[1]
+            command = parts[-1] if len(parts) >= 3 else ''
+            send_candidate = raw_packet if raw_packet.endswith(';') else raw_packet + ';'
+    return {'raw_packet': raw_packet, 'send_candidate': send_candidate, 'protocol': protocol, 'command': command}
+
+
 def _read_logs(hass: HomeAssistant, max_lines: int = 120) -> list[dict[str,str]]:
     path = Path(hass.config.path('home-assistant.log'))
-    if not path.exists(): return []
-    out=[]
-    for line in path.read_text(errors='ignore').splitlines()[-3000:]:
-        low=line.lower()
-        if 'rflink' not in low and '433' not in low: continue
-        if 'unknown command' in low: continue
-        m = re.search(r'(10;[^\s]+;)', line)
-        out.append({'line': line[-600:], 'command': m.group(1) if m else ''})
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text(errors='ignore').splitlines()[-5000:]:
+        low = line.lower()
+        if 'rflink' not in low and '433' not in low:
+            continue
+        if 'unknown command' in low:
+            continue
+        parsed = _parse_rflink_packet(line)
+        out.append({
+            'line': line[-900:],
+            'command': parsed['send_candidate'],
+            'raw_packet': parsed['raw_packet'],
+            'send_candidate': parsed['send_candidate'],
+            'protocol': parsed['protocol'],
+            'packet_command': parsed['command'],
+        })
     return out[-max_lines:]
 
 def _entities(hass: HomeAssistant) -> list[dict[str,Any]]:
-    reg = er.async_get(hass); items=[]
+    reg = er.async_get(hass)
+    items = []
     for state in hass.states.async_all():
         entry = reg.async_get(state.entity_id)
-        if not entry or entry.platform != 'rflink': continue
-        items.append({'entity_id': state.entity_id, 'name': state.name, 'state': state.state, 'domain': state.entity_id.split('.',1)[0], 'unique_id': entry.unique_id, 'device_id': entry.device_id})
+        if not entry or entry.platform != 'rflink':
+            continue
+        domain = state.entity_id.split('.', 1)[0]
+        parsed = _split_entity_device_key(state.entity_id)
+        candidates = _entity_candidates(state.entity_id, domain)
+        items.append({
+            'entity_id': state.entity_id,
+            'name': state.name,
+            'state': state.state,
+            'domain': domain,
+            'unique_id': entry.unique_id,
+            'device_id': entry.device_id,
+            'device_key': parsed['device_key'],
+            'protocol': parsed['protocol'],
+            'address': parsed['address'],
+            'switch': parsed['switch'],
+            'candidate_on': candidates.get('on', ''),
+            'candidate_off': candidates.get('off', ''),
+        })
     return sorted(items, key=lambda x: x['entity_id'])
 
 @callback

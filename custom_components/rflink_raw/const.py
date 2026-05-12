@@ -3,7 +3,7 @@
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 VERSION = "0.0.1"
-PANEL_BUILD = "active-tab-state-fix-20260511"
+PANEL_BUILD = "captured-raw-fix-20260511"
 PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
