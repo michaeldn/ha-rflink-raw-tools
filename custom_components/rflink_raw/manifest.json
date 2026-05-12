@@ -1,20 +1,20 @@
 {
   "domain": "rflink_raw",
   "name": "RFLink Raw Tools",
-  "codeowners": [
-    "@michaeldn"
-  ],
-  "config_flow": true,
-  "documentation": "https://github.com/michaeldn/ha-rflink-raw-tools",
-  "issue_tracker": "https://github.com/michaeldn/ha-rflink-raw-tools/issues",
-  "requirements": [],
-  "version": "0.0.1",
-  "iot_class": "local_push",
-  "integration_type": "hub",
   "after_dependencies": [
     "frontend",
     "http",
     "rflink",
     "websocket_api"
-  ]
+  ],
+  "codeowners": [
+    "@michaeldn"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/michaeldn/ha-rflink-raw-tools",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/michaeldn/ha-rflink-raw-tools/issues",
+  "requirements": [],
+  "version": "0.0.1"
 }

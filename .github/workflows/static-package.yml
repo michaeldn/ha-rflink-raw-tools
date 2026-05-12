@@ -94,5 +94,10 @@ jobs:
               if dep not in manifest.get("after_dependencies", []):
                   raise SystemExit(f"after_dependencies must include {dep}")
 
+          keys = list(manifest.keys())
+          expected = ["domain", "name"] + sorted(key for key in keys if key not in {"domain", "name"})
+          if keys != expected:
+              raise SystemExit(f"Manifest keys are sorted incorrectly. Got {keys}; expected {expected}")
           print("Manifest and HACS metadata checks passed.")
+          print("Manifest keys are sorted Hassfest-style.")
           PY

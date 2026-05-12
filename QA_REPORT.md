@@ -34,3 +34,7 @@
 - [x] Integration domain remains in custom_components/rflink_raw/manifest.json
 - [x] Static package workflow rejects domains in hacs.json
 - [x] Hassfest dependency fix preserved
+- [x] manifest.json keys sorted as domain, name, then alphabetical
+- [x] Static package workflow checks Hassfest manifest key order
+- [x] HACS JSON schema fix preserved
+- [x] Hassfest after_dependencies fix preserved

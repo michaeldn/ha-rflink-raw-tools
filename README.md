@@ -598,3 +598,16 @@ The root HACS manifest uses the supported HACS repository metadata only:
   "content_in_root": false
 }
 ```
+
+
+## Manifest order fix
+
+Hassfest requires `custom_components/rflink_raw/manifest.json` keys in this order:
+
+```text
+domain
+name
+then all remaining keys alphabetically
+```
+
+This package rewrites the manifest in that order and adds a static check so the order does not regress.
