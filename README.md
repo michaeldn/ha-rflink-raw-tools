@@ -674,3 +674,18 @@ The raw packet panel explains exactly how to populate it:
 ```text
 Debug → Raw RF capture logging → press physical remote → Captured → Refresh
 ```
+
+
+## Captured UI polish
+
+The Captured page no longer uses a cramped table for command output.
+
+New layout:
+
+```text
+Top summary card with entity/candidate/raw counts
+Left: card-based discovered RFLink entities
+Right: sticky raw packet panel
+Each controllable entity gets compact Copy ON / Copy OFF command rows
+Sensors/read-only entities are clearly labeled
+```

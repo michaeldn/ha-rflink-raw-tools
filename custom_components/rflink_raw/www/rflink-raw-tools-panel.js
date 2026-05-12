@@ -1,5 +1,5 @@
 
-const APP_BUILD_ID = "captured-raw-fix-20260511";
+const APP_BUILD_ID = "captured-ui-polish-20260511";
 class RFLinkRawToolsPanel extends HTMLElement {
   constructor(){super();this._hass=null;this._timer=null;this._autoClearedUnknown=false;this._state={tab:localStorage.getItem("rflink_raw_tools.tab")||"send",busy:false,message:"",error:"",rawCommand:this._migrateOldSavedCommand(),repeat:Number(localStorage.getItem("rflink_raw_tools.repeat")||1),delayMs:Number(localStorage.getItem("rflink_raw_tools.delayMs")||250),port:localStorage.getItem("rflink_raw_tools.port")||"/dev/ttyUSB0",status:{readiness:"checking",readiness_detail:"Loading status…",rfdebug:false,qrfdebug:false},entities:[],logs:[]};}
   set hass(hass){this._hass=hass;if(!this._rendered){this._render();this._rendered=true;}this._loadAll();}
@@ -34,10 +34,83 @@ class RFLinkRawToolsPanel extends HTMLElement {
   _statusBadge(){const r=(this._state.status||{}).readiness||"checking";if(r==="ready")return`<span class="badge ok">● RFLink ready</span>`;if(r==="loaded")return`<span class="badge ok">● RFLink loaded</span>`;if(r==="configured_needs_restart")return`<span class="badge warn">● RFLink configured — restart needed</span>`;if(r==="not_configured")return`<span class="badge bad">● RFLink not configured</span>`;if(r==="status_api_unavailable")return`<span class="badge warn">● Status check unavailable</span>`;return`<span class="badge warn">● Checking RFLink…</span>`;}
   _sendView(){return`<div class="grid"><div class="card"><h2>Send learned RFLink command</h2><p class="help">Paste a real command learned from RFLink logs. Examples are format-only until the device id matches your remote.</p><label>Raw command</label><textarea data-field="rawCommand" placeholder="Example format: 10;NewKaku;01a2b3;1;ON;">${this._state.rawCommand||""}</textarea><div class="row"><div><label>Repeat</label><input data-field="repeat" type="number" min="1" value="${this._state.repeat||1}"></div><div><label>Delay between repeats (ms)</label><input data-field="delayMs" type="number" min="0" value="${this._state.delayMs||250}"></div></div><div class="actions"><button data-action="_sendRaw" ${this._state.busy?"disabled":""}>Send raw command</button><button class="secondary" data-action="_clearRawCommand">Clear command</button><button class="secondary" data-tablink="captured">Open Captured</button></div>${this._feedback()}</div><div class="card"><h2>Format examples</h2><p class="help">Click to copy. Replace the example id with a real captured id.</p><div class="example" data-copy-command="10;NewKaku;01a2b3;1;ON;">10;NewKaku;01a2b3;1;ON;</div><div class="example" data-copy-command="10;NewKaku;01a2b3;1;OFF;">10;NewKaku;01a2b3;1;OFF;</div></div></div>`;}
   _capturedView(){
-    const entityRows=(this._state.entities||[]).map(i=>`<tr><td><code>${i.entity_id}</code><div class="muted">RFLink device: <code>${i.device_key||""}</code></div></td><td>${i.name||""}</td><td>${i.state||""}</td><td>${i.candidate_on?`<div class="candidate"><code>${i.candidate_on}</code><button class="tiny" data-copy-command="${i.candidate_on}">Copy ON</button></div>`:""}${i.candidate_off?`<div class="candidate"><code>${i.candidate_off}</code><button class="tiny" data-copy-command="${i.candidate_off}">Copy OFF</button></div>`:""}${!i.candidate_on&&!i.candidate_off?`<span class="muted">No send candidate for this entity type.</span>`:""}</td></tr>`).join("");
-    const rawRows=(this._state.logs||[]).filter(i=>i.raw_packet||i.send_candidate).slice().reverse().map(i=>`<div class="log-line">${i.raw_packet?`<div><b>Raw packet</b><br><code>${i.raw_packet}</code></div>`:""}${i.send_candidate?`<div class="candidate"><b>Send candidate</b><br><code>${i.send_candidate}</code><button class="tiny" data-copy-command="${i.send_candidate}">Copy to Send</button></div>`:""}<pre>${i.line}</pre></div>`).join("");
-    const otherLogs=(this._state.logs||[]).filter(i=>!i.raw_packet&&!i.send_candidate).slice().reverse().slice(0,20).map(i=>`<div class="log-line"><code>RFLink log</code><pre>${i.line}</pre></div>`).join("");
-    return`<div class="grid"><div class="card"><h2>Captured RFLink data</h2><p class="help"><b>Raw is on the right.</b> These rows are Home Assistant RFLink-discovered entities. The table now shows the RFLink device id and candidate raw commands where possible.</p><div class="actions"><button data-action="_loadCaptured">Refresh captured data</button><button class="secondary" data-tablink="debug">Turn on raw logging</button></div>${this._feedback()}<h3>Discovered RFLink entities and command candidates</h3>${entityRows?`<table><thead><tr><th>Entity / RFLink device</th><th>Name</th><th>State</th><th>Candidate raw commands</th></tr></thead><tbody>${entityRows}</tbody></table>`:`<p class="help">No RFLink entities found in the entity registry yet.</p>`}</div><div class="card"><h2>Raw RFLink packets</h2><p class="help">To populate this: Debug → enable <b>Raw RF capture logging</b>, press one physical remote button, then refresh this page.</p>${rawRows||`<p class="help">No raw RFLink packets found in <code>home-assistant.log</code> yet.</p>`}${!rawRows&&otherLogs?`<h3>Other recent RFLink log lines</h3>${otherLogs}`:""}</div></div>`;}
+    const entities=this._state.entities||[];
+    const controllable=entities.filter(i=>i.candidate_on||i.candidate_off).length;
+    const rawPackets=(this._state.logs||[]).filter(i=>i.raw_packet||i.send_candidate);
+    const otherLogs=(this._state.logs||[]).filter(i=>!i.raw_packet&&!i.send_candidate);
+
+    const entityCards=entities.map(i=>{
+      const isControllable=!!(i.candidate_on||i.candidate_off);
+      const kind=isControllable?"Command-capable":"Read-only / sensor";
+      return `<div class="entity-card ${isControllable?"can-send":"read-only"}">
+        <div class="entity-top">
+          <div>
+            <div class="entity-title">${i.name||i.entity_id}</div>
+            <code class="entity-id">${i.entity_id}</code>
+          </div>
+          <span class="state-pill">${i.state||"unknown"}</span>
+        </div>
+        <div class="entity-meta">
+          <span>Protocol <b>${i.protocol||"—"}</b></span>
+          <span>Address <b>${i.address||"—"}</b></span>
+          ${i.switch?`<span>Switch <b>${i.switch}</b></span>`:""}
+          <span>${kind}</span>
+        </div>
+        <div class="device-key">RFLink device key <code>${i.device_key||"—"}</code></div>
+        ${isControllable?`<div class="command-box">
+          ${i.candidate_on?`<div class="command-row"><code>${i.candidate_on}</code><button class="tiny" data-copy-command="${i.candidate_on}">Copy ON</button></div>`:""}
+          ${i.candidate_off?`<div class="command-row"><code>${i.candidate_off}</code><button class="tiny" data-copy-command="${i.candidate_off}">Copy OFF</button></div>`:""}
+        </div>`:`<div class="no-command">No raw send command suggested for this entity type.</div>`}
+      </div>`;
+    }).join("");
+
+    const rawRows=rawPackets.slice().reverse().map(i=>`<div class="raw-card">
+      ${i.raw_packet?`<div class="raw-block"><div class="label">Raw packet</div><code>${i.raw_packet}</code></div>`:""}
+      ${i.send_candidate?`<div class="raw-block candidate-send"><div class="label">Send candidate</div><code>${i.send_candidate}</code><button class="tiny" data-copy-command="${i.send_candidate}">Copy to Send</button></div>`:""}
+      <details><summary>Log line</summary><pre>${i.line}</pre></details>
+    </div>`).join("");
+
+    const otherLogRows=otherLogs.slice().reverse().slice(0,8).map(i=>`<div class="raw-card muted-card"><pre>${i.line}</pre></div>`).join("");
+
+    return`<div class="captured-layout">
+      <section class="card hero-card">
+        <div class="hero-row">
+          <div>
+            <h2>Captured RFLink data</h2>
+            <p class="help">Use this page to turn noisy RFLink discovery into usable ON/OFF commands. Entities are not the same as raw packets; raw packets appear after raw logging captures a remote press.</p>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><b>${entities.length}</b><span>entities</span></div>
+            <div class="stat"><b>${controllable}</b><span>command candidates</span></div>
+            <div class="stat"><b>${rawPackets.length}</b><span>raw packets</span></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button data-action="_loadCaptured">Refresh captured data</button>
+          <button class="secondary" data-tablink="debug">Turn on raw logging</button>
+        </div>
+        ${this._feedback()}
+      </section>
+
+      <section class="captured-columns">
+        <div class="card">
+          <div class="section-heading">
+            <div>
+              <h3>Discovered RFLink entities</h3>
+              <p class="help">These come from Home Assistant's RFLink entity registry. Command-capable lights/switches show candidate raw commands.</p>
+            </div>
+          </div>
+          ${entityCards?`<div class="entity-grid">${entityCards}</div>`:`<div class="empty-state"><b>No RFLink entities found yet.</b><span>Enable RFLink, press a remote, then refresh.</span></div>`}
+        </div>
+
+        <aside class="card raw-panel">
+          <h3>Raw RFLink packets</h3>
+          <p class="help">To populate this panel: <b>Debug → Raw RF capture logging</b>, press one physical remote button, then refresh.</p>
+          ${rawRows||`<div class="empty-state"><b>No raw RFLink packets found yet.</b><span>The app looked in <code>home-assistant.log</code> for recent <code>10;</code> or <code>20;</code> RFLink packets.</span></div>`}
+          ${!rawRows&&otherLogRows?`<h4>Other recent RFLink log lines</h4>${otherLogRows}`:""}
+        </aside>
+      </section>
+    </div>`;}
   _debugView(){return`<div class="grid"><div class="card"><h2>Diagnostics</h2><p class="help">These checks do not send RF hardware commands and should not show red errors.</p><div class="actions"><button data-action="_checkSetup">Check RFLink setup</button><button class="secondary" data-action="_checkVersion">Check version support</button><button class="secondary" data-action="_clearStatus">Clear status</button></div>${this._feedback()}</div><div class="card"><h2>Logging switches</h2><p class="help">Use Raw RF capture logging to learn a remote. Switches keep their visual state across tabs.</p>${this._toggle('rfdebug','Decoded RFLink logging','decoded protocol messages in Home Assistant logs')}${this._toggle('qrfdebug','Raw RF capture logging','raw 433 MHz capture output used to learn remotes')}</div></div>`;}
   _toggle(id,title,help){return`<div class="toggle-row"><div><div class="toggle-title">${title}</div><div class="toggle-help">${this._debugEnabled(id)?"Enabled":"Disabled"} — ${help}.</div></div><label class="switch"><input type="checkbox" data-toggle-debug="${id}" ${this._debugEnabled(id)?"checked":""}><span class="slider"></span></label></div>`;}
   _setupView(){const s=this._state.status||{};return`<div class="grid"><div class="card"><h2>Setup</h2><p><b>Integration version:</b> ${s.version||"0.0.1"}</p><p><b>App build:</b> ${APP_BUILD_ID}</p><p><b>RFLink YAML:</b> ${s.rflink_configured?"Found":"Not found"}</p><p><b>Home Assistant RFLink loaded:</b> ${s.rflink_loaded?"Yes":"No"}</p><p><b>RFLink live bridge:</b> ${s.rflink_connected?"Connected":"Not confirmed"}</p><p class="help">${s.readiness_detail||"Use Check RFLink setup."}</p><div class="actions"><button data-action="_checkSetup">Check RFLink setup</button><button class="secondary" data-action="_clearStatus">Clear status</button></div>${this._feedback()}</div><div class="card"><h2>Install RFLink YAML</h2><p class="help">Only use this if RFLink YAML is not found. It adds a conservative top-level <code>rflink:</code> block and makes a backup first.</p><label>Serial port</label><input data-field="port" value="${this._state.port||"/dev/ttyUSB0"}"><div class="actions"><button data-action="_installRflinkYaml">Install RFLink YAML</button></div><p class="help">After install, restart Home Assistant Core. This does not edit Lovelace dashboards.</p></div></div>`;}

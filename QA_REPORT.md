@@ -53,3 +53,8 @@
 - [x] Captured entity table shows candidate ON/OFF raw commands for light/switch entities
 - [x] Raw packet panel reads recent 10;/20; RFLink packets from home-assistant.log
 - [x] Raw packet panel explains how to populate raw captures
+- [x] Captured page replaced cramped table with entity cards
+- [x] Captured page adds summary counts
+- [x] Raw packets are in a separate right-side panel
+- [x] Candidate commands use readable command rows
+- [x] Sensors/read-only entities are labeled clearly
