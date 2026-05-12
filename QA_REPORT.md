@@ -9,3 +9,6 @@
 - [x] REST APIs registered for status/entities/logs
 - [x] No button.py, no updater.py, no generated dashboard
 - [x] Package zip contains no __pycache__ and no *.pyc
+- [x] App build updated to menu-color-fix-20260511
+- [x] Send/Captured/Debug/Setup menu uses card-background segmented nav
+- [x] Inactive menu tabs no longer use mismatched button colors

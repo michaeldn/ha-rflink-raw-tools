@@ -515,3 +515,8 @@ for status instead of the older websocket status path. Generic stale `Unknown co
 ## Helpful tool rebuild
 
 Pages: Send, Captured, Debug, Setup. Captured shows RFLink entity registry entries and recent RFLink log lines. Setup can add a conservative top-level `rflink:` YAML block if missing. Version remains 0.0.1.
+
+
+## Menu color fix
+
+The Send / Captured / Debug / Setup navigation now uses a Home Assistant-style segmented control. Inactive tabs use the same card/background palette as the page, while the active tab uses the Home Assistant primary color.
