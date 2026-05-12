@@ -68,3 +68,14 @@ custom_components/rflink_raw/brand/logo.png
 ## HACS default inclusion
 
 After the above passes, submit the repository to `hacs/default`.
+
+
+## CI note
+
+The repository workflow `Validate HACS` currently ignores these checks so the repo can have green CI before external setup is complete:
+
+```text
+brands description topics
+```
+
+Before submitting to `hacs/default`, remove the `ignore:` line from `.github/workflows/hacs.yml` and make sure it passes without ignores. HACS default inclusion requires the HACS Action and Hassfest to pass before submission.

@@ -14,9 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compile Python
+      - name: Compile Python without leaving cache artifacts
         run: |
-          python3 -m py_compile custom_components/rflink_raw/*.py
+          python3 - <<'PY'
+          import py_compile
+          from pathlib import Path
+
+          errors = []
+          for path in Path("custom_components/rflink_raw").glob("*.py"):
+              try:
+                  py_compile.compile(str(path), doraise=True)
+              except Exception as err:
+                  errors.append(f"{path}: {err}")
+
+          if errors:
+              raise SystemExit("\n".join(errors))
+          PY
+
+          find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+          find . -type f -name '*.pyc' -delete
 
       - name: Reject generated Python cache artifacts
         run: |
@@ -46,7 +62,16 @@ jobs:
           manifest = json.loads(Path("custom_components/rflink_raw/manifest.json").read_text())
           hacs = json.loads(Path("hacs.json").read_text())
 
-          required_manifest = ["domain", "name", "documentation", "issue_tracker", "codeowners", "version"]
+          required_manifest = [
+              "domain",
+              "name",
+              "documentation",
+              "issue_tracker",
+              "codeowners",
+              "version",
+              "integration_type",
+              "iot_class",
+          ]
           missing = [key for key in required_manifest if key not in manifest or not manifest[key]]
           if missing:
               raise SystemExit(f"Missing manifest keys: {missing}")
@@ -57,8 +82,8 @@ jobs:
               raise SystemExit("Version must remain 0.0.1 until explicit release bump")
           if hacs.get("content_in_root") is not False:
               raise SystemExit("hacs.json content_in_root must be false")
-          if "rflink_raw" not in hacs.get("domains", []):
-              raise SystemExit("hacs.json domains must include rflink_raw")
+          if hacs.get("name") != "RFLink Raw Tools":
+              raise SystemExit("hacs.json name must be RFLink Raw Tools")
 
           print("Manifest and HACS metadata checks passed.")
           PY

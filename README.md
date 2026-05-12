@@ -545,3 +545,16 @@ Pages: Send, Captured, Debug, Setup. Captured shows RFLink entity registry entri
 ## Menu color fix
 
 The Send / Captured / Debug / Setup navigation now uses a Home Assistant-style segmented control. Inactive tabs use the same card/background palette as the page, while the active tab uses the Home Assistant primary color.
+
+
+## CI green fix
+
+The GitHub Actions package includes:
+
+```text
+Static package checks
+Validate with hassfest
+Validate HACS
+```
+
+The HACS workflow temporarily ignores `brands`, `description`, and `topics` so repository CI can pass before GitHub repository metadata and the Home Assistant Brands PR are complete. Remove that ignore before submitting to `hacs/default`.

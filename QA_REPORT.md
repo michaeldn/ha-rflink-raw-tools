@@ -19,3 +19,8 @@
 - [x] Issue templates and PR template added
 - [x] CHANGELOG and v0.0.1 release notes added
 - [x] HACS public listing checklist added
+- [x] Static package workflow removes pycache after py_compile
+- [x] HACS workflow includes checkout
+- [x] Hassfest workflow includes checkout
+- [x] Manifest includes integration_type and iot_class
+- [x] HACS workflow temporarily ignores brands/description/topics until external setup is complete
