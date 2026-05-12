@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-manifest-order-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-manifest-order-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-neutral-tabs-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-neutral-tabs-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -57,7 +57,7 @@ PY
 
 git status --short
 git add -A
-git commit -m "Fix Hassfest manifest key order" || true
+git commit -m "Fix RFLink Raw Tools active tab color" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"

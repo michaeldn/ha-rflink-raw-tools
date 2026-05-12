@@ -38,3 +38,6 @@
 - [x] Static package workflow checks Hassfest manifest key order
 - [x] HACS JSON schema fix preserved
 - [x] Hassfest after_dependencies fix preserved
+- [x] Send/Captured/Debug/Setup active tab no longer uses solid blue fill
+- [x] Active tab uses neutral background with primary border/ring
+- [x] Manifest order remains Hassfest-compatible

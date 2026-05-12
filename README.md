@@ -611,3 +611,19 @@ then all remaining keys alphabetically
 ```
 
 This package rewrites the manifest in that order and adds a static check so the order does not regress.
+
+
+## Neutral tabs fix
+
+The Send / Captured / Debug / Setup nav no longer uses a solid blue active tab.
+
+Active tab styling is now neutral:
+
+```text
+background: secondary-background
+text: primary-text
+border: primary-color
+subtle inset ring
+```
+
+This keeps the nav aligned with the page while still showing the active section.
