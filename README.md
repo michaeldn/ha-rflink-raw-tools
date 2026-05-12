@@ -35,6 +35,31 @@ Debug  - ping, version, RFDEBUG, QRFDEBUG
 Setup  - connection/status and install/update guidance
 ```
 
+
+## HACS/public listing readiness
+
+This repository includes the required HACS metadata and validation workflow files for an integration repository:
+
+```text
+hacs.json
+.github/workflows/hacs.yml
+.github/workflows/hassfest.yml
+.github/workflows/static-package.yml
+```
+
+For a public HACS default listing, the GitHub repository still needs repository-level metadata that cannot be stored in the code package:
+
+```text
+Repository description
+Repository topics
+GitHub release v0.0.1
+Passing HACS validation
+Passing Hassfest validation
+HACS/default inclusion request
+```
+
+See `HACS_PUBLIC_LISTING_CHECKLIST.md`.
+
 ## Install
 
 ### HACS custom repository

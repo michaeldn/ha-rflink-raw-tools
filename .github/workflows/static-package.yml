@@ -1,0 +1,64 @@
+name: Static package checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile Python
+        run: |
+          python3 -m py_compile custom_components/rflink_raw/*.py
+
+      - name: Reject generated Python cache artifacts
+        run: |
+          if find . -type d -name '__pycache__' -print | grep -q .; then
+            echo "Found __pycache__ directories"
+            find . -type d -name '__pycache__' -print
+            exit 1
+          fi
+          if find . -type f -name '*.pyc' -print | grep -q .; then
+            echo "Found *.pyc files"
+            find . -type f -name '*.pyc' -print
+            exit 1
+          fi
+
+      - name: Reject removed/generated app patterns
+        run: |
+          test ! -f custom_components/rflink_raw/button.py
+          test ! -f custom_components/rflink_raw/updater.py
+          test ! -d dashboard
+
+      - name: Validate manifest and HACS metadata
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("custom_components/rflink_raw/manifest.json").read_text())
+          hacs = json.loads(Path("hacs.json").read_text())
+
+          required_manifest = ["domain", "name", "documentation", "issue_tracker", "codeowners", "version"]
+          missing = [key for key in required_manifest if key not in manifest or not manifest[key]]
+          if missing:
+              raise SystemExit(f"Missing manifest keys: {missing}")
+
+          if manifest["domain"] != "rflink_raw":
+              raise SystemExit("Unexpected manifest domain")
+          if manifest["version"] != "0.0.1":
+              raise SystemExit("Version must remain 0.0.1 until explicit release bump")
+          if hacs.get("content_in_root") is not False:
+              raise SystemExit("hacs.json content_in_root must be false")
+          if "rflink_raw" not in hacs.get("domains", []):
+              raise SystemExit("hacs.json domains must include rflink_raw")
+
+          print("Manifest and HACS metadata checks passed.")
+          PY

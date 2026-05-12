@@ -12,3 +12,10 @@
 - [x] App build updated to menu-color-fix-20260511
 - [x] Send/Captured/Debug/Setup menu uses card-background segmented nav
 - [x] Inactive menu tabs no longer use mismatched button colors
+- [x] HACS validation workflow added
+- [x] Hassfest workflow added
+- [x] Static package workflow added
+- [x] Dependabot GitHub Actions updates added
+- [x] Issue templates and PR template added
+- [x] CHANGELOG and v0.0.1 release notes added
+- [x] HACS public listing checklist added
