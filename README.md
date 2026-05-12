@@ -558,3 +558,21 @@ Validate HACS
 ```
 
 The HACS workflow temporarily ignores `brands`, `description`, and `topics` so repository CI can pass before GitHub repository metadata and the Home Assistant Brands PR are complete. Remove that ignore before submitting to `hacs/default`.
+
+
+## Hassfest dependency fix
+
+Hassfest requires integrations referenced from code to be declared in `manifest.json` as either `dependencies` or `after_dependencies`.
+
+RFLink Raw Tools declares these as optional load-order dependencies:
+
+```json
+"after_dependencies": [
+  "frontend",
+  "http",
+  "rflink",
+  "websocket_api"
+]
+```
+
+`rflink` is intentionally an `after_dependency`, not a hard `dependency`, so RFLink Raw Tools can still load and help install/check RFLink when Home Assistant RFLink is not configured yet.

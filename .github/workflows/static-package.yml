@@ -11,6 +11,8 @@ permissions:
 jobs:
   static-package:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
@@ -71,6 +73,7 @@ jobs:
               "version",
               "integration_type",
               "iot_class",
+              "after_dependencies",
           ]
           missing = [key for key in required_manifest if key not in manifest or not manifest[key]]
           if missing:
@@ -84,6 +87,10 @@ jobs:
               raise SystemExit("hacs.json content_in_root must be false")
           if hacs.get("name") != "RFLink Raw Tools":
               raise SystemExit("hacs.json name must be RFLink Raw Tools")
+
+          for dep in ["http", "frontend", "websocket_api", "rflink"]:
+              if dep not in manifest.get("after_dependencies", []):
+                  raise SystemExit(f"after_dependencies must include {dep}")
 
           print("Manifest and HACS metadata checks passed.")
           PY

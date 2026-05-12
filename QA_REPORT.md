@@ -24,3 +24,9 @@
 - [x] Hassfest workflow includes checkout
 - [x] Manifest includes integration_type and iot_class
 - [x] HACS workflow temporarily ignores brands/description/topics until external setup is complete
+- [x] manifest.json after_dependencies includes http
+- [x] manifest.json after_dependencies includes rflink
+- [x] manifest.json after_dependencies includes frontend
+- [x] manifest.json after_dependencies includes websocket_api
+- [x] rflink remains optional via after_dependencies, not a hard dependency
+- [x] GitHub Actions opt into Node 24 runtime
