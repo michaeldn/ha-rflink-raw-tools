@@ -87,6 +87,8 @@ jobs:
               raise SystemExit("hacs.json content_in_root must be false")
           if hacs.get("name") != "RFLink Raw Tools":
               raise SystemExit("hacs.json name must be RFLink Raw Tools")
+          if "domains" in hacs:
+              raise SystemExit("hacs.json must not include unsupported key: domains")
 
           for dep in ["http", "frontend", "websocket_api", "rflink"]:
               if dep not in manifest.get("after_dependencies", []):

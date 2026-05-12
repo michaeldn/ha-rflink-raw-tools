@@ -576,3 +576,25 @@ RFLink Raw Tools declares these as optional load-order dependencies:
 ```
 
 `rflink` is intentionally an `after_dependency`, not a hard `dependency`, so RFLink Raw Tools can still load and help install/check RFLink when Home Assistant RFLink is not configured yet.
+
+
+## HACS JSON schema fix
+
+`hacs.json` intentionally does not include a `domains` key.
+
+The integration domain belongs in:
+
+```text
+custom_components/rflink_raw/manifest.json
+```
+
+The root HACS manifest uses the supported HACS repository metadata only:
+
+```json
+{
+  "name": "RFLink Raw Tools",
+  "render_readme": true,
+  "homeassistant": "2024.8.0",
+  "content_in_root": false
+}
+```

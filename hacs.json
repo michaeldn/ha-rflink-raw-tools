@@ -2,8 +2,5 @@
   "name": "RFLink Raw Tools",
   "render_readme": true,
   "homeassistant": "2024.8.0",
-  "domains": [
-    "rflink_raw"
-  ],
   "content_in_root": false
 }

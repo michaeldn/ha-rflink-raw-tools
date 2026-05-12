@@ -30,3 +30,7 @@
 - [x] manifest.json after_dependencies includes websocket_api
 - [x] rflink remains optional via after_dependencies, not a hard dependency
 - [x] GitHub Actions opt into Node 24 runtime
+- [x] Removed unsupported domains key from hacs.json
+- [x] Integration domain remains in custom_components/rflink_raw/manifest.json
+- [x] Static package workflow rejects domains in hacs.json
+- [x] Hassfest dependency fix preserved

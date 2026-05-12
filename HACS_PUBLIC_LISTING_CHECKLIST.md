@@ -79,3 +79,7 @@ brands description topics
 ```
 
 Before submitting to `hacs/default`, remove the `ignore:` line from `.github/workflows/hacs.yml` and make sure it passes without ignores. HACS default inclusion requires the HACS Action and Hassfest to pass before submission.
+
+## HACS manifest schema
+
+Do not add `domains` to `hacs.json`; HACS rejects it as an unsupported key. The integration domain is declared in `custom_components/rflink_raw/manifest.json`.

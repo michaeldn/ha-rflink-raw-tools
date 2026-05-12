@@ -9,7 +9,7 @@ def test_hacs_metadata_and_workflows():
 
     assert hacs["name"] == "RFLink Raw Tools"
     assert hacs["content_in_root"] is False
-    assert "rflink_raw" in hacs["domains"]
+    assert "domains" not in hacs
 
     for key in ["domain", "name", "documentation", "issue_tracker", "codeowners", "version"]:
         assert manifest.get(key)

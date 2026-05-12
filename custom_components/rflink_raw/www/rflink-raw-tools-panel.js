@@ -1,5 +1,5 @@
 
-const APP_BUILD_ID = "hassfest-dependencies-fix-20260511";
+const APP_BUILD_ID = "hacs-json-schema-fix-20260511";
 class RFLinkRawToolsPanel extends HTMLElement {
   constructor(){super();this._hass=null;this._timer=null;this._autoClearedUnknown=false;this._state={tab:localStorage.getItem("rflink_raw_tools.tab")||"send",busy:false,message:"",error:"",rawCommand:this._migrateOldSavedCommand(),repeat:Number(localStorage.getItem("rflink_raw_tools.repeat")||1),delayMs:Number(localStorage.getItem("rflink_raw_tools.delayMs")||250),port:localStorage.getItem("rflink_raw_tools.port")||"/dev/ttyUSB0",status:{readiness:"checking",readiness_detail:"Loading status…",rfdebug:false,qrfdebug:false},entities:[],logs:[]};}
   set hass(hass){this._hass=hass;if(!this._rendered){this._render();this._rendered=true;}this._loadAll();}
