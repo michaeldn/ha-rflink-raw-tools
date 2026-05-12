@@ -58,3 +58,10 @@
 - [x] Raw packets are in a separate right-side panel
 - [x] Candidate commands use readable command rows
 - [x] Sensors/read-only entities are labeled clearly
+- [x] Captured page CSS is present in bundled panel file
+- [x] Entity cards render as cards, not plain text
+- [x] Summary stat cards render horizontally on desktop
+- [x] Raw packets render in a separate right-side panel
+- [x] Candidate commands render as readable command rows
+- [x] App build is no longer displayed in the app UI
+- [x] Internal frontend cache-busting is preserved

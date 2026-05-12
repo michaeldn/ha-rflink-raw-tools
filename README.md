@@ -689,3 +689,25 @@ Right: sticky raw packet panel
 Each controllable entity gets compact Copy ON / Copy OFF command rows
 Sensors/read-only entities are clearly labeled
 ```
+
+
+## Captured CSS fix
+
+The previous Captured UI shipped the right markup but missed the captured-page CSS in the final bundled panel file, which made the page render like a text dump.
+
+This build includes the missing captured layout CSS:
+
+```text
+summary stat cards
+responsive entity cards
+separate sticky raw packet panel
+readable ON/OFF command rows
+mobile responsive layout
+```
+
+
+## Hide app build in UI
+
+The app no longer displays the internal frontend build/cache-bust value in the Setup tab.
+
+The build id is still kept internally in `const.py` and the panel JavaScript URL query string so browsers fetch the newest frontend after updates, but it is not shown to users.
