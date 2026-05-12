@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-hide-app-build-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-hide-app-build-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-status-badge-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-status-badge-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -57,7 +57,7 @@ PY
 
 git status --short
 git add -A
-git commit -m "Hide RFLink Raw Tools app build in UI" || true
+git commit -m "Fix RFLink Raw Tools status badge update" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"

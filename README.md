@@ -711,3 +711,42 @@ mobile responsive layout
 The app no longer displays the internal frontend build/cache-bust value in the Setup tab.
 
 The build id is still kept internally in `const.py` and the panel JavaScript URL query string so browsers fetch the newest frontend after updates, but it is not shown to users.
+
+
+## Debug logger fix
+
+RFLink Raw Tools no longer sends these as RFLink gateway/device commands:
+
+```text
+device_id: rfdebug
+device_id: qrfdebug
+```
+
+Those commands caused Home Assistant RFLink log errors such as:
+
+```text
+Failed Rflink command for {'device_id': 'rfdebug', 'command': 'off'}
+Failed Rflink command for {'device_id': 'qrfdebug', 'command': 'off'}
+```
+
+The Debug switches now change Home Assistant Python logger levels for RFLink-related loggers. Capturing a remote is now:
+
+```text
+Debug → Raw RF capture logging ON
+Press one physical remote button
+Captured → Refresh captured data
+```
+
+
+## Status badge fix
+
+The top-right status badge no longer stays stuck on `Checking RFLink…`.
+
+Root cause:
+
+```text
+The header/status shell rendered once.
+Async status loaded later, but only the page body refreshed.
+```
+
+The app now updates the top-right status badge whenever status changes.

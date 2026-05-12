@@ -8,6 +8,35 @@ from homeassistant.exceptions import HomeAssistantError
 from .const import DOMAIN, DATA_DEBUG_RF, DATA_DEBUG_QRF, DATA_LAST_COMMAND, DATA_LAST_ERROR, DATA_LAST_RESULT, DATA_LAST_UPDATED
 _LOGGER = logging.getLogger(__name__)
 
+
+RF_DEBUG_LOGGERS = (
+    "homeassistant.components.rflink",
+    "homeassistant.components.rflink.__init__",
+    "rflink",
+)
+
+
+def _set_rflink_logger_level(hass: HomeAssistant, enabled: bool) -> None:
+    """Enable/restore Home Assistant RFLink Python logger levels.
+
+    This intentionally does NOT send rfdebug/qrfdebug commands to the RFLink gateway.
+    """
+    data = hass.data.setdefault(DOMAIN, {})
+    saved = data.setdefault("_rflink_raw_tools_logger_levels", {})
+
+    if enabled:
+        for logger_name in RF_DEBUG_LOGGERS:
+            logger = logging.getLogger(logger_name)
+            if logger_name not in saved:
+                saved[logger_name] = logger.level
+            logger.setLevel(logging.DEBUG)
+        return
+
+    for logger_name, level in list(saved.items()):
+        logging.getLogger(logger_name).setLevel(level if isinstance(level, int) else logging.NOTSET)
+    saved.clear()
+
+
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
@@ -106,50 +135,44 @@ async def async_check_version_support(hass: HomeAssistant) -> dict:
     return {'ok': bool(loaded), 'loaded': loaded, 'message': msg}
 
 async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -> dict:
-    kind = (debug_type or '').strip().lower()
-    if kind not in {'rfdebug','qrfdebug'}:
-        msg = 'Debug type must be rfdebug or qrfdebug.'
-        _set_status(hass, result=msg, command='DEBUG')
-        return {'ok': False, 'local_state': False, 'message': msg}
+    """Set RFLink logging state without sending invalid RFLink gateway commands."""
+    kind = (debug_type or "").strip().lower()
+    if kind not in {"rfdebug", "qrfdebug"}:
+        message = "Debug type must be rfdebug or qrfdebug."
+        _set_status(hass, result=message, command="DEBUG")
+        return {"ok": False, "local_state": False, "message": message}
+
     data = hass.data.setdefault(DOMAIN, {})
-    label = 'Decoded RFLink logging' if kind == 'rfdebug' else 'Raw RF capture logging'
-    data[DATA_DEBUG_RF if kind == 'rfdebug' else DATA_DEBUG_QRF] = bool(enabled)
-    cmd = 'on' if enabled else 'off'
-    if 'rflink' not in hass.config.components:
-        msg = f"{label} set {cmd} locally. RFLink is not loaded, so no gateway command was sent."
-        _set_status(hass, result=msg, command=f"{kind};{cmd}")
-        return {'ok': False, 'local_state': bool(enabled), 'message': msg}
-    try:
-        await _call_rflink(hass, kind, cmd)
-        msg = f"{label} turned {cmd}."
-        _set_status(hass, result=msg, command=f"{kind};{cmd}")
-        return {'ok': True, 'local_state': bool(enabled), 'message': msg}
-    except Exception as err:
-        msg = f"{label} set {cmd} locally. Gateway response: {_friendly(err)}"
-        _set_status(hass, result=msg, command=f"{kind};{cmd}")
-        return {'ok': False, 'local_state': bool(enabled), 'message': msg}
+    if kind == "rfdebug":
+        data[DATA_DEBUG_RF] = bool(enabled)
+        label = "Decoded RFLink logging"
+    else:
+        data[DATA_DEBUG_QRF] = bool(enabled)
+        label = "Raw RF capture logging"
 
-def _config_has_rflink(config_path: str) -> bool:
-    path = Path(config_path)
-    return path.exists() and _top_key(path.read_text(errors='ignore'), 'rflink')
+    _set_rflink_logger_level(hass, bool(enabled))
 
-def _install_yaml(config_path: str, port: str) -> dict:
-    path = Path(config_path)
-    text = path.read_text(errors='ignore') if path.exists() else ''
-    if _top_key(text, 'rflink'):
-        return {'changed': False, 'message': 'RFLink is already configured in configuration.yaml.'}
-    backup = path.with_name(f"configuration.yaml.rflink_raw_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-    if path.exists(): shutil.copy2(path, backup)
-    block = (
-        "\n\n# RFLink Raw Tools managed block - start\n"
-        "rflink:\n"
-        f"  port: {port}\n"
-        "  wait_for_ack: false\n"
-        "  reconnect_interval: 10\n"
-        "# RFLink Raw Tools managed block - end\n"
-    )
-    path.write_text(text.rstrip() + block + '\n')
-    return {'changed': True, 'backup': str(backup), 'message': f'RFLink YAML added with port {port}. Restart Home Assistant Core.'}
+    state_word = "enabled" if enabled else "disabled"
+    if enabled:
+        message = (
+            f"{label} {state_word}. Press one physical remote button, then open Captured "
+            "and refresh. This uses Home Assistant logging. No rfdebug/qrfdebug gateway command was sent."
+        )
+    else:
+        message = (
+            f"{label} {state_word}. Home Assistant RFLink logger levels were restored. "
+            "No rfdebug/qrfdebug gateway command was sent."
+        )
+
+    _set_status(hass, result=message, command=f"{kind};logger_{state_word}")
+    return {
+        "ok": True,
+        "local_state": bool(enabled),
+        "message": message,
+        "logger_mode": True,
+        "gateway_command_sent": False,
+    }
+
 
 async def async_install_rflink_yaml(hass: HomeAssistant, port: str) -> dict:
     clean_port = (port or '').strip() or '/dev/ttyUSB0'

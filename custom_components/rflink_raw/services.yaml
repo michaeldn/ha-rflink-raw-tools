@@ -43,7 +43,7 @@ version_gateway:
   description: Non-throwing app diagnostic.
 set_debug:
   name: Set RFLink logging mode
-  description: Turn decoded or raw RF capture logging on/off.
+  description: Turn Home Assistant RFLink logger verbosity on/off for decoded/raw capture. This does not send rfdebug/qrfdebug commands to the RFLink gateway.
   fields:
     debug_type:
       required: true

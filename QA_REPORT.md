@@ -65,3 +65,9 @@
 - [x] Candidate commands render as readable command rows
 - [x] App build is no longer displayed in the app UI
 - [x] Internal frontend cache-busting is preserved
+- [x] Debug switches no longer send rfdebug/qrfdebug through rflink.send_command
+- [x] Debug switches set Home Assistant RFLink logger levels instead
+- [x] UI copy explains no rfdebug/qrfdebug gateway command is sent
+- [x] Top-right status badge updates after async status loads
+- [x] Status badge is no longer stuck on Checking RFLink
+- [x] Status badge uses a dedicated #status-badge container
