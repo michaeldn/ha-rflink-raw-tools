@@ -627,3 +627,18 @@ subtle inset ring
 ```
 
 This keeps the nav aligned with the page while still showing the active section.
+
+
+## Pressed tab fix
+
+The Send / Captured / Debug / Setup nav no longer has a permanent blue fill or permanent ring on the active page.
+
+Tab behavior:
+
+```text
+Normal / current page: neutral, no ring
+Hover: neutral background
+Mouse press / tap: blue
+```
+
+This keeps the menu from looking stuck while still giving immediate button feedback when pressed.

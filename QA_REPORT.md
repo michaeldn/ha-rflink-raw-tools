@@ -41,3 +41,6 @@
 - [x] Send/Captured/Debug/Setup active tab no longer uses solid blue fill
 - [x] Active tab uses neutral background with primary border/ring
 - [x] Manifest order remains Hassfest-compatible
+- [x] Active tab no longer has a permanent ring
+- [x] Active tab no longer has a permanent blue fill
+- [x] Tab turns blue only while pressed/tapped
