@@ -71,3 +71,22 @@
 - [x] Top-right status badge updates after async status loads
 - [x] Status badge is no longer stuck on Checking RFLink
 - [x] Status badge uses a dedicated #status-badge container
+- [x] Send parser converts 10;Protocol;ID;Switch;ON into HA RFLink device_id/action
+- [x] Candidate commands use protocol_id_switch;on/off format
+- [x] KeyError id is replaced with a useful unsupported/receive-only explanation
+- [x] UI no longer implies random discovered entities are guaranteed sendable raw commands
+- [x] Removed clickable fake 10;NewKaku examples from Send
+- [x] Send examples are documentation-only
+- [x] Send placeholder asks for a real Captured candidate
+- [x] Semicolon 10; commands normalize to lower-case HA RFLink device ids
+- [x] Teach tab added
+- [x] Aliases persist to /config/rflink_raw_aliases.json
+- [x] Captured entities can be taught as friendly aliases
+- [x] Captured raw/send candidates can be taught
+- [x] Saved switch aliases expose Home Assistant switch entities
+- [x] Firmware Lab tab added
+- [x] Button captures can be named anything the user wants
+- [x] Start/stop capture controls added
+- [x] Firmware lab stores captures in /config/rflink_raw_firmware_lab.json
+- [x] Unsupported-device report export added
+- [x] Protocol notes field added

@@ -12,8 +12,11 @@ from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from .const import DOMAIN, NAME, VERSION, PANEL_ICON, PANEL_MODULE, PANEL_TITLE, PANEL_URL_PATH, STATIC_URL, DATA_DEBUG_RF, DATA_DEBUG_QRF, DATA_LAST_COMMAND, DATA_LAST_ERROR, DATA_LAST_RESULT, DATA_LAST_UPDATED
 from .helpers import async_check_rflink_status, async_check_version_support, async_install_rflink_yaml, async_send_protocol_command, async_send_raw_command, async_set_debug
+from .aliases import SIGNAL_ALIASES_UPDATED, async_delete_alias, async_list_aliases, async_save_alias
+from .firmware_lab import async_capture_firmware_button, async_clear_firmware_lab, async_delete_firmware_capture, async_get_firmware_lab, async_start_firmware_lab, async_stop_firmware_lab, async_update_firmware_lab, export_firmware_lab_report
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Any(None, vol.Schema({}))}, extra=vol.ALLOW_EXTRA)
 SEND_RAW_SCHEMA = vol.Schema({vol.Required('raw_command'): cv.string, vol.Optional('repeat', default=1): vol.Coerce(int), vol.Optional('delay_ms', default=250): vol.Coerce(int)})
@@ -73,12 +76,13 @@ def _split_entity_device_key(entity_id: str) -> dict[str, Any]:
 
 def _entity_candidates(entity_id: str, domain: str) -> dict[str, str]:
     parsed = _split_entity_device_key(entity_id)
-    protocol = parsed['protocol']; address = parsed['address']; switch = parsed['switch']
+    protocol = parsed['protocol']
+    address = parsed['address']
+    switch = parsed['switch']
     if domain not in {'light', 'switch'} or not protocol or not address:
         return {}
-    if switch:
-        return {'on': f'10;{protocol};{address};{switch};ON;', 'off': f'10;{protocol};{address};{switch};OFF;'}
-    return {'on': f'10;{protocol};{address};ON;', 'off': f'10;{protocol};{address};OFF;'}
+    device_id = (f"{protocol}_{address}_{switch}" if switch else f"{protocol}_{address}").lower()
+    return {'on': f'{device_id};on', 'off': f'{device_id};off', 'device_id': device_id}
 
 def _parse_rflink_packet(line: str) -> dict[str, str]:
     match = re.search(r'\b((?:10|20);[^\r\n]+)', line)
@@ -154,12 +158,66 @@ def _entities(hass: HomeAssistant) -> list[dict[str,Any]]:
             'switch': parsed['switch'],
             'candidate_on': candidates.get('on', ''),
             'candidate_off': candidates.get('off', ''),
+            'send_device_id': candidates.get('device_id', ''),
         })
     return sorted(items, key=lambda x: x['entity_id'])
 
 @callback
 def _websocket_status(hass: HomeAssistant, connection, msg) -> None:
     connection.send_result(msg['id'], _status_payload(hass))
+
+
+class RFLinkRawAliasesView(HomeAssistantView):
+    url='/api/rflink_raw/aliases'; name='api:rflink_raw:aliases'; requires_auth=True
+
+    async def get(self, request):
+        hass = request.app['hass']
+        aliases = await async_list_aliases(hass)
+        return self.json({'aliases': aliases})
+
+    async def post(self, request):
+        hass = request.app['hass']
+        data = await request.json()
+        if data.get('delete'):
+            aliases = await async_delete_alias(hass, data.get('id', ''))
+            async_dispatcher_send(hass, SIGNAL_ALIASES_UPDATED)
+            return self.json({'ok': True, 'aliases': aliases})
+        alias = await async_save_alias(hass, data)
+        async_dispatcher_send(hass, SIGNAL_ALIASES_UPDATED)
+        aliases = await async_list_aliases(hass)
+        return self.json({'ok': True, 'alias': alias, 'aliases': aliases})
+
+
+class RFLinkRawFirmwareLabView(HomeAssistantView):
+    url='/api/rflink_raw/firmware_lab'; name='api:rflink_raw:firmware_lab'; requires_auth=True
+
+    async def get(self, request):
+        hass = request.app['hass']
+        lab = await async_get_firmware_lab(hass)
+        return self.json({'lab': lab, 'report': export_firmware_lab_report(lab)})
+
+    async def post(self, request):
+        hass = request.app['hass']
+        data = await request.json()
+        action = str(data.get('action') or 'update').strip().lower()
+
+        if action == 'start':
+            # Start lab capture and turn on HA RFLink logger capture mode.
+            await async_set_debug(hass, 'qrfdebug', True)
+            lab = await async_start_firmware_lab(hass, data.get('project_name', ''), data.get('notes', ''), bool(data.get('reset')))
+        elif action == 'stop':
+            await async_set_debug(hass, 'qrfdebug', False)
+            lab = await async_stop_firmware_lab(hass)
+        elif action == 'capture':
+            lab = await async_capture_firmware_button(hass, data.get('label', ''), data.get('notes', ''))
+        elif action == 'delete_capture':
+            lab = await async_delete_firmware_capture(hass, data.get('id', ''))
+        elif action == 'clear':
+            lab = await async_clear_firmware_lab(hass)
+        else:
+            lab = await async_update_firmware_lab(hass, data)
+
+        return self.json({'ok': True, 'lab': lab, 'report': export_firmware_lab_report(lab)})
 
 class RFLinkRawStatusView(HomeAssistantView):
     url='/api/rflink_raw/status'; name='api:rflink_raw:status'; requires_auth=True
@@ -181,7 +239,7 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
 async def _async_register_backend(hass: HomeAssistant) -> None:
     data = hass.data.setdefault(DOMAIN, {})
     if not data.get('_views_registered'):
-        for view in (RFLinkRawStatusView, RFLinkRawEntitiesView, RFLinkRawLogsView):
+        for view in (RFLinkRawStatusView, RFLinkRawEntitiesView, RFLinkRawLogsView, RFLinkRawAliasesView, RFLinkRawFirmwareLabView):
             try: hass.http.register_view(view)
             except Exception: pass
         data['_views_registered'] = True
@@ -207,6 +265,11 @@ async def _async_register_backend(hass: HomeAssistant) -> None:
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await _async_register_backend(hass); return True
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
-    await _async_register_backend(hass); await _async_register_panel(hass); return True
+    await _async_register_backend(hass)
+    await _async_register_panel(hass)
+    await hass.config_entries.async_forward_entry_setups(entry, ['switch'])
+    return True
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
-    async_remove_panel(hass, PANEL_URL_PATH); return True
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ['switch'])
+    async_remove_panel(hass, PANEL_URL_PATH)
+    return unload_ok

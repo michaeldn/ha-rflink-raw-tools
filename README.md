@@ -750,3 +750,82 @@ Async status loaded later, but only the page body refreshed.
 ```
 
 The app now updates the top-right status badge whenever status changes.
+
+
+## Send format and unsupported remote fix
+
+Home Assistant RFLink `send_command` expects:
+
+```text
+device_id: protocol_id_switch
+command: on/off
+```
+
+This build fixes:
+
+```text
+10;NewKaku;0000c6c2;1;ON;  →  device_id=newkaku_0000c6c2_1, command=on
+newkaku_0000c6c2_1;on      →  device_id=newkaku_0000c6c2_1, command=on
+```
+
+It also replaces bare `'id'` / `KeyError('id')` failures with a useful message explaining that the selected entity/protocol may be receive-only, sensor-like, random RF noise, or unsupported by RFLink.
+
+
+## Send examples cleanup
+
+The Send page no longer has clickable fake `10;NewKaku;01a2b3;...` examples.
+
+The examples are now non-clickable documentation only. The send box tells the user to paste a real command from Captured, such as:
+
+```text
+newkaku_0000c6c2_1;on
+```
+
+The backend also normalizes semicolon packets into lower-case Home Assistant RFLink service format:
+
+```text
+10;NewKaku;0000c6c2;1;ON; -> newkaku_0000c6c2_1 + on
+```
+
+
+## Teach / Alias feature
+
+RFLink Raw Tools now has a `Teach` tab.
+
+It can save friendly aliases from Captured RFLink command candidates:
+
+```text
+Captured → Teach as device → friendly name → Save alias
+```
+
+Saved aliases are persisted in:
+
+```text
+/config/rflink_raw_aliases.json
+```
+
+For switch/light-style aliases, the integration also exposes Home Assistant switch entities backed by the saved ON/OFF commands. This does not teach RFLink firmware a new RF protocol; it teaches Home Assistant/RFLink Raw Tools a friendly alias for a decoded/sendable RFLink device id.
+
+
+## Firmware Lab tab
+
+Firmware Lab captures and stores evidence for unsupported remotes.
+
+Workflow:
+
+```text
+Firmware Lab → Start RF debug capture
+Name the button anything you want, for example Digiten ON
+Press the physical remote button
+Store latest RFLink lines for this button
+Repeat for Digiten OFF / other buttons
+Download unsupported-device report
+```
+
+Stored data lives in:
+
+```text
+/config/rflink_raw_firmware_lab.json
+```
+
+This does not teach RFLink firmware a new protocol by itself. It stores labeled RFLink log/pulse evidence and exports a report that can be used for protocol support work.

@@ -5,6 +5,7 @@
     "frontend",
     "http",
     "rflink",
+    "switch",
     "websocket_api"
   ],
   "codeowners": [
