@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-pressed-tab-fix-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-pressed-tab-fix-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-active-tab-state-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-active-tab-state-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -57,7 +57,7 @@ PY
 
 git status --short
 git add -A
-git commit -m "Fix RFLink Raw Tools pressed tab styling" || true
+git commit -m "Fix RFLink Raw Tools active tab state" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"

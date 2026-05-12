@@ -642,3 +642,17 @@ Mouse press / tap: blue
 ```
 
 This keeps the menu from looking stuck while still giving immediate button feedback when pressed.
+
+
+## Active tab state fix
+
+The current tab is blue, and the blue active state now moves correctly when the user changes tabs.
+
+Root cause fixed:
+
+```text
+The page shell rendered the tab buttons once.
+The body changed on tab click, but the tab button classes did not update.
+```
+
+The app now updates the active class for Send / Captured / Debug / Setup every time `_state.tab` changes.

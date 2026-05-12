@@ -44,3 +44,7 @@
 - [x] Active tab no longer has a permanent ring
 - [x] Active tab no longer has a permanent blue fill
 - [x] Tab turns blue only while pressed/tapped
+- [x] Current tab is blue
+- [x] Blue active tab moves when changing tabs
+- [x] Send is not stuck blue unless Send is the current tab
+- [x] Setup is blue only when Setup is the current tab
