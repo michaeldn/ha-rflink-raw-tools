@@ -6,7 +6,7 @@ Version: **0.0.1**
 
 ## UI/UX reset
 
-This software was intented to build the missing GUI for RFLINK in Hoome Asistant. It stops using the Home Assistant device page, generated Lovelace dashboard, fake action switches, and self-updater as the main experience.
+A focused Home Assistant GUI for RFLink setup, capture, send, aliases, and firmware/protocol lab work.
 
 The user experience is now:
 
