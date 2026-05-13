@@ -83,5 +83,6 @@ fi
 echo ""
 echo "All pre-restart checks passed."
 echo "Backup saved to $BACKUP_DIR"
-echo "Restarting Home Assistant Core now..."
-ha core restart
+echo "Installed successfully."
+echo "Home Assistant Core was NOT restarted by this installer to avoid SSH add-on/core_ssh restart noise."
+echo "Restart Home Assistant Core manually from Settings -> System -> Restart Home Assistant."

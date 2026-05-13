@@ -267,9 +267,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     await _async_register_backend(hass)
     await _async_register_panel(hass)
-    await hass.config_entries.async_forward_entry_setups(entry, ['switch'])
     return True
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, ['switch'])
     async_remove_panel(hass, PANEL_URL_PATH)
-    return unload_ok
+    return True

@@ -96,3 +96,11 @@
 - [x] Firmware Lab project input no longer rerenders the screen on every keypress
 - [x] Firmware Lab button/capture name input no longer rerenders the screen on every keypress
 - [x] Teach input fields no longer rerender the screen on every keypress
+- [x] Disabled experimental switch platform forwarding for safe loading
+- [x] Removed switch.py from package
+- [x] Removed switch from manifest after_dependencies
+- [x] Teach/Alias app storage remains available
+- [x] Firmware Lab remains available
+- [x] Check RFLink setup helpers are defined
+- [x] Typing in Teach/Firmware fields does not rerender the screen on each keypress
+- [x] Installer no longer auto-restarts Home Assistant Core

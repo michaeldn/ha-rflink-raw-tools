@@ -843,3 +843,22 @@ Firmware Lab text fields shifted the screen while typing
 `helpers.py` now includes the missing `_config_has_rflink` and `_install_yaml` helpers used by Setup.
 
 Firmware Lab and Teach input handlers now update in-memory state without re-rendering the whole app on every keystroke, so the Project name and Button/capture name fields stay stable while typing.
+
+
+## Safe loader fix
+
+This build disables the experimental Home Assistant switch-platform exposure added by the Teach/Alias workflow, while keeping the app Teach/Alias storage and Firmware Lab UI.
+
+Reason:
+
+```text
+The app must load reliably before adding dynamic Home Assistant entities.
+```
+
+Aliases still save to:
+
+```text
+/config/rflink_raw_aliases.json
+```
+
+The installer no longer auto-restarts Home Assistant Core, which avoids the confusing SSH add-on / `core_ssh` restart notice. Restart Home Assistant manually after installing.
