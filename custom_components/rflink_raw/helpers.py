@@ -66,6 +66,64 @@ def _set_status(hass: HomeAssistant, *, result: str = "", error: str = "", comma
 def _top_key(text: str, key: str) -> bool:
     return bool(re.search(rf"(?m)^{re.escape(key)}:\s*(?:#.*)?$", text))
 
+
+
+def _config_has_rflink(config_path: str) -> bool:
+    """Return True when configuration.yaml has a top-level rflink: block."""
+    path = Path(config_path)
+    if not path.exists():
+        return False
+    text = path.read_text(errors="ignore")
+    return _top_key(text, "rflink")
+
+
+def _install_yaml(config_path: str, port: str) -> dict:
+    """Install a conservative top-level RFLink YAML block if missing."""
+    path = Path(config_path)
+    clean_port = (port or "").strip() or "/dev/ttyUSB0"
+
+    if path.exists():
+        text = path.read_text(errors="ignore")
+    else:
+        text = ""
+
+    if _top_key(text, "rflink"):
+        return {
+            "ok": True,
+            "changed": False,
+            "already_configured": True,
+            "message": (
+                "configuration.yaml already has a top-level rflink: block. "
+                "RFLink is already configured outside RFLink Raw Tools, so no install is needed."
+            ),
+        }
+
+    backup_path = None
+    if path.exists():
+        backup_path = path.with_name(f"{path.name}.rflink_raw_tools_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        shutil.copy2(path, backup_path)
+
+    block = (
+        "\n\n"
+        "# Added by RFLink Raw Tools\n"
+        "rflink:\n"
+        f"  port: {clean_port}\n"
+    )
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text.rstrip() + block + "\n")
+
+    return {
+        "ok": True,
+        "changed": True,
+        "already_configured": False,
+        "backup": str(backup_path) if backup_path else "",
+        "message": (
+            f"Added RFLink YAML using port {clean_port}. "
+            "Restart Home Assistant Core for the RFLink integration to load."
+        ),
+    }
+
 def _normalize_action(action: str) -> str:
     cmd = (action or "").strip().lower()
     if cmd in {"turn_on", "on", "allon"}:

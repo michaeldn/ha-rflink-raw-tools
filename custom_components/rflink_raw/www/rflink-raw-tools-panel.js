@@ -1,5 +1,5 @@
 
-const APP_BUILD_ID = "firmware-lab-tab-20260512";
+const APP_BUILD_ID = "setup-input-stability-fix-20260512";
 class RFLinkRawToolsPanel extends HTMLElement {
   constructor(){super();this._hass=null;this._timer=null;this._autoClearedUnknown=false;this._state={tab:localStorage.getItem("rflink_raw_tools.tab")||"send",busy:false,message:"",error:"",rawCommand:this._migrateOldSavedCommand(),repeat:Number(localStorage.getItem("rflink_raw_tools.repeat")||1),delayMs:Number(localStorage.getItem("rflink_raw_tools.delayMs")||250),port:localStorage.getItem("rflink_raw_tools.port")||"/dev/ttyUSB0",status:{readiness:"checking",readiness_detail:"Loading status…",rfdebug:false,qrfdebug:false},entities:[],logs:[],aliases:[],teach:{id:'',name:'',entity_type:'switch',device_id:'',on_command:'',off_command:'',source_packet:'',notes:''},firmwareLab:{project_name:'Digiten remote',notes:'',active:false,captures:[]},firmwareButtonLabel:'Digiten ON',firmwareButtonNotes:'',firmwareReport:''};}
   set hass(hass){this._hass=hass;if(!this._rendered){this._render();this._rendered=true;}this._loadAll();}
@@ -34,7 +34,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
   _setTab(t){this._state.tab=t;localStorage.setItem("rflink_raw_tools.tab",t);this._state.error="";this._state.message="";this._update();if(t==="captured")this._loadCaptured();if(t==="teach")this._loadAliases();if(t==="firmware")this._loadFirmwareLab();}
 
   _slug(v){return String(v||"").trim().toLowerCase().replace(/[^a-z0-9_]+/g,"_").replace(/^_+|_+$/g,"")||"rflink_alias";}
-  _setTeachField(f,v){this._state.teach={...(this._state.teach||{}),[f]:v};this._update();}
+  _setTeachField(f,v){this._state.teach={...(this._state.teach||{}),[f]:v};}
   _teachFromEntity(idx){const i=(this._state.entities||[])[Number(idx)];if(!i)return;this._state.teach={id:this._slug(i.name||i.send_device_id||i.device_key),name:i.name||i.device_key||i.entity_id,entity_type:"switch",device_id:i.send_device_id||"",on_command:i.candidate_on||"",off_command:i.candidate_off||"",source_packet:"",notes:`Created from ${i.entity_id}`};this._setTab("teach");}
   _teachFromLog(idx){const rows=(this._state.logs||[]).filter(i=>i.raw_packet||i.send_candidate).slice().reverse();const i=rows[Number(idx)];if(!i)return;const cmd=i.send_candidate||"";const device=cmd.includes(";")?cmd.split(";")[0]:"";this._state.teach={id:this._slug(device||i.protocol||"captured_packet"),name:device||i.protocol||"Captured RFLink packet",entity_type:"switch",device_id:device,on_command:cmd.toLowerCase().endsWith(";off")?"":cmd,off_command:cmd.toLowerCase().endsWith(";off")?cmd:"",source_packet:i.raw_packet||"",notes:"Created from captured RFLink packet"};this._setTab("teach");}
   async _saveAlias(){if(!this._state.teach.name||!this._state.teach.device_id){this._state.error="Alias needs a friendly name and RFLink device id.";this._state.message="";this._update();return;}this._state.busy=true;this._state.error="";this._state.message="";this._update();try{const res=await this._hass.callApi("POST","rflink_raw/aliases",this._state.teach);this._state.aliases=res.aliases||[];this._state.message="Alias saved. Home Assistant will expose it as an RFLink Raw Tools switch entity after refresh/reload.";this._state.teach={id:"",name:"",entity_type:"switch",device_id:"",on_command:"",off_command:"",source_packet:"",notes:""};}catch(e){this._state.error=this._safeError(e);}finally{this._state.busy=false;this._update();}}
@@ -43,8 +43,8 @@ class RFLinkRawToolsPanel extends HTMLElement {
   async _testAliasCommand(cmd){if(!cmd){this._state.error="No command available for this alias.";this._update();return;}await this._callService("rflink_raw","send_raw",{raw_command:cmd,repeat:1,delay_ms:250},"Alias command sent.");}
 
 
-  _setLabField(f,v){this._state.firmwareLab={...(this._state.firmwareLab||{}),[f]:v};this._update();}
-  _setFirmwareField(f,v){this._state[f]=v;this._update();}
+  _setLabField(f,v){this._state.firmwareLab={...(this._state.firmwareLab||{}),[f]:v};}
+  _setFirmwareField(f,v){this._state[f]=v;}
   async _firmwarePost(data,success){this._state.busy=true;this._state.error="";this._state.message="";this._update();try{const res=await this._hass.callApi("POST","rflink_raw/firmware_lab",data);this._state.firmwareLab=res.lab||{};this._state.firmwareReport=res.report||"";this._state.message=success||"Firmware Lab updated.";}catch(e){this._state.error=this._safeError(e);}finally{this._state.busy=false;this._update();}}
   async _startFirmwareLab(){const lab=this._state.firmwareLab||{};await this._firmwarePost({action:"start",project_name:lab.project_name||"Digiten remote",notes:lab.notes||"",reset:false},"Firmware Lab capture started. Name each button capture anything you want, then press the remote and capture it.");}
   async _stopFirmwareLab(){await this._firmwarePost({action:"stop"},"Firmware Lab capture stopped.");}
@@ -196,7 +196,7 @@ class RFLinkRawToolsPanel extends HTMLElement {
           <div class="actions"><button data-action="_startFirmwareLab" ${this._state.busy?"disabled":""}>Start RF debug capture</button><button class="secondary" data-action="_stopFirmwareLab">Stop capture</button><button class="secondary" data-action="_saveFirmwareNotes">Save notes</button></div>
           <hr>
           <h3>Store one button press</h3>
-          <p class="help">Type any label you want, press the physical remote button, then click Store latest lines. Repeat for ON/OFF or each button.</p>
+          <p class="help">Type any label you want, press the physical remote button, then click Store latest lines. Typing will not refresh or shift the screen.</p>
           <label>Button/capture name</label><input data-firmware-field="firmwareButtonLabel" value="${this._state.firmwareButtonLabel||"Digiten ON"}" placeholder="Digiten ON">
           <label>Button notes</label><textarea data-firmware-field="firmwareButtonNotes" placeholder="Example: held for 1 second, outlet ON, red LED flashed">${this._state.firmwareButtonNotes||""}</textarea>
           <div class="actions"><button data-action="_captureFirmwareButton" ${this._state.busy?"disabled":""}>Store latest RFLink lines for this button</button><button class="secondary" data-action="_clearFirmwareLab">Clear lab</button></div>

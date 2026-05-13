@@ -90,3 +90,9 @@
 - [x] Firmware lab stores captures in /config/rflink_raw_firmware_lab.json
 - [x] Unsupported-device report export added
 - [x] Protocol notes field added
+- [x] Check RFLink setup no longer references undefined _config_has_rflink
+- [x] helpers.py includes _config_has_rflink
+- [x] helpers.py includes _install_yaml
+- [x] Firmware Lab project input no longer rerenders the screen on every keypress
+- [x] Firmware Lab button/capture name input no longer rerenders the screen on every keypress
+- [x] Teach input fields no longer rerender the screen on every keypress

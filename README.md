@@ -829,3 +829,17 @@ Stored data lives in:
 ```
 
 This does not teach RFLink firmware a new protocol by itself. It stores labeled RFLink log/pulse evidence and exports a report that can be used for protocol support work.
+
+
+## Setup and input stability fix
+
+Fixes two issues:
+
+```text
+Check RFLink setup raised: name '_config_has_rflink' is not defined
+Firmware Lab text fields shifted the screen while typing
+```
+
+`helpers.py` now includes the missing `_config_has_rflink` and `_install_yaml` helpers used by Setup.
+
+Firmware Lab and Teach input handlers now update in-memory state without re-rendering the whole app on every keystroke, so the Project name and Button/capture name fields stay stable while typing.

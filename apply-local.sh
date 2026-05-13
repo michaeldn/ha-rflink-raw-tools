@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO="/Users/michaeldumas/Projects/ha-rflink-raw-tools"
-ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-firmware-lab-tab-onefile.zip"
-EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-firmware-lab-tab-extract"
+ZIP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-setup-and-input-stability-fix-onefile.zip"
+EXTRACT="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-v0.0.1-setup-and-input-stability-fix-extract"
 BACKUP="/Users/michaeldumas/Downloads/ha-rflink-raw-tools-local-backup-$(date +%Y%m%d_%H%M%S)"
 
 if [ ! -d "$REPO/.git" ]; then
@@ -57,7 +57,7 @@ PY
 
 git status --short
 git add -A
-git commit -m "Add RFLink Raw Tools firmware lab tab" || true
+git commit -m "Fix RFLink setup check and Firmware Lab input stability" || true
 git push origin main
 
 echo "Done. Backup saved to $BACKUP"
