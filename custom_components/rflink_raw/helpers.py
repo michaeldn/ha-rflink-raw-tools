@@ -6,14 +6,16 @@ from pathlib import Path
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from .const import DOMAIN, DATA_DEBUG_RF, DATA_DEBUG_QRF, DATA_LAST_COMMAND, DATA_LAST_ERROR, DATA_LAST_RESULT, DATA_LAST_UPDATED
-_LOGGER = logging.getLogger(__name__)
 
+_LOGGER = logging.getLogger(__name__)
 
 RF_DEBUG_LOGGERS = (
     "homeassistant.components.rflink",
     "homeassistant.components.rflink.__init__",
     "rflink",
 )
+
+MANAGED_RFLINK_MARKER = "# Added by RFLink Raw Tools"
 
 
 def _set_rflink_logger_level(hass: HomeAssistant, enabled: bool) -> None:
@@ -40,8 +42,10 @@ def _set_rflink_logger_level(hass: HomeAssistant, enabled: bool) -> None:
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
+
 def _is_unknown(value: object) -> bool:
     return str(value or "").strip() in {"Unknown command.", "Unknown command"}
+
 
 def _friendly(value: object) -> str:
     text = str(value or "").strip()
@@ -55,6 +59,7 @@ def _friendly(value: object) -> str:
         )
     return text
 
+
 def _set_status(hass: HomeAssistant, *, result: str = "", error: str = "", command: str = "") -> None:
     data = hass.data.setdefault(DOMAIN, {})
     data[DATA_LAST_RESULT] = "" if _is_unknown(result) else (result or "")
@@ -63,9 +68,9 @@ def _set_status(hass: HomeAssistant, *, result: str = "", error: str = "", comma
         data[DATA_LAST_COMMAND] = command
     data[DATA_LAST_UPDATED] = _now()
 
+
 def _top_key(text: str, key: str) -> bool:
     return bool(re.search(rf"(?m)^{re.escape(key)}:\s*(?:#.*)?$", text))
-
 
 
 def _config_has_rflink(config_path: str) -> bool:
@@ -105,7 +110,7 @@ def _install_yaml(config_path: str, port: str) -> dict:
 
     block = (
         "\n\n"
-        "# Added by RFLink Raw Tools\n"
+        f"{MANAGED_RFLINK_MARKER}\n"
         "rflink:\n"
         f"  port: {clean_port}\n"
     )
@@ -123,6 +128,45 @@ def _install_yaml(config_path: str, port: str) -> dict:
             "Restart Home Assistant Core for the RFLink integration to load."
         ),
     }
+
+
+def _remove_yaml(config_path: str) -> dict:
+    """Remove only the RFLink YAML block that RFLink Raw Tools created."""
+    path = Path(config_path)
+    if not path.exists():
+        return {"ok": True, "changed": False, "message": "configuration.yaml was not found."}
+
+    text = path.read_text(errors="ignore")
+    if MANAGED_RFLINK_MARKER not in text:
+        return {
+            "ok": False,
+            "changed": False,
+            "message": (
+                "RFLink YAML was not removed because the rflink: block was not created by RFLink Raw Tools. "
+                "Edit configuration.yaml manually if you intentionally want to remove your existing RFLink setup."
+            ),
+        }
+
+    pattern = re.compile(
+        r"\n*# Added by RFLink Raw Tools\n"
+        r"rflink:\n"
+        r"(?:[ \t]+[^\n]*\n?)*",
+        re.MULTILINE,
+    )
+    new_text, count = pattern.subn("\n", text, count=1)
+    if not count:
+        return {"ok": False, "changed": False, "message": "Could not find the managed RFLink YAML block to remove."}
+
+    backup_path = path.with_name(f"{path.name}.rflink_raw_tools_remove_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+    shutil.copy2(path, backup_path)
+    path.write_text(new_text.rstrip() + "\n")
+    return {
+        "ok": True,
+        "changed": True,
+        "backup": str(backup_path),
+        "message": "Removed the RFLink YAML block created by RFLink Raw Tools. Restart Home Assistant Core for this to take effect.",
+    }
+
 
 def _normalize_action(action: str) -> str:
     cmd = (action or "").strip().lower()
@@ -164,19 +208,25 @@ def _parse(raw: str) -> tuple[str, str]:
         return pieces[0].strip(), _normalize_action(pieces[-1])
     raise HomeAssistantError("Command needs both a device id and action, for example: newkaku_0000c6c2_1;on")
 
+
 def _status_kind(device_id: str, command: str) -> str | None:
-    d, c = (device_id or '').strip().lower(), (command or '').strip().lower()
-    if d == 'ping' and not c: return 'status'
-    if d == 'version' and not c: return 'version'
+    d, c = (device_id or "").strip().lower(), (command or "").strip().lower()
+    if d == "ping" and not c:
+        return "status"
+    if d == "version" and not c:
+        return "version"
     return None
 
+
 async def _call_rflink(hass: HomeAssistant, device_id: str, command: str) -> None:
-    payload = {'device_id': device_id}
-    if command: payload['command'] = command
-    await hass.services.async_call('rflink', 'send_command', payload, blocking=True)
+    payload = {"device_id": device_id}
+    if command:
+        payload["command"] = command
+    await hass.services.async_call("rflink", "send_command", payload, blocking=True)
+
 
 async def async_send_protocol_command(hass: HomeAssistant, device_id: str, command: str, repeat: int = 1, delay_ms: int = 250) -> dict:
-    device, cmd = (device_id or '').strip(), _normalize_action(command)
+    device, cmd = (device_id or "").strip(), _normalize_action(command)
     if not device:
         raise HomeAssistantError("Device ID is required.")
     if not cmd:
@@ -184,28 +234,29 @@ async def async_send_protocol_command(hass: HomeAssistant, device_id: str, comma
     if ";" in device:
         device, cmd = _parse(f"{device};{cmd}")
     kind = _status_kind(device, cmd)
-    if kind == 'status':
+    if kind == "status":
         return await async_check_rflink_status(hass)
-    if kind == 'version':
+    if kind == "version":
         return await async_check_version_support(hass)
-    if 'rflink' not in hass.config.components:
+    if "rflink" not in hass.config.components:
         msg = "Home Assistant RFLink is not loaded. Use Setup to install/check RFLink, then restart Home Assistant."
-        _set_status(hass, error=msg, command=f"{device};{cmd}".strip(';'))
+        _set_status(hass, error=msg, command=f"{device};{cmd}".strip(";"))
         raise HomeAssistantError(msg)
     repeat, delay_ms = max(1, int(repeat or 1)), max(0, int(delay_ms or 0))
     sent = []
     try:
         for i in range(repeat):
             await _call_rflink(hass, device, cmd)
-            sent.append({'device_id': device, 'command': cmd})
+            sent.append({"device_id": device, "command": cmd})
             if i < repeat - 1 and delay_ms:
                 await asyncio.sleep(delay_ms / 1000)
     except Exception as err:
         msg = _friendly(err)
-        _set_status(hass, error=msg, command=f"{device};{cmd}".strip(';'))
+        _set_status(hass, error=msg, command=f"{device};{cmd}".strip(";"))
         raise HomeAssistantError(msg) from err
-    _set_status(hass, result=f"Sent {repeat}x: {device} {cmd}".strip(), command=f"{device};{cmd}".strip(';'))
-    return {'ok': True, 'sent': sent, 'repeat': repeat, 'delay_ms': delay_ms, 'device_id': device, 'command': cmd}
+    _set_status(hass, result=f"Sent {repeat}x: {device} {cmd}".strip(), command=f"{device};{cmd}".strip(";"))
+    return {"ok": True, "sent": sent, "repeat": repeat, "delay_ms": delay_ms, "device_id": device, "command": cmd}
+
 
 async def async_send_raw_command(hass: HomeAssistant, raw_command: str, repeat: int = 1, delay_ms: int = 250) -> dict:
     device, cmd = _parse(raw_command)
@@ -214,23 +265,26 @@ async def async_send_raw_command(hass: HomeAssistant, raw_command: str, repeat: 
         _set_status(hass, result=f"Sent RFLink command: {device};{cmd}", command=f"{device};{cmd}")
     return result
 
+
 async def async_check_rflink_status(hass: HomeAssistant) -> dict:
-    loaded = 'rflink' in hass.config.components
-    configured = await hass.async_add_executor_job(_config_has_rflink, hass.config.path('configuration.yaml'))
+    loaded = "rflink" in hass.config.components
+    configured = await hass.async_add_executor_job(_config_has_rflink, hass.config.path("configuration.yaml"))
     if loaded:
         msg = "Home Assistant RFLink is loaded. Use Send with a learned device command for hardware testing."
     elif configured:
         msg = "RFLink is configured in YAML, but Home Assistant has not loaded it yet. Restart Home Assistant."
     else:
-        msg = "RFLink is not configured. Use Setup -> Install RFLink YAML."
-    _set_status(hass, result=msg, command='CHECK_STATUS')
-    return {'ok': bool(loaded), 'loaded': loaded, 'configured': configured, 'message': msg}
+        msg = "RFLink is not configured. Use Configuration -> Install RFLink YAML."
+    _set_status(hass, result=msg, command="CHECK_STATUS")
+    return {"ok": bool(loaded), "loaded": loaded, "configured": configured, "message": msg}
+
 
 async def async_check_version_support(hass: HomeAssistant) -> dict:
-    loaded = 'rflink' in hass.config.components
-    msg = "RFLink is loaded. Generic gateway version is not exposed on all HA RFLink versions." if loaded else "RFLink is not loaded yet. Use Setup to configure it, then restart Home Assistant."
-    _set_status(hass, result=msg, command='CHECK_VERSION')
-    return {'ok': bool(loaded), 'loaded': loaded, 'message': msg}
+    loaded = "rflink" in hass.config.components
+    msg = "RFLink is loaded. Generic gateway version is not exposed on all HA RFLink versions." if loaded else "RFLink is not loaded yet. Use Configuration to configure it, then restart Home Assistant."
+    _set_status(hass, result=msg, command="CHECK_VERSION")
+    return {"ok": bool(loaded), "loaded": loaded, "message": msg}
+
 
 async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -> dict:
     """Set RFLink logging state without sending invalid RFLink gateway commands."""
@@ -263,22 +317,33 @@ async def async_set_debug(hass: HomeAssistant, debug_type: str, enabled: bool) -
         )
 
     _set_status(hass, result=message, command=f"{kind};logger_{state_word}")
-    return {
-        "ok": True,
-        "local_state": bool(enabled),
-        "message": message,
-        "logger_mode": True,
-        "gateway_command_sent": False,
-    }
+    return {"ok": True, "local_state": bool(enabled), "message": message, "logger_mode": True, "gateway_command_sent": False}
 
 
 async def async_install_rflink_yaml(hass: HomeAssistant, port: str) -> dict:
-    clean_port = (port or '').strip() or '/dev/ttyUSB0'
+    clean_port = (port or "").strip() or "/dev/ttyUSB0"
     try:
-        result = await hass.async_add_executor_job(_install_yaml, hass.config.path('configuration.yaml'), clean_port)
-        _set_status(hass, result=result['message'], command='INSTALL_RFLINK')
+        result = await hass.async_add_executor_job(_install_yaml, hass.config.path("configuration.yaml"), clean_port)
+        _set_status(hass, result=result["message"], command="INSTALL_RFLINK")
         return result
     except Exception as err:
         msg = f"Could not install RFLink YAML: {err}"
-        _set_status(hass, error=msg, command='INSTALL_RFLINK')
+        _set_status(hass, error=msg, command="INSTALL_RFLINK")
+        raise HomeAssistantError(msg) from err
+
+
+async def async_remove_rflink_yaml(hass: HomeAssistant) -> dict:
+    try:
+        result = await hass.async_add_executor_job(_remove_yaml, hass.config.path("configuration.yaml"))
+        if result.get("ok"):
+            _set_status(hass, result=result["message"], command="REMOVE_RFLINK")
+        else:
+            _set_status(hass, error=result["message"], command="REMOVE_RFLINK")
+            raise HomeAssistantError(result["message"])
+        return result
+    except HomeAssistantError:
+        raise
+    except Exception as err:
+        msg = f"Could not remove RFLink YAML: {err}"
+        _set_status(hass, error=msg, command="REMOVE_RFLINK")
         raise HomeAssistantError(msg) from err
