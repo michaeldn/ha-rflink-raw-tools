@@ -2,8 +2,8 @@
 
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
-VERSION = "0.0.1"
-PANEL_BUILD = "safe-loader-fix-20260512"
+VERSION = "0.0.2"
+PANEL_BUILD = "v002-log-ui-only-20260517"
 PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
