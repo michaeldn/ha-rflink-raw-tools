@@ -234,7 +234,7 @@ class RFLinkRawLogsView(HomeAssistantView):
 async def _async_register_panel(hass: HomeAssistant) -> None:
     await hass.http.async_register_static_paths([StaticPathConfig(STATIC_URL, str(Path(__file__).parent/'www'), False)])
     async_remove_panel(hass, PANEL_URL_PATH)
-    async_register_built_in_panel(hass, component_name='custom', sidebar_title=PANEL_TITLE, sidebar_icon=PANEL_ICON, frontend_url_path=PANEL_URL_PATH, require_admin=False, config={'_panel_custom': {'name': 'rflink-raw-tools-panel', 'module_url': PANEL_MODULE, 'embed_iframe': False}})
+    async_register_built_in_panel(hass, component_name='custom', sidebar_title=None, sidebar_icon=None, frontend_url_path=PANEL_URL_PATH, require_admin=False, config={'_panel_custom': {'name': 'rflink-raw-tools-panel', 'module_url': PANEL_MODULE, 'embed_iframe': False}})
 
 async def _async_register_backend(hass: HomeAssistant) -> None:
     data = hass.data.setdefault(DOMAIN, {})
