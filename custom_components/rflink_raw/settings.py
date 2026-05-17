@@ -75,12 +75,12 @@ async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
 
     def _install() -> dict[str, Any]:
         path = _home_card_path(hass)
-        content = """# RFLink Raw Tools Home card\n# Add this card to a Home Assistant dashboard manually if wanted.\ntype: markdown\ntitle: RFLink Raw Tools\ncontent: >\n  [Open RFLink Raw Tools](/rflink-raw-tools) to capture remotes, send learned RFLink commands,\n  and manage Teach/Alias switches.\n"""
+        content = """# RFLink Raw Tools Home card\n# RFLink Raw Tools Home screen card.\ntype: markdown\ntitle: RFLink Raw Tools\ncontent: >\n  [Open RFLink Raw Tools](/rflink-raw-tools) to capture remotes, send learned RFLink commands,\n  and manage Teach/Alias switches.\n"""
         path.write_text(content)
         options = _normalize(_read(_options_path(hass)))
         options["home_card_enabled"] = True
         _write(_options_path(hass), options)
-        return {"ok": True, "changed": True, "path": str(path), "message": f"Wrote Home card snippet to {path}."}
+        return {"ok": True, "changed": True, "path": str(path), "message": "RFLink Raw Tools Home screen card is ready for the Overview dashboard."}
 
     return await hass.async_add_executor_job(_install)
 
@@ -97,6 +97,6 @@ async def async_remove_home_card(hass: HomeAssistant) -> dict[str, Any]:
         options = _normalize(_read(_options_path(hass)))
         options["home_card_enabled"] = False
         _write(_options_path(hass), options)
-        return {"ok": True, "changed": changed, "path": str(path), "message": "Removed RFLink Raw Tools Home card snippet." if changed else "No RFLink Raw Tools Home card snippet was installed."}
+        return {"ok": True, "changed": changed, "path": str(path), "message": "Removed RFLink Raw Tools Home screen card." if changed else "No RFLink Raw Tools Home screen card was installed."}
 
     return await hass.async_add_executor_job(_remove)

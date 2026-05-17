@@ -3,7 +3,7 @@
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
 VERSION = "0.0.2"
-PANEL_BUILD = "v002-addon-controls-20260517"
+PANEL_BUILD = "v002-home-status-top-fix-20260517"
 PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
