@@ -266,7 +266,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await _async_register_backend(hass); return True
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     await _async_register_backend(hass)
-    await _async_register_panel(hass)
+    async_remove_panel(hass, PANEL_URL_PATH)
     return True
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
     async_remove_panel(hass, PANEL_URL_PATH)

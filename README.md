@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="120"></p>
 
-Version: **0.0.1**
+Version: **0.0.2**
 
 ## UI/UX reset
 
