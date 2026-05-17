@@ -7,7 +7,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.frontend import async_register_built_in_panel, async_remove_panel
 from homeassistant.components.http import HomeAssistantView, StaticPathConfig
-from homeassistant.const import CONF_COMMAND, CONF_DEVICE_ID
+from homeassistant.const import CONF_COMMAND, CONF_DEVICE_ID, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
@@ -23,6 +23,7 @@ SEND_RAW_SCHEMA = vol.Schema({vol.Required('raw_command'): cv.string, vol.Option
 SEND_PROTOCOL_SCHEMA = vol.Schema({vol.Required(CONF_DEVICE_ID): cv.string, vol.Required(CONF_COMMAND): cv.string, vol.Optional('repeat', default=1): vol.Coerce(int), vol.Optional('delay_ms', default=250): vol.Coerce(int)})
 SET_DEBUG_SCHEMA = vol.Schema({vol.Required('debug_type'): vol.In(['rfdebug','qrfdebug']), vol.Required('enabled'): cv.boolean})
 INSTALL_RFLINK_SCHEMA = vol.Schema({vol.Optional('port', default='/dev/ttyUSB0'): cv.string})
+PLATFORMS = [Platform.SWITCH]
 
 def _is_unknown(value: Any) -> bool:
     return str(value or '').strip() in {'Unknown command.', 'Unknown command'}
@@ -267,7 +268,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     await _async_register_backend(hass)
     await _async_register_panel(hass)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     async_remove_panel(hass, PANEL_URL_PATH)
-    return True
+    return unload_ok

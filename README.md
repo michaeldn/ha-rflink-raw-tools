@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="120"></p>
 
-Version: **0.0.1**
+Version: **0.0.2**
 
 ## UI/UX reset
 
@@ -862,3 +862,10 @@ Aliases still save to:
 ```
 
 The installer no longer auto-restarts Home Assistant Core, which avoids the confusing SSH add-on / `core_ssh` restart notice. Restart Home Assistant manually after installing.
+
+
+## Alias-backed Home Assistant switches
+
+Version 0.0.2 restores Home Assistant switch entities for Teach/Alias records.
+
+Aliases saved with both ON and OFF commands are exposed as optimistic Home Assistant switches. RFLink does not always confirm physical outlet state, so the switch state reflects the last command sent from Home Assistant.
