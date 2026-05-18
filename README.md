@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/logo.png" alt="RFLink Raw Tools" width="120"></p>
 
-Version: **0.0.1**
+Version: **0.0.3**
 
 ## UI/UX reset
 
@@ -862,3 +862,8 @@ Aliases still save to:
 ```
 
 The installer no longer auto-restarts Home Assistant Core, which avoids the confusing SSH add-on / `core_ssh` restart notice. Restart Home Assistant manually after installing.
+
+
+## Version 0.0.3
+
+Version 0.0.3 keeps the Info / Configuration / Log app model, keeps alias-backed Home Assistant switches, and removes automatic Overview dashboard editing. The Configuration tab now provides a copyable Manual card YAML shortcut instead of modifying `.storage/lovelace`.
