@@ -280,22 +280,22 @@ async def async_set_options(hass: HomeAssistant, updates: dict[str, Any]) -> dic
 
 
 async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
-    def _install() -> dict[str, Any]:
-        result = _install_overview_card(hass)
-        options = _normalize(_read(_options_path(hass)))
-        options["home_card_enabled"] = bool(result.get("ok", False))
-        _write(_options_path(hass), options)
-        return result
-
-    return await hass.async_add_executor_job(_install)
+    """Compatibility no-op. Overview dashboard auto-editing was removed in v0.0.3."""
+    options = await async_set_options(hass, {"home_card_enabled": False})
+    return {
+        "ok": True,
+        "changed": False,
+        "options": options,
+        "message": "Overview dashboard auto-editing was removed in v0.0.3. Open RFLink Raw Tools from the sidebar or /rflink-raw-tools.",
+    }
 
 
 async def async_remove_home_card(hass: HomeAssistant) -> dict[str, Any]:
-    def _remove() -> dict[str, Any]:
-        result = _remove_overview_card(hass)
-        options = _normalize(_read(_options_path(hass)))
-        options["home_card_enabled"] = False
-        _write(_options_path(hass), options)
-        return result
-
-    return await hass.async_add_executor_job(_remove)
+    """Compatibility no-op. Overview dashboard auto-editing was removed in v0.0.3."""
+    options = await async_set_options(hass, {"home_card_enabled": False})
+    return {
+        "ok": True,
+        "changed": False,
+        "options": options,
+        "message": "Overview dashboard auto-editing was removed in v0.0.3.",
+    }
