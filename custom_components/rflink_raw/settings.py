@@ -109,33 +109,38 @@ async def async_set_options(hass: HomeAssistant, updates: dict[str, Any]) -> dic
 
 
 async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
-    """Compatibility helper: write copyable YAML only; never edit Lovelace storage."""
-    def _install() -> dict[str, Any]:
-        result = _write_fallback_card(hass)
-        options = _normalize(_read(_options_path(hass)))
-        options["home_card_enabled"] = False
-        _write(_options_path(hass), options)
-        return result
+    """Compatibility no-op.
 
-    return await hass.async_add_executor_job(_install)
+    Automatic Overview dashboard editing was removed in v0.0.3 because Home Assistant's
+    automatic Overview dashboard is not reliably writable by custom integrations.
+    """
+    try:
+        options = await async_set_options(hass, {"home_card_enabled": False})
+    except Exception:
+        options = {}
+    return {
+        "ok": True,
+        "changed": False,
+        "options": options,
+        "message": (
+            "Overview dashboard auto-editing was removed in v0.0.3. "
+            "Use Configuration -> Dashboard shortcut -> Copy card YAML, then paste it into a Manual card."
+        ),
+    }
 
 
 async def async_remove_home_card(hass: HomeAssistant) -> dict[str, Any]:
-    """Compatibility helper: remove only the copied YAML file, not dashboards."""
-    def _remove() -> dict[str, Any]:
-        snippet = _home_card_path(hass)
-        changed = False
-        if snippet.exists():
-            snippet.unlink()
-            changed = True
-        options = _normalize(_read(_options_path(hass)))
-        options["home_card_enabled"] = False
-        _write(_options_path(hass), options)
-        return {
-            "ok": True,
-            "changed": changed,
-            "path": str(snippet),
-            "message": "Removed the copied dashboard shortcut YAML file." if changed else "No copied dashboard shortcut YAML file was found.",
-        }
+    """Compatibility no-op.
 
-    return await hass.async_add_executor_job(_remove)
+    Automatic Overview dashboard editing was removed in v0.0.3.
+    """
+    try:
+        options = await async_set_options(hass, {"home_card_enabled": False})
+    except Exception:
+        options = {}
+    return {
+        "ok": True,
+        "changed": False,
+        "options": options,
+        "message": "Overview dashboard auto-editing was removed in v0.0.3.",
+    }
