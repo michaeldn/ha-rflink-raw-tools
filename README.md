@@ -1,8 +1,8 @@
 # RFLink Raw Tools
 
-<p align="center"><img src="https://raw.githubusercontent.com/michaeldn/ha-rflink-raw-tools/main/assets/logo.png" alt="RFLink Raw Tools" width="120"></p>
+<p align="center"><img src="https://github.com/michaeldn/ha-rflink-raw-tools/raw/main/assets/logo.png" alt="RFLink Raw Tools" width="120"></p>
 
-Version: **0.0.3**
+Version: **0.0.4**
 
 ## UI/UX reset
 

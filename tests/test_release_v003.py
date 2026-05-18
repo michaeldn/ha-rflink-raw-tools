@@ -18,11 +18,11 @@ def test_manifest_and_build_are_v003():
 
     assert manifest["domain"] == "rflink_raw"
     assert manifest["name"] == "RFLink Raw Tools"
-    assert manifest["version"] == "0.0.3"
+    assert manifest["version"] == "0.0.4"
 
-    assert 'VERSION = "0.0.3"' in const
-    assert 'PANEL_BUILD = "v003-dashboard-shortcut-helper-20260517"' in const
-    assert 'APP_BUILD_ID = "v003-dashboard-shortcut-helper-20260517"' in panel
+    assert 'VERSION = "0.0.4"' in const
+    assert 'PANEL_BUILD = "v004-hacs-readme-logo-20260517"' in const
+    assert 'APP_BUILD_ID = "v004-hacs-readme-logo-20260517"' in panel
     assert "?v={PANEL_BUILD}" in const
 
 
@@ -49,14 +49,14 @@ def test_dashboard_shortcut_is_manual_not_auto_overview_editing():
     assert "Copy card YAML" in panel
     assert "Open Overview" in panel
     assert "Open RFLink Raw Tools" in panel
-    assert "RFLink Raw Tools does not edit Overview automatically in v0.0.3" in panel
+    assert "RFLink Raw Tools does not edit Overview automatically in v0.0.4" in panel
 
     assert 'data-action="_installHomeCard"' not in panel
     assert 'data-action="_removeHomeCard"' not in panel
     assert "Add to Overview" not in panel
     assert "Remove from Overview" not in panel
 
-    assert "Automatic Overview dashboard editing was removed in v0.0.3" in settings
+    assert "Automatic Overview dashboard editing was removed in v0.0.4" in settings
     assert "_install_overview_card" not in settings
     assert "_remove_overview_card" not in settings
 

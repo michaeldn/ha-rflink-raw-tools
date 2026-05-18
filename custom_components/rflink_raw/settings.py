@@ -80,7 +80,7 @@ def _write_fallback_card(hass: HomeAssistant) -> dict[str, Any]:
         "changed": True,
         "path": str(snippet),
         "message": (
-            "Dashboard auto-editing was removed in v0.0.3. "
+            "Dashboard auto-editing was removed in v0.0.4. "
             "Copy the dashboard shortcut YAML from Configuration and paste it into a Manual card. "
             f"A copy was also written to {snippet}."
         ),
@@ -111,7 +111,7 @@ async def async_set_options(hass: HomeAssistant, updates: dict[str, Any]) -> dic
 async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
     """Compatibility no-op.
 
-    Automatic Overview dashboard editing was removed in v0.0.3 because Home Assistant's
+    Automatic Overview dashboard editing was removed in v0.0.4 because Home Assistant's
     automatic Overview dashboard is not reliably writable by custom integrations.
     """
     try:
@@ -123,7 +123,7 @@ async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
         "changed": False,
         "options": options,
         "message": (
-            "Overview dashboard auto-editing was removed in v0.0.3. "
+            "Overview dashboard auto-editing was removed in v0.0.4. "
             "Use Configuration -> Dashboard shortcut -> Copy card YAML, then paste it into a Manual card."
         ),
     }
@@ -132,7 +132,7 @@ async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
 async def async_remove_home_card(hass: HomeAssistant) -> dict[str, Any]:
     """Compatibility no-op.
 
-    Automatic Overview dashboard editing was removed in v0.0.3.
+    Automatic Overview dashboard editing was removed in v0.0.4.
     """
     try:
         options = await async_set_options(hass, {"home_card_enabled": False})
@@ -142,5 +142,5 @@ async def async_remove_home_card(hass: HomeAssistant) -> dict[str, Any]:
         "ok": True,
         "changed": False,
         "options": options,
-        "message": "Overview dashboard auto-editing was removed in v0.0.3.",
+        "message": "Overview dashboard auto-editing was removed in v0.0.4.",
     }
