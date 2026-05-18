@@ -12,7 +12,7 @@ def test_no_cache_artifacts():
 def test_manifest_version_and_switch_dependency():
     manifest = json.loads((ROOT / "custom_components/rflink_raw/manifest.json").read_text())
     assert manifest["domain"] == "rflink_raw"
-    assert manifest["version"] == "0.0.2"
+    assert manifest["version"] == "0.0.3"
     assert manifest["config_flow"] is True
     assert "switch" in manifest["after_dependencies"]
 
