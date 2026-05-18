@@ -81,8 +81,18 @@ jobs:
 
           if manifest["domain"] != "rflink_raw":
               raise SystemExit("Unexpected manifest domain")
-          if manifest["version"] != "0.0.1":
-              raise SystemExit("Version must remain 0.0.1 until explicit release bump")
+          import os
+          import re
+
+          version = manifest["version"]
+          if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+              raise SystemExit(f"Manifest version must be semantic x.y.z, got {version!r}")
+
+          ref = os.environ.get("GITHUB_REF", "")
+          if ref.startswith("refs/tags/v"):
+              tag_version = ref.rsplit("/", 1)[-1].removeprefix("v")
+              if version != tag_version:
+                  raise SystemExit(f"Manifest version {version} must match release tag v{tag_version}")
           if hacs.get("content_in_root") is not False:
               raise SystemExit("hacs.json content_in_root must be false")
           if hacs.get("name") != "RFLink Raw Tools":
