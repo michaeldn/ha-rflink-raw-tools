@@ -2,8 +2,8 @@
 
 DOMAIN = "rflink_raw"
 NAME = "RFLink Raw Tools"
-VERSION = "0.0.3"
-PANEL_BUILD = "v003-dashboard-shortcut-helper-20260517"
+VERSION = "0.0.4"
+PANEL_BUILD = "v004-hacs-readme-logo-20260517"
 PANEL_URL_PATH = "rflink-raw-tools"
 PANEL_TITLE = "RFLink Raw Tools"
 PANEL_ICON = "mdi:radio-tower"
