@@ -29,7 +29,11 @@ def _home_card_path(hass: HomeAssistant) -> Path:
     return Path(hass.config.path(HOME_CARD_FILE))
 
 
-def _lovelace_path(hass: HomeAssistant) -> Path:
+def _storage_dir(hass: HomeAssistant) -> Path:
+    return Path(hass.config.path(".storage"))
+
+
+def _default_lovelace_path(hass: HomeAssistant) -> Path:
     return Path(hass.config.path(".storage/lovelace"))
 
 
@@ -91,6 +95,37 @@ def _find_config(data: dict[str, Any]) -> dict[str, Any]:
     return config
 
 
+def _looks_like_lovelace_config(path: Path) -> bool:
+    if not path.exists() or not path.is_file():
+        return False
+    name = path.name
+    if name in {"lovelace_dashboards", "lovelace.resources", "lovelace_resources"}:
+        return False
+    if name.startswith("lovelace_resources") or name.startswith("lovelace_dashboards"):
+        return False
+    try:
+        data = json.loads(path.read_text())
+        config = _find_config(data)
+    except Exception:
+        return False
+    return isinstance(config.get("views", []), list)
+
+
+def _lovelace_candidates(hass: HomeAssistant) -> list[Path]:
+    storage = _storage_dir(hass)
+    candidates: list[Path] = []
+    default = _default_lovelace_path(hass)
+    if _looks_like_lovelace_config(default):
+        candidates.append(default)
+    if storage.exists():
+        for path in sorted(storage.glob("lovelace*")):
+            if path == default:
+                continue
+            if _looks_like_lovelace_config(path):
+                candidates.append(path)
+    return candidates
+
+
 def _first_view(config: dict[str, Any]) -> dict[str, Any]:
     views = config.setdefault("views", [])
     if not isinstance(views, list):
@@ -118,20 +153,33 @@ def _card_containers(view: dict[str, Any]) -> list[list[Any]]:
     return containers
 
 
-def _install_overview_card(hass: HomeAssistant) -> dict[str, Any]:
-    lovelace = _lovelace_path(hass)
-    if not lovelace.exists():
-        snippet = _home_card_path(hass)
-        snippet.write_text(
-            "type: button\n"
-            "name: RFLink Raw Tools\n"
-            "icon: mdi:radio-tower\n"
-            "tap_action:\n"
-            "  action: navigate\n"
-            "  navigation_path: /rflink-raw-tools\n"
-        )
-        return {"ok": False, "changed": True, "path": str(snippet), "message": "Default Overview dashboard storage was not found. Wrote a fallback RFLink card file instead."}
+def _write_fallback_card(hass: HomeAssistant) -> dict[str, Any]:
+    snippet = _home_card_path(hass)
+    snippet.write_text(
+        "type: button\n"
+        "name: RFLink Raw Tools\n"
+        "icon: mdi:radio-tower\n"
+        "tap_action:\n"
+        "  action: navigate\n"
+        "  navigation_path: /rflink-raw-tools\n"
+    )
+    return {
+        "ok": False,
+        "changed": True,
+        "path": str(snippet),
+        "message": (
+            "Default Overview dashboard storage was not found. Your Overview is likely Home Assistant's automatic dashboard, "
+            f"which custom integrations cannot safely edit directly. Wrote the fallback card YAML to {snippet}."
+        ),
+    }
 
+
+def _install_overview_card(hass: HomeAssistant) -> dict[str, Any]:
+    candidates = _lovelace_candidates(hass)
+    if not candidates:
+        return _write_fallback_card(hass)
+
+    lovelace = candidates[0]
     backup = lovelace.with_name(f"{lovelace.name}.rflink_raw_tools_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     shutil.copy2(lovelace, backup)
 
@@ -145,21 +193,22 @@ def _install_overview_card(hass: HomeAssistant) -> dict[str, Any]:
 
     for cards in containers:
         if any(_is_rflink_card(card) for card in cards):
-            return {"ok": True, "changed": False, "backup": str(backup), "message": "RFLink Raw Tools is already on the Overview dashboard."}
+            return {"ok": True, "changed": False, "dashboard": str(lovelace), "backup": str(backup), "message": "RFLink Raw Tools is already on the Overview dashboard."}
 
     containers[0].append(_overview_card())
     lovelace.write_text(json.dumps(data, indent=2, sort_keys=False) + "\n")
-    return {"ok": True, "changed": True, "backup": str(backup), "message": "Added RFLink Raw Tools to the Overview dashboard. Refresh Overview if it is already open."}
+    return {"ok": True, "changed": True, "dashboard": str(lovelace), "backup": str(backup), "message": "Added RFLink Raw Tools to the Overview dashboard. Refresh Overview if it is already open."}
 
 
 def _remove_overview_card(hass: HomeAssistant) -> dict[str, Any]:
-    lovelace = _lovelace_path(hass)
     changed = False
-    if lovelace.exists():
-        backup = lovelace.with_name(f"{lovelace.name}.rflink_raw_tools_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-        shutil.copy2(lovelace, backup)
+    touched: list[str] = []
+    backups: list[str] = []
+
+    for lovelace in _lovelace_candidates(hass):
         data = json.loads(lovelace.read_text())
         config = _find_config(data)
+        file_changed = False
         views = config.get("views", [])
         if isinstance(views, list):
             for view in views:
@@ -168,16 +217,28 @@ def _remove_overview_card(hass: HomeAssistant) -> dict[str, Any]:
                 for cards in _card_containers(view):
                     before = len(cards)
                     cards[:] = [card for card in cards if not _is_rflink_card(card)]
-                    changed = changed or (len(cards) != before)
-        if changed:
+                    file_changed = file_changed or (len(cards) != before)
+        if file_changed:
+            backup = lovelace.with_name(f"{lovelace.name}.rflink_raw_tools_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            shutil.copy2(lovelace, backup)
             lovelace.write_text(json.dumps(data, indent=2, sort_keys=False) + "\n")
-        return {"ok": True, "changed": changed, "backup": str(backup), "message": "Removed RFLink Raw Tools from the Overview dashboard." if changed else "No RFLink Raw Tools Overview dashboard card was found."}
+            changed = True
+            touched.append(str(lovelace))
+            backups.append(str(backup))
 
     snippet = _home_card_path(hass)
     if snippet.exists():
         snippet.unlink()
         changed = True
-    return {"ok": True, "changed": changed, "message": "Removed RFLink Raw Tools Home card file." if changed else "No RFLink Raw Tools Overview dashboard card was found."}
+        touched.append(str(snippet))
+
+    return {
+        "ok": True,
+        "changed": changed,
+        "dashboard": ", ".join(touched),
+        "backup": ", ".join(backups),
+        "message": "Removed RFLink Raw Tools from Overview/dashboard storage." if changed else "No RFLink Raw Tools Overview dashboard card was found.",
+    }
 
 
 async def async_get_options(hass: HomeAssistant) -> dict[str, bool]:
@@ -185,8 +246,7 @@ async def async_get_options(hass: HomeAssistant) -> dict[str, bool]:
     normalized = _normalize(options)
 
     def _installed() -> bool:
-        lovelace = _lovelace_path(hass)
-        if lovelace.exists():
+        for lovelace in _lovelace_candidates(hass):
             try:
                 data = json.loads(lovelace.read_text())
                 config = _find_config(data)
@@ -198,7 +258,7 @@ async def async_get_options(hass: HomeAssistant) -> dict[str, bool]:
                                 if any(_is_rflink_card(card) for card in cards):
                                     return True
             except Exception:
-                return False
+                continue
         return _home_card_path(hass).exists()
 
     normalized["home_card_installed"] = await hass.async_add_executor_job(_installed)
@@ -223,7 +283,7 @@ async def async_install_home_card(hass: HomeAssistant) -> dict[str, Any]:
     def _install() -> dict[str, Any]:
         result = _install_overview_card(hass)
         options = _normalize(_read(_options_path(hass)))
-        options["home_card_enabled"] = bool(result.get("ok", True))
+        options["home_card_enabled"] = bool(result.get("ok", False))
         _write(_options_path(hass), options)
         return result
 
